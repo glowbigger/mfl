@@ -1,0 +1,7 @@
+// this should return no errors and checks all possible tokens
+// ignore this
+asdfasdf
+123123.12323
+() {} , . - + ; *
+! != = == < <= > >= /
+"string" ""
