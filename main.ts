@@ -1,7 +1,13 @@
 // TODO interactive mode
 import * as fs from 'fs';
-import { Scanner } from './Scanner';
-// import { Token } from './Token';
+import Scanner from './scanner';
+import Parser from './parser';
+import AstPrinter from './astPrinter';
+
+// import { TokenType } from './tokenType';
+// import { Token } from './token';
+// import * as expr from './expr';
+// import AstPrinter from './astPrinter';
 
 let hadError = false;
 let hadRuntimeError = false;
@@ -10,21 +16,27 @@ let hadRuntimeError = false;
 // or a line entered from the interactive prompt
 function run(source:string) {
   const scanner = new Scanner(source);
-  const { tokens, errors } = scanner.scan();
+  const { tokens, errors: scanErrors } = scanner.scan();
 
   // print errors, if any exist, and raise the hadError flag
-  if (errors.length > 0) {
+  if (scanErrors.length > 0) {
     hadError = true;
-    for(const error of errors ){
+    for(const error of scanErrors){
       const str = '' + error;
       console.log(str);
     }
   } else {
-    // For now, just print the tokens.
-    // tokens.forEach(token => console.log(token));
-    for(const token of tokens){
-      const str = '' + token;
-      console.log(str);
+    // parse the tokens
+    const parser = new Parser(tokens);
+    const { expr, errors:parseErrors } = parser.parse();
+    if (parseErrors.length > 0) {
+      hadError = true;
+      for(const error of parseErrors){
+        const str = '' + error;
+        console.log(str);
+      }
+    } else {
+      console.log(new AstPrinter().print(expr));
     }
   }
 }
@@ -45,3 +57,13 @@ if (args.length != 3) {
   const contentString = fs.readFileSync(pathString).toString();
   run(contentString);
 }
+
+// const expression = new expr.Binary(
+//         new expr.Unary(
+//             new Token(TokenType.MINUS, "-", null, 1),
+//             new expr.Literal(123)),
+//         new Token(TokenType.STAR, "*", null, 1),
+//         new expr.Grouping(
+//             new expr.Literal(45.67)));
+
+// console.log(new AstPrinter().print(expression));
