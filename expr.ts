@@ -1,0 +1,106 @@
+import Token from './token';
+import { LiteralType } from './types';
+
+/*
+the visitor pattern is used here
+NOTE visitor is not the best name, but it is conventional
+https://en.wikipedia.org/wiki/Visitor_pattern
+instead of having different Expr classes with different methods
+like interpret(), print(), etc., there is only one generic method
+and instead the operations are described as instantiations of a
+particular interface described below...
+*/
+
+/* 
+the ExprVisitor is the interface for the OPERATIONS, and therefore
+they should all implement the visit methods for the various Expr types
+
+NOTE in craftinginterpreters, this is a nested interface within the
+Expr class, and that functionality cannot be mimicked by sticking
+this into a namespace called Expr, but that is confusing
+instead it is called ExprVisitor
+*/
+export interface ExprVisitor<R> {
+  visitBinaryExpr(expr:Binary):R;
+  visitGroupingExpr(expr:Grouping):R;
+  visitLiteralExpr(expr:Literal):R;
+  visitUnaryExpr(expr:Unary):R;
+}
+
+// this is the actual Expr class, which has only one generic accept class
+export abstract class Expr {
+  abstract accept<R>(visitor:ExprVisitor<R>):R;
+}
+
+/*
+below are the various Expr class types, which contains different
+variables, but only one generic function which passes the object
+to the visitor given as an argument. 
+the visitor will carry out the particular operation and so that
+is why it requires the object passed to it
+
+NOTE everything here should be completely generic and contain no
+functionality of its own. the point of the visitor pattern is to
+mimick functional programming in an object-oriented paradigm
+
+NOTE explaining syntax: accept<R>(vistor:ExprVisitor<R>):R
+is just a function returning a generic R, the initial <R> is just
+needed to indicate that following R's are generics
+*/
+export class Binary extends Expr {
+  readonly left:Expr;
+  readonly operator:Token;
+  readonly right:Expr;
+
+  constructor(left:Expr, operator:Token, right:Expr) {
+    super();
+    this.left = left;
+    this.operator = operator;
+    this.right = right;
+  }
+
+  accept<R>(visitor:ExprVisitor<R>):R {
+    return visitor.visitBinaryExpr(this);
+  }
+}
+
+export class Grouping extends Expr {
+  readonly expression:Expr;
+
+  constructor(expression:Expr) {
+    super();
+    this.expression = expression;
+  }
+
+  accept<R>(visitor:ExprVisitor<R>):R {
+    return visitor.visitGroupingExpr(this);
+  }
+}
+
+export class Literal extends Expr {
+  readonly value:LiteralType;
+
+  constructor(value:LiteralType) {
+    super()
+    this.value = value;
+  }
+
+  accept<R>(visitor:ExprVisitor<R>):R {
+    return visitor.visitLiteralExpr(this);
+  }
+}
+
+export class Unary extends Expr {
+  readonly operator:Token;
+  readonly right:Expr;
+
+  constructor(operator:Token, right:Expr) {
+    super();
+    this.operator = operator;
+    this.right = right;
+  }
+
+  accept<R>(visitor:ExprVisitor<R>):R {
+    return visitor.visitUnaryExpr(this);
+  }
+}
