@@ -3,11 +3,9 @@ import * as fs from 'fs';
 import Scanner from './scanner';
 import Parser from './parser';
 import AstPrinter from './astPrinter';
-
-// import { TokenType } from './tokenType';
-// import { Token } from './token';
-// import * as expr from './expr';
-// import AstPrinter from './astPrinter';
+import { RuntimeError, Interpreter } from './interpreter';
+import { Nullable } from './types';
+import { Expr } from './expr';
 
 let hadError = false;
 let hadRuntimeError = false;
@@ -21,22 +19,39 @@ function run(source:string) {
   // print errors, if any exist, and raise the hadError flag
   if (scanErrors.length > 0) {
     hadError = true;
+
     for(const error of scanErrors){
       const str = '' + error;
       console.log(str);
     }
+    process.exit(1);
   } else {
     // parse the tokens
     const parser = new Parser(tokens);
-    const { expr, errors:parseErrors } = parser.parse();
+    let { expr, errors:parseErrors } = parser.parse();
+
+    // if there were any parsing errors, print them and exit
     if (parseErrors.length > 0) {
       hadError = true;
+
       for(const error of parseErrors){
         const str = '' + error;
         console.log(str);
+        process.exit(1);
       }
     } else {
-      console.log(new AstPrinter().print(expr));
+      // interpret the tokens
+      // console.log(new AstPrinter().print(expr));
+      const interpreter = new Interpreter();
+      
+      // if there were no parsing errors, then expr is definitely not null
+      expr = expr as Expr;
+      const error: Nullable<RuntimeError> = interpreter.interpret(expr);
+      if (error) {
+        console.log("[line " + error.token.line + "] Error: "
+          + error.message);
+        process.exit(1);
+      }
     }
   }
 }
@@ -57,13 +72,3 @@ if (args.length != 3) {
   const contentString = fs.readFileSync(pathString).toString();
   run(contentString);
 }
-
-// const expression = new expr.Binary(
-//         new expr.Unary(
-//             new Token(TokenType.MINUS, "-", null, 1),
-//             new expr.Literal(123)),
-//         new Token(TokenType.STAR, "*", null, 1),
-//         new expr.Grouping(
-//             new expr.Literal(45.67)));
-
-// console.log(new AstPrinter().print(expression));

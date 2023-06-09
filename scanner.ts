@@ -1,6 +1,6 @@
 // TODO source.substring(start, current) should be a function
 
-import { LangError } from './langError';
+import { LangMessage } from './langMessage';
 import Token from './token';
 import { TokenType as TT } from './tokenType';
 import { Nullable, Primitive } from './types';
@@ -14,7 +14,7 @@ export default class Scanner {
   private tokens:Array<Token> = [];
 
   // the list of Errors encountered which will also be returned by scan()
-  private errors:Array<LangError> = [];
+  private errors:Array<LangMessage> = [];
 
   // these variables keep track of the position of the scanner
   // start is the starting character of the current lexeme
@@ -57,7 +57,7 @@ export default class Scanner {
 
   // goes through the source string, adding tokens until the end of the
   // string is reached, then add an EOF token to make parsing easier
-  scan():{ tokens: Array<Token>, errors: Array<LangError> } {
+  scan():{ tokens: Array<Token>, errors: Array<LangMessage> } {
     // scan all the tokens
 		while (!this.isAtEnd()) {
 			// we finished processing the last lexeme, so move the start
@@ -141,7 +141,7 @@ export default class Scanner {
           this.identifier();
         } else {
           this.errors.push(
-            new LangError('Unexpected character.', '', this.line)
+            new LangMessage('Unexpected character.', '', this.line)
           );
         }
         break;
@@ -223,7 +223,7 @@ export default class Scanner {
     // if the file ends, throw and error and break
     if (this.isAtEnd()) {
       this.errors.push(
-        new LangError('Unterminated string', '', this.line)
+        new LangMessage('Unterminated string', '', this.line)
       );
       return;
     }

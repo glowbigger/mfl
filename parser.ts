@@ -2,7 +2,7 @@ import { TokenType as TT } from "./tokenType"
 import Token from "./token"
 import * as expr from "./expr";
 import { Nullable } from "./types";
-import { LangError } from "./langError";
+import { LangMessage } from "./langMessage";
 
 /* 
  * a recursive descent parser for the following expression grammar: 
@@ -34,14 +34,11 @@ class ParseError extends Error {
 }
 
 export default class Parser {
-  // nested static class are pretty much using the super class as
-  // a namespace and nothing more
-
   // the tokens which will be read into the parser
   private readonly tokens:Token[];
 
   // the errors to be returned by parse()
-  private errors:Array<LangError> = [];
+  private errors:Array<LangMessage> = [];
 
   // the index of the current token
   private current = 0;
@@ -50,7 +47,7 @@ export default class Parser {
     this.tokens = tokens;
   }
 
-  parse():{ expr: Nullable<expr.Expr>, errors: Array<LangError> }{
+  parse():{ expr: Nullable<expr.Expr>, errors: Array<LangMessage> }{
     try {
       return { expr: this.expression(), errors: this.errors };
     } catch (error:unknown) { // typescript requires error to be unknown
@@ -220,8 +217,8 @@ export default class Parser {
   }
 
   // not fully implemented yet
-  private error(token:Token, message:string):ParseError {
-    this.errors.push(new LangError(message, '', 0));
+  private error(token: Token, message:string):ParseError {
+    this.errors.push(new LangMessage(message, '', token.line));
     return new ParseError();
   }
 

@@ -1,0 +1,3 @@
+// test for correct line numbers in error reports
+// it should be 3
+1 + ""

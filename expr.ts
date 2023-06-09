@@ -21,15 +21,15 @@ this into a namespace called Expr, but that is confusing
 instead it is called ExprVisitor
 */
 export interface ExprVisitor<R> {
-  visitBinaryExpr(expr:Binary):R;
-  visitGroupingExpr(expr:Grouping):R;
-  visitLiteralExpr(expr:Literal):R;
-  visitUnaryExpr(expr:Unary):R;
+  visitBinaryExpr(expr: Binary): R;
+  visitGroupingExpr(expr: Grouping): R;
+  visitLiteralExpr(expr: Literal): R;
+  visitUnaryExpr(expr: Unary): R;
 }
 
 // this is the actual Expr class, which has only one generic accept class
 export abstract class Expr {
-  abstract accept<R>(visitor:ExprVisitor<R>):R;
+  abstract accept<R>(visitor: ExprVisitor<R>): R;
 }
 
 /*
@@ -48,59 +48,59 @@ is just a function returning a generic R, the initial <R> is just
 needed to indicate that following R's are generics
 */
 export class Binary extends Expr {
-  readonly left:Expr;
-  readonly operator:Token;
-  readonly right:Expr;
+  readonly left: Expr;
+  readonly operator: Token;
+  readonly right: Expr;
 
-  constructor(left:Expr, operator:Token, right:Expr) {
+  constructor(left: Expr, operator: Token, right: Expr) {
     super();
     this.left = left;
     this.operator = operator;
     this.right = right;
   }
 
-  accept<R>(visitor:ExprVisitor<R>):R {
+  accept<R>(visitor: ExprVisitor<R>): R {
     return visitor.visitBinaryExpr(this);
   }
 }
 
 export class Grouping extends Expr {
-  readonly expression:Expr;
+  readonly expression: Expr;
 
-  constructor(expression:Expr) {
+  constructor(expression: Expr) {
     super();
     this.expression = expression;
   }
 
-  accept<R>(visitor:ExprVisitor<R>):R {
+  accept<R>(visitor: ExprVisitor<R>): R {
     return visitor.visitGroupingExpr(this);
   }
 }
 
 export class Literal extends Expr {
-  readonly value:LiteralType;
+  readonly value: LiteralType;
 
-  constructor(value:LiteralType) {
+  constructor(value: LiteralType) {
     super()
     this.value = value;
   }
 
-  accept<R>(visitor:ExprVisitor<R>):R {
+  accept<R>(visitor: ExprVisitor<R>): R {
     return visitor.visitLiteralExpr(this);
   }
 }
 
 export class Unary extends Expr {
-  readonly operator:Token;
-  readonly right:Expr;
+  readonly operator: Token;
+  readonly right: Expr;
 
-  constructor(operator:Token, right:Expr) {
+  constructor(operator: Token, right: Expr) {
     super();
     this.operator = operator;
     this.right = right;
   }
 
-  accept<R>(visitor:ExprVisitor<R>):R {
+  accept<R>(visitor: ExprVisitor<R>): R {
     return visitor.visitUnaryExpr(this);
   }
 }
