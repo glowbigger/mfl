@@ -1,32 +1,26 @@
-// TODO source.substring(start, current) should be a function
-
-import { LangMessage } from './langMessage';
 import Token from './token';
 import { TokenType as TT } from './tokenType';
 import { Nullable, Primitive } from './types';
+import reportLangError from './main';
 
 export default class Scanner {
-
   // the source input string, which will be assigned in the constructor
-  private source:string;
+  private source: string;
 
   // the list of tokens which will be returned by scan()
-  private tokens:Array<Token> = [];
-
-  // the list of Errors encountered which will also be returned by scan()
-  private errors:Array<LangMessage> = [];
+  private tokens: Array<Token> = [];
 
   // these variables keep track of the position of the scanner
   // start is the starting character of the current lexeme
   // current is the current UNCONSUMED character
   // line is the current line being processed (for error reporting)
-  private start:number = 0;
-  private current:number = 0;
-  private line:number = 1;
+  private start: number = 0;
+  private current: number = 0;
+  private line: number = 1;
 
   // a helper lookup object which stores the identifiers which
   // are reserved keywords
-  private keywords:{ [key: string]:TT } = {
+  private keywords: { [key: string]: TT } = {
     'and':    TT.AND,
     'class':  TT.CLASS,
     'else':   TT.ELSE,
@@ -45,19 +39,18 @@ export default class Scanner {
     'while':  TT.WHILE,
   }
 
-  constructor(source:string) {
+  constructor(source: string) {
     this.source = source;
     this.keywords.and;
   }
 
-	/*
-	 * MAIN METHOD
-   * (the only public method)
-	 */
+	/***********************************************************************
+	 * MAIN SCANNING METHODS
+	 **********************************************************************/
 
   // goes through the source string, adding tokens until the end of the
   // string is reached, then add an EOF token to make parsing easier
-  scan():{ tokens: Array<Token>, errors: Array<LangMessage> } {
+  scan(): Array<Token> {
     // scan all the tokens
 		while (!this.isAtEnd()) {
 			// we finished processing the last lexeme, so move the start
@@ -69,10 +62,10 @@ export default class Scanner {
     // now push the EOF and return the tokens
     const endOfFileToken = new Token(TT.EOF, '', null, this.line);
     this.tokens.push(endOfFileToken);
-    return { tokens:this.tokens, errors:this.errors};
+    return this.tokens;
   }
 
-  private scanToken():void {
+  private scanToken(): void {
 		const char = this.advance();
 		// TODO why use a break?
 		// hTTps://stackoverflow.com/questions/252489/why-was-the-switch-statement-designed-to-need-a-break
@@ -140,50 +133,48 @@ export default class Scanner {
         } else if (this.isAlpha(char)) {
           this.identifier();
         } else {
-          this.errors.push(
-            new LangMessage('Unexpected character.', '', this.line)
-          );
+          reportLangError(this.line, 'Unexpected character.', false);
         }
         break;
 		}
   }
 
-	/*
+	/***********************************************************************
 	 * HELPER FUNCTIONS
-	 */
+	 **********************************************************************/
 
-	private isAtEnd():boolean {
+	private isAtEnd(): boolean {
 		return this.current >= this.source.length;
 	}
 
   // returns the current unconsumed character and advances the pointer
 	// (like peek, but advances the pointer)
   // NOTE this is always called before checking for isAtEnd() !!!
-	private advance():string {
+	private advance(): string {
 		return this.source.charAt(this.current++);
 	}
 
 	// returns the current unconsumed character
 	// (like peek, but without advancing the pointer)
-	private peek():string {
+	private peek(): string {
 		if (this.isAtEnd()) return '\0';
 	    return this.source.charAt(this.current);
 	}
 
   // returns the next character after current
-  private peekNext():string {
+  private peekNext(): string {
     if (this.current + 1 >= this.source.length) return '\0';
     return this.source.charAt(this.current + 1);
   }
 
 	// add a token, if no literal is given, it is null
-	private addToken(type:TT, literal:Nullable<Primitive> = null):void {
-		const lexeme = this.source.substring(this.start, this.current);
+	private addToken(type: TT, literal: Nullable<Primitive> = null): void {
+		const lexeme = this.getCurrentLexeme();
 		this.tokens.push(new Token(type, lexeme, literal, this.line));
 	}
 
 	// conditionally advance if the current character matches the given one
-	private match(expected:string):boolean {
+	private match(expected: string): boolean {
 		if (this.isAtEnd()) return false;
 		if (this.source.charAt(this.current) != expected) return false;
 
@@ -191,27 +182,27 @@ export default class Scanner {
 		return true;
 	}
 
-  private isDigit(c:string):boolean {
+  private isDigit(c: string): boolean {
     return c >= '0' && c <= '9';
   }
 
   // NOTE _ is considered alpha?
-  private isAlpha(c:string):boolean {
+  private isAlpha(c: string): boolean {
     return (c >= 'a' && c <= 'z') ||
            (c >= 'A' && c <= 'Z') ||
             c == '_';
   }
 
   // so that identifiers can have numbers, but cannot start with numbers
-  private isAlphaNumeric(c:string):boolean {
-    return this.isAlpha(c) || this.isDigit(c);
+  private isAlphaNumeric(char: string): boolean {
+    return this.isAlpha(char) || this.isDigit(char);
   }
 
-	/*
-	 * TOKENIZE STRINGS, NUMBERS, AND IDENTIFIERS
-	 */
+  private getCurrentLexeme(): string {
+    return this.source.substring(this.start, this.current);
+  }
 
-	private string():void {
+	private string(): void {
     // build the lexeme until a " is reached or the file ends
 	  while (this.peek() != '"' && !this.isAtEnd()) {
       if (this.peek() == '\n') {
@@ -220,11 +211,9 @@ export default class Scanner {
       this.advance();
     }
 
-    // if the file ends, throw and error and break
+    // if the file ends, throw an error and break
     if (this.isAtEnd()) {
-      this.errors.push(
-        new LangMessage('Unterminated string', '', this.line)
-      );
+      reportLangError(this.line, 'Unterminated string.', false);
       return;
     }
 
@@ -235,12 +224,12 @@ export default class Scanner {
     // NOTE the lexeme will include " but the literal will not
     // NOTE type String is used over string here, because String
     // is an object
-    const value:string =
+    const value: string =
         this.source.substring(this.start + 1, this.current - 1);
     this.addToken(TT.STRING, value);
 	}
 
-	private number():void {
+	private number(): void {
     // unlike string(), we don't care about eof
     // just run a pass consuming all digits, check for a .,
     // then run a second pass consuming all digits again
@@ -263,22 +252,21 @@ export default class Scanner {
 
     // we use js's float parser here to convert the scanned lexeme
     // into the number literal
-    const value:string = 
-      this.source.substring(this.start, this.current);
+    const value: string = this.getCurrentLexeme();
     this.addToken(TT.NUMBER, parseFloat(value));
 	}
 
-  private identifier():void {
+  private identifier(): void {
     // extract the identifier, it will be only letters and numbers
     // NOTE since this is triggered by an isAlpha check, the identifier
     // is guaranteed to start with a letter
     while (this.isAlphaNumeric(this.peek())) {
       this.advance();
     }
-    const text:string = this.source.substring(this.start, this.current);
+    const text: string = this.getCurrentLexeme();
 
     // check if the lexeme is a keyword, if it is not, it is an IDENTIFIER
-    let type:TT = this.keywords[text];
+    let type: TT = this.keywords[text];
     if (type == null) type = TT.IDENTIFIER;
     this.addToken(type);
   }

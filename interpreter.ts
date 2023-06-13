@@ -4,7 +4,10 @@ from "./expr";
 import { LiteralType, Nullable } from "./types";
 import { TokenType as TT } from "./tokenType";
 import Token from "./token";
+import { Stmt, StmtVisitor, Expression, Print } from "./stmt";
+import reportLangError from "./main";
 
+// TODO maybe move this?
 export class RuntimeError extends Error {
   token: Token;
 
@@ -14,34 +17,35 @@ export class RuntimeError extends Error {
   }
 }
 
+// NOTE since StmtVisitor is called with the generic void, the methods
+// that must be implemented will have be voids, i.e. return nothing
 export class Interpreter 
-  implements ExprVisitor<LiteralType> {
+  implements ExprVisitor<LiteralType>, StmtVisitor<void> {
 
-  // the errors to be returned by parse()
-  // private errors:Array<RuntimeError> = [];
-
-  // returns the error or null if there was no error
-  interpret(expression: Expr): Nullable<RuntimeError>{ 
+  // tries to interpret the given statements, and returns any errors
+  interpret(statements: Array<Stmt>): void { 
+    let errors: Array<RuntimeError> = [];
     try {
-      const value: LiteralType = this.evaluate(expression);
-      console.log(this.stringify(value));
-      return null;
+      for (const statement of statements) {
+        this.execute(statement);
+      }
     } catch (error) {
       if (error instanceof RuntimeError) {
-        return error;
+        reportLangError(error.token.line, error.message, true);
+      } else {
+        // this should not ever happen, but just in case
+        console.log("(you shouldn't ever get this, something went wrong)");
+        console.log("There was a native error thrown during runtime: ");
+        console.log(error);
       }
-      // this should not ever execute
-      console.log("There was a native error thrown during runtime:");
-      console.log(error);
-      return null;
     }
   }
 
-  /* 
+  /***********************************************************************
   * EXPRVISITOR INTERFACE METHODS
-  * these are pseudo-private methods, they should not be called
+  * NOTE these are pseudo-private methods, they should not be called
   * except in a roundabout way from interpret()
-  */
+  ***********************************************************************/
   
   // a literal is a value that is evaluated at scan time
   // the evaluation is usually going to be very simple, like
@@ -150,12 +154,39 @@ export class Interpreter
     return null;
   }
 
-  /*
-   * HELPER METHODS
-   */
+  /*********************************************************************** 
+  * STMTVISITOR INTERFACE METHODS
+  * NOTE these are pseudo-private methods, they should not be called
+  * except in a roundabout way from interpret()
+  ***********************************************************************/
 
+  // NOTE this doesn't actual do anything, because there is nothing
+  // to execute for an expression, we could modify the compiler to simply
+  // discard these by commenting the this.evaluate
+  visitExpressionStmt(expressionStatement: Expression): void {
+    this.evaluate(expressionStatement.expression);
+  }
+
+  // evaluates and prints the given statement
+  visitPrintStmt(printStatement: Print): void {
+    const value: LiteralType = this.evaluate(printStatement.expression);
+    console.log(this.stringify(value));
+  }
+
+  /***********************************************************************
+  * HELPER METHODS
+  ***********************************************************************/
+
+  // evaluates a given expression in accordance with the visitor pattern,
+  // so the given expression will in turn call the appropriate visit
+  // method above based on its own type
   private evaluate(expr: Expr): LiteralType {
     return expr.accept(this);
+  }
+
+  // just like evaluate, express for statements
+  private execute(stmt: Stmt): void {
+    stmt.accept(this);
   }
 
   // false and nil are falsey, everything else is truthy
@@ -176,7 +207,8 @@ export class Interpreter
     return a === b;
   }
 
-  // recall that objects are nil, strings, numbers, and booleans
+  // turns an object into a string
+  // NOTE recall that objects are nil, strings, numbers, and booleans
   private stringify(object: LiteralType): string {
     if (object === null) return "nil";
 
@@ -203,7 +235,6 @@ export class Interpreter
     if (typeof(operand) === "number") return;
     throw new RuntimeError(operator, "Operand must be a number.");
   }
-
 
   // returns whether the given operands are numbers
   // NOTE the operator is only used for error reporting

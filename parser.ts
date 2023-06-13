@@ -1,8 +1,8 @@
+import reportLangError from "./main";
 import { TokenType as TT } from "./tokenType"
 import Token from "./token"
-import * as expr from "./expr";
-import { Nullable } from "./types";
-import { LangMessage } from "./langMessage";
+import { Stmt, Print, Expression } from "./stmt";
+import { Expr, Binary, Grouping, Literal, Unary } from "./expr";
 
 /* 
  * a recursive descent parser for the following expression grammar: 
@@ -35,44 +35,73 @@ class ParseError extends Error {
 
 export default class Parser {
   // the tokens which will be read into the parser
-  private readonly tokens:Token[];
-
-  // the errors to be returned by parse()
-  private errors:Array<LangMessage> = [];
+  private readonly tokens: Token[];
 
   // the index of the current token
   private current = 0;
 
-  constructor(tokens:Token[]) {
+  constructor(tokens: Token[]) {
     this.tokens = tokens;
   }
 
-  parse():{ expr: Nullable<expr.Expr>, errors: Array<LangMessage> }{
-    try {
-      return { expr: this.expression(), errors: this.errors };
-    } catch (error:unknown) { // typescript requires error to be unknown
-      // do nothing with the error for now
-      return { expr: null, errors: this.errors };
+  // will return an array of statements
+  // the caller should also check the list of errors (defined above)
+  // and print those messages
+  parse(): Array<Stmt> {
+    let statements: Array<Stmt> = [];
+
+    while (!this.isAtEnd()) {
+      statements.push(this.statement());
     }
+
+    return statements; 
   }
 
-  private expression():expr.Expr {
+  /***********************************************************************
+  * PARSING METHODS
+  ***********************************************************************/
+
+  // parses an expression
+  // grammar:
+  // expression     -> equality ;
+  private expression(): Expr {
     return this.equality();
   }
 
-  /***************************************************************
-  * PARSING METHODS
-  ***************************************************************/
+  // parses a statement
+  // statement      -> exprStmt
+  //                | printStmt ;
+  private statement(): Stmt {
+    if (this.match(TT.PRINT)) return this.printStatement();
 
+    return this.expressionStatement();
+  }
+
+  // grammar:
+  // printStmt      -> "print" expression ";" ;
+  private printStatement(): Stmt {
+    const value = this.expression();
+    this.consume(TT.SEMICOLON, "Expect ';' after value.");
+    return new Print(value);
+  }
+
+  // grammar:
+  // exprStmt       -> expression ";" ;
+  private expressionStatement(): Stmt {
+    const value = this.expression();
+    this.consume(TT.SEMICOLON, "Expect ';' after value.");
+    return new Expression(value);
+  }
+
+  // equality       -> comparison ( ( "!=" | "==" ) comparison )* ;
+  //
   // NOTE this is left-associative: a == b == c is (a == b) == c
   // NOTE if no equality is hit, then only comparision() is parsed, this
   // is how order of operations is maintained
   // NOTE this is the framework for the following methods, equality,
   // comparison, term and factor. Therefore, they are all ideantical
   // except for the tokens that they match
-  private equality():expr.Expr {
-    // the corresponding rule is 
-    // equality -> comparison ( ( "!=" | "==" ) comparison )* ;
+  private equality(): Expr {
     let eqExpr = this.comparison();
 
     // while the next unconsumed token / current token is of type
@@ -81,47 +110,47 @@ export default class Parser {
     while (this.match(TT.BANG_EQUAL, TT.EQUAL_EQUAL)) {
       const operator = this.previous();
       const right = this.comparison();
-      eqExpr = new expr.Binary(eqExpr, operator, right);
+      eqExpr = new Binary(eqExpr, operator, right);
     }
 
     return eqExpr;
   }
 
-  // comparison -> term ( ( ">" | ">=" | "<" | "<=" ) term)* ;
-  private comparison():expr.Expr {
+  // comparison -> term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
+  private comparison(): Expr {
     let compExpr = this.term();
 
     while (this.match(TT.GREATER, TT.GREATER_EQUAL, 
                       TT.LESS, TT.LESS_EQUAL)) {
       const operator = this.previous();
       const right = this.term();
-      compExpr = new expr.Binary(compExpr, operator, right);
+      compExpr = new Binary(compExpr, operator, right);
     }
 
     return compExpr;
   }
 
-  // term -> factor ( ( "-" | "+" ) factor)* ;
-  private term():expr.Expr {
+  // term -> factor ( ( "-" | "+" ) factor )* ;
+  private term(): Expr {
     let termExpr = this.factor();
 
     while (this.match(TT.MINUS, TT.PLUS)) {
       const operator = this.previous();
       const right = this.factor();
-      termExpr = new expr.Binary(termExpr, operator, right);
+      termExpr = new Binary(termExpr, operator, right);
     }
 
     return termExpr;
   }
 
-  // factor -> unary ( ( "-" | "+" ) unary)* ;
-  private factor():expr.Expr {
+  // factor -> unary ( ( "-" | "+" ) unary )* ;
+  private factor(): Expr {
     let factorExpr = this.unary();
 
     while (this.match(TT.SLASH, TT.STAR)) {
       const operator = this.previous();
       const right = this.unary();
-      factorExpr = new expr.Binary(factorExpr, operator, right);
+      factorExpr = new Binary(factorExpr, operator, right);
     }
 
     return factorExpr;
@@ -129,11 +158,11 @@ export default class Parser {
 
   // unary          -> ( "!" | "-" ) unary
   //                | primary ;
-  private unary():expr.Expr {
+  private unary(): Expr {
     if (this.match(TT.BANG, TT.MINUS)) {
       const operator = this.previous();
       const right = this.unary();
-      return new expr.Unary(operator, right);
+      return new Unary(operator, right);
     }
 
     return this.primary();
@@ -141,13 +170,13 @@ export default class Parser {
 
   // primary        → NUMBER | STRING | "true" | "false" | "nil"
   //                | "(" expression ")" ;
-  private primary():expr.Expr {
+  private primary(): Expr {
     if (this.match(TT.NUMBER, TT.STRING)) {
-      return new expr.Literal(this.previous().literal);
+      return new Literal(this.previous().literal);
     }
-    if (this.match(TT.FALSE)) return new expr.Literal(false);
-    if (this.match(TT.TRUE)) return new expr.Literal(true);
-    if (this.match(TT.NIL)) return new expr.Literal(null);
+    if (this.match(TT.FALSE)) return new Literal(false);
+    if (this.match(TT.TRUE)) return new Literal(true);
+    if (this.match(TT.NIL)) return new Literal(null);
 
     // the LEFT_PAREN is used as a trigger for the inner expression()
     // and the closing RIGHT_PAREN is expected and an error is thrown
@@ -156,21 +185,21 @@ export default class Parser {
     if (this.match(TT.LEFT_PAREN)) {
       const primaryExpr = this.expression();
       this.consume(TT.RIGHT_PAREN, "Expect ')' after expression.");
-      return new expr.Grouping(primaryExpr);
+      return new Grouping(primaryExpr);
     }
 
     // if a primary token cannot be found, then throw an error
     throw this.error(this.peek(), "Expect expression.");
   }
 
-  /***************************************************************
+  /***********************************************************************
   * HELPER METHODS
-  ***************************************************************/
+  ***********************************************************************/
 
   // takes a list of Token types, and checks if one of those types
   // matches the current Token type (ie, the next unconsumed Token)
   // returns true if there was a match, false otherwise
-  private match(...types:TT[]):boolean {
+  private match(...types: TT[]): boolean {
     for (const type of types) { 
       if (this.check(type)) {
         this.advance();
@@ -183,7 +212,7 @@ export default class Parser {
 
   // forces a consumption of the current token, it must be of the given
   // token type, and if not, it prints the given error message
-  private consume(type:TT, message:string):Token {
+  private consume(type: TT, message: string): Token {
     if (this.check(type)) return this.advance();
 
     throw this.error(this.peek(), message);
@@ -191,41 +220,41 @@ export default class Parser {
 
   // checks if the given TokenType matches the current Token's type
   // NOTE this does not consume the token
-  private check(type:TT):boolean {
+  private check(type: TT): boolean {
     if (this.isAtEnd()) return false;
     return this.peek().type == type;
   }
 
   // consumes the current character, which is equivalent to returning
   // the current character and advancing the position
-  private advance():Token {
+  private advance(): Token {
     if (!this.isAtEnd()) this.current++;
     return this.previous();
   }
 
-  private isAtEnd():boolean {
+  private isAtEnd(): boolean {
     return this.peek().type == TT.EOF;
   }
 
-  private peek():Token {
+  private peek(): Token {
     return this.tokens[this.current];
   }
 
   // returns the most recently consume token
-  private previous():Token {
+  private previous(): Token {
     return this.tokens[this.current - 1];
   }
 
   // not fully implemented yet
-  private error(token: Token, message:string):ParseError {
-    this.errors.push(new LangMessage(message, '', token.line));
+  private error(token: Token, message: string): ParseError {
+    reportLangError(token.line, message, false);
     return new ParseError();
   }
 
   // not fully implemented yet, consume characters until a semicolon
   // or CLASS, FUN, etc. token is hit, in which case the statement
   // is over and the parser has been synchronized
-  private synchronize():void {
+  private synchronize(): void {
     this.advance();
 
     while (!this.isAtEnd()) {

@@ -2,58 +2,63 @@
 import * as fs from 'fs';
 import Scanner from './scanner';
 import Parser from './parser';
-import AstPrinter from './astPrinter';
+// import AstPrinter from './astPrinter';
 import { RuntimeError, Interpreter } from './interpreter';
 import { Nullable } from './types';
 import { Expr } from './expr';
 
-let hadError = false;
+let hadSyntaxError = false;
 let hadRuntimeError = false;
+
+// allows the scanner, parser and interpreter to report errors
+export default function reportLangError(line: number,
+                                    message: string,
+                                    isRuntimeError: boolean) {
+  if (isRuntimeError) {
+    hadRuntimeError = true;
+  } else {
+    hadSyntaxError = true;
+  }
+  console.log(`[line ${line}] Error: ${message}`);
+}
 
 // runs (scans, parses) a given string, can be either a text file
 // or a line entered from the interactive prompt
-function run(source:string) {
+function run(source: string) {
+  // scan the characters
   const scanner = new Scanner(source);
-  const { tokens, errors: scanErrors } = scanner.scan();
-
-  // print errors, if any exist, and raise the hadError flag
-  if (scanErrors.length > 0) {
-    hadError = true;
-
-    for(const error of scanErrors){
-      const str = '' + error;
-      console.log(str);
-    }
+  const tokens = scanner.scan();
+  if (hadSyntaxError) {
+    console.log("Exiting with scanning errors.");
     process.exit(1);
-  } else {
-    // parse the tokens
-    const parser = new Parser(tokens);
-    let { expr, errors:parseErrors } = parser.parse();
-
-    // if there were any parsing errors, print them and exit
-    if (parseErrors.length > 0) {
-      hadError = true;
-
-      for(const error of parseErrors){
-        const str = '' + error;
-        console.log(str);
-        process.exit(1);
-      }
-    } else {
-      // interpret the tokens
-      // console.log(new AstPrinter().print(expr));
-      const interpreter = new Interpreter();
-      
-      // if there were no parsing errors, then expr is definitely not null
-      expr = expr as Expr;
-      const error: Nullable<RuntimeError> = interpreter.interpret(expr);
-      if (error) {
-        console.log("[line " + error.token.line + "] Error: "
-          + error.message);
-        process.exit(1);
-      }
-    }
   }
+
+  // parse the tokens
+  const parser = new Parser(tokens)
+  const statements = parser.parse();
+  if (hadSyntaxError) {
+    console.log("Exiting with parsing errors.");
+    process.exit(1);
+  }
+
+  // interpret the statements
+  const interpreter = new Interpreter();
+  interpreter.interpret(statements);
+  if (hadRuntimeError) {
+    console.log("Exiting with runtime errors.");
+    process.exit(1);
+  }
+      
+  //     // if there were no parsing errors, then expr is definitely not null
+  //     expr = expr as Expr;
+  //     const error: Nullable<RuntimeError> = interpreter.interpret(expr);
+  //     if (error) {
+  //       console.log("[line " + error.token.line + "] Error: "
+  //         + error.message);
+  //       process.exit(1);
+  //     }
+  //   }
+  // }
 }
 
 // MAIN SCRIPT
