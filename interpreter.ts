@@ -1,11 +1,12 @@
-import { Expr, ExprVisitor, Binary, Grouping, Literal, Unary } 
-from "./expr";
+import {  Expr, ExprVisitor, Binary, Grouping, Literal, 
+          Unary, Variable, Assign } from "./expr";
 // import { LangError } from "./langError";
 import { LiteralType, Nullable } from "./types";
 import { TokenType as TT } from "./tokenType";
 import Token from "./token";
-import { Stmt, StmtVisitor, Expression, Print } from "./stmt";
+import { Stmt, StmtVisitor, Expression, Print, Var } from "./stmt";
 import reportLangError from "./main";
+import Environment from "./environment";
 
 // TODO maybe move this?
 export class RuntimeError extends Error {
@@ -21,10 +22,11 @@ export class RuntimeError extends Error {
 // that must be implemented will have be voids, i.e. return nothing
 export class Interpreter 
   implements ExprVisitor<LiteralType>, StmtVisitor<void> {
+  private environment: Environment = new Environment();
 
   // tries to interpret the given statements, and returns any errors
   interpret(statements: Array<Stmt>): void { 
-    let errors: Array<RuntimeError> = [];
+    // let errors: Array<RuntimeError> = [];
     try {
       for (const statement of statements) {
         this.execute(statement);
@@ -37,6 +39,7 @@ export class Interpreter
         console.log("(you shouldn't ever get this, something went wrong)");
         console.log("There was a native error thrown during runtime: ");
         console.log(error);
+        process.exit(1);
       }
     }
   }
@@ -66,8 +69,6 @@ export class Interpreter
     return this.evaluate(expr.expression);
   }
 
-  // TODO comment this
-  // what happens if the double type cast fails
   visitUnaryExpr(expr: Unary): LiteralType {
     const right: LiteralType = this.evaluate(expr.right);
 
@@ -84,8 +85,6 @@ export class Interpreter
     return null;
   }
 
-  // TODO when will errors be handled?
-  //
   visitBinaryExpr(expr: Binary): LiteralType {
     // let is used because left and right may have their types asserted
     let left: LiteralType = this.evaluate(expr.left);
@@ -154,6 +153,11 @@ export class Interpreter
     return null;
   }
 
+  // 
+  visitVariableExpr(expr: Variable): LiteralType {
+    return this.environment.get(expr.name);
+  }
+
   /*********************************************************************** 
   * STMTVISITOR INTERFACE METHODS
   * NOTE these are pseudo-private methods, they should not be called
@@ -171,6 +175,21 @@ export class Interpreter
   visitPrintStmt(printStatement: Print): void {
     const value: LiteralType = this.evaluate(printStatement.expression);
     console.log(this.stringify(value));
+  }
+
+  // NOTE the default value of an uninitialized variable is nil/null
+  visitVarStmt(stmt: Var): void {
+    let value: Nullable<LiteralType> = null;
+    if (stmt.initializer != null) {
+      value = this.evaluate(stmt.initializer);
+    }
+    this.environment.define(stmt.name.lexeme, value);
+  }
+
+  visitAssignExpr(expr: Assign): LiteralType {
+    const value: LiteralType = this.evaluate(expr.value);
+    this.environment.assign(expr.name, value);
+    return value;
   }
 
   /***********************************************************************

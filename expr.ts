@@ -21,10 +21,12 @@ this into a namespace called Expr, but that is confusing
 instead it is called ExprVisitor
 */
 export interface ExprVisitor<R> {
+  visitAssignExpr(expr: Assign): R;
   visitBinaryExpr(expr: Binary): R;
   visitGroupingExpr(expr: Grouping): R;
   visitLiteralExpr(expr: Literal): R;
   visitUnaryExpr(expr: Unary): R;
+  visitVariableExpr(expr: Variable): R;
 }
 
 // this is the actual Expr class, which has only one generic accept class
@@ -47,6 +49,22 @@ NOTE explaining syntax: accept<R>(vistor:ExprVisitor<R>):R
 is just a function returning a generic R, the initial <R> is just
 needed to indicate that following R's are generics
 */
+
+export class Assign extends Expr {
+  readonly name: Token;
+  readonly value: Expr;
+
+  constructor(name: Token, value: Expr) {
+    super();
+    this.name = name;
+    this.value = value;
+  }
+
+  accept<R>(visitor: ExprVisitor<R>): R {
+    return visitor.visitAssignExpr(this);
+  }
+}
+
 export class Binary extends Expr {
   readonly left: Expr;
   readonly operator: Token;
@@ -81,7 +99,7 @@ export class Literal extends Expr {
   readonly value: LiteralType;
 
   constructor(value: LiteralType) {
-    super()
+    super();
     this.value = value;
   }
 
@@ -102,5 +120,18 @@ export class Unary extends Expr {
 
   accept<R>(visitor: ExprVisitor<R>): R {
     return visitor.visitUnaryExpr(this);
+  }
+}
+
+export class Variable extends Expr {
+  readonly name: Token;
+
+  constructor(name: Token) {
+    super();
+    this.name = name;
+  }
+
+  accept<R>(visitor: ExprVisitor<R>): R {
+    return visitor.visitVariableExpr(this);
   }
 }

@@ -1,21 +1,27 @@
 import reportLangError from "./main";
 import { TokenType as TT } from "./tokenType"
 import Token from "./token"
-import { Stmt, Print, Expression } from "./stmt";
-import { Expr, Binary, Grouping, Literal, Unary } from "./expr";
+import { Stmt, Print, Expression, Var } from "./stmt";
+
+import {  Expr, Binary, Grouping, Literal, 
+          Unary, Variable, Assign } from "./expr";
+
+import { Nullable } from "./types";
 
 /* 
  * a recursive descent parser for the following expression grammar: 
  *
- * expression     → equality ;
- * equality       → comparison ( ( "!=" | "==" ) comparison )* ;
- * comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
- * term           → factor ( ( "-" | "+" ) factor )* ;
- * factor         → unary ( ( "/" | "*" ) unary )* ;
- * unary          → ( "!" | "-" ) unary
+ * expression     -> assignment ;
+ * assignment     -> IDENTIFIER "=" assignment
+                  | equality ;
+ * equality       -> comparison ( ( "!=" | "==" ) comparison )* ;
+ * comparison     -> term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
+ * term           -> factor ( ( "-" | "+" ) factor )* ;
+ * factor         -> unary ( ( "/" | "*" ) unary )* ;
+ * unary          -> ( "!" | "-" ) unary
  *                | primary ;
- * primary        → NUMBER | STRING | "true" | "false" | "nil"
- *                | "(" expression ")" ;
+ * primary        -> NUMBER | STRING | "true" | "false" | "nil"
+ *                | "(" expression ")" | IDENTIFIER ;
  *
  * NOTE the order of operations goes from bottom to top: so primary
  * expressions like true, nil, are evaluated first, ! and - are
@@ -51,7 +57,11 @@ export default class Parser {
     let statements: Array<Stmt> = [];
 
     while (!this.isAtEnd()) {
-      statements.push(this.statement());
+      const statement: Nullable<Stmt> = this.declaration();
+      // the statement will be null if there was an error
+      if (statement !== null) {
+        statements.push(statement);
+      }
     }
 
     return statements; 
@@ -63,9 +73,9 @@ export default class Parser {
 
   // parses an expression
   // grammar:
-  // expression     -> equality ;
+  // expression     -> assignment ;
   private expression(): Expr {
-    return this.equality();
+    return this.assignment();
   }
 
   // parses a statement
@@ -77,7 +87,40 @@ export default class Parser {
     return this.expressionStatement();
   }
 
-  // grammar:
+  // declaration    -> varDecl
+  //                | statement ;
+  private declaration(): Nullable<Stmt> {
+    try {
+      if (this.match(TT.VAR)) return this.varDeclaration();
+      return this.statement();
+    } catch (error) {
+      if (error instanceof ParseError) {
+        // reportLangError(error.token.line, error.message, true);
+        this.synchronize();
+        return null;
+      } else {
+        // this should not ever happen, but just in case
+        console.log("There was a native error thrown during parsing:");
+        console.log(error);
+        process.exit(1);
+      }
+    }
+  }
+
+  // varDecl        -> "var" IDENTIFIER ( "=" expression )? ";" ;
+  private varDeclaration(): Stmt {
+    const name: Token = 
+      this.consume(TT.IDENTIFIER, "Expect variable name.");
+
+    let initializer: Nullable<Expr> = null;
+    if (this.match(TT.EQUAL)) {
+      initializer = this.expression();
+    }
+
+    this.consume(TT.SEMICOLON, "Expect ';' after variable declaration.");
+    return new Var(name, initializer);
+  }
+
   // printStmt      -> "print" expression ";" ;
   private printStatement(): Stmt {
     const value = this.expression();
@@ -91,6 +134,27 @@ export default class Parser {
     const value = this.expression();
     this.consume(TT.SEMICOLON, "Expect ';' after value.");
     return new Expression(value);
+  }
+
+  // grammar:
+  // assignment     -> IDENTIFIER "=" assignment
+  //                | equality ;
+  private assignment(): Expr {
+    const expr: Expr = this.equality();
+
+    if (this.match(TT.EQUAL)) {
+      const equals: Token = this.previous();
+      const value: Expr = this.assignment();
+
+      if (expr instanceof Variable) {
+        const name: Token = expr.name;
+        return new Assign(name, value);
+      }
+
+      this.error(equals, "Invalid assignment target."); 
+    }
+
+    return expr;
   }
 
   // equality       -> comparison ( ( "!=" | "==" ) comparison )* ;
@@ -168,8 +232,10 @@ export default class Parser {
     return this.primary();
   }
 
-  // primary        → NUMBER | STRING | "true" | "false" | "nil"
-  //                | "(" expression ")" ;
+  // primary      -> "true" | "false" | "nil"
+  //              | NUMBER | STRING
+  //              | "(" expression ")"
+  //              | IDENTIFIER ;
   private primary(): Expr {
     if (this.match(TT.NUMBER, TT.STRING)) {
       return new Literal(this.previous().literal);
@@ -177,6 +243,10 @@ export default class Parser {
     if (this.match(TT.FALSE)) return new Literal(false);
     if (this.match(TT.TRUE)) return new Literal(true);
     if (this.match(TT.NIL)) return new Literal(null);
+
+    if (this.match(TT.IDENTIFIER)) {
+      return new Variable(this.previous());
+    }
 
     // the LEFT_PAREN is used as a trigger for the inner expression()
     // and the closing RIGHT_PAREN is expected and an error is thrown
