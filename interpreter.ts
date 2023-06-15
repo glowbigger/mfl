@@ -1,11 +1,11 @@
 import {  Expr, ExprVisitor, Binary, Grouping, Literal, 
-          Unary, Variable, Assign } from "./expr";
+          Unary, Variable, Assign, Logical } from "./expr";
 // import { LangError } from "./langError";
 import { LiteralType, Nullable } from "./types";
 import { TokenType as TT } from "./tokenType";
 import Token from "./token";
 import { Stmt, StmtVisitor, Expression, Print,
-         Var, Block, If } from "./stmt";
+         Var, Block, If, While } from "./stmt";
 import reportLangError from "./main";
 import Environment from "./environment";
 
@@ -58,6 +58,29 @@ export class Interpreter
   // in the user's source code, it is never computed
   visitLiteralExpr(expr: Literal): LiteralType {
     return expr.value;
+  }
+
+  // NOTE we return the actual values of expressions
+  // for example: 
+  // print "hi" or nil
+  // will print "hi" and not true
+  // also, 
+  // nil and ...
+  // returns nil without evaluating ...
+  visitLogicalExpr(expr: Logical): LiteralType {
+    const left: LiteralType = this.evaluate(expr.left);
+
+    if (expr.operator.type == TT.OR) {
+      if (this.isTruthy(left)) return left;
+    } else {
+      // AND statement
+      // example: 
+      // nil and unevaluated and ...
+      // will return nil without evaluating unevaluated
+      if (!this.isTruthy(left)) return left;
+    }
+
+    return this.evaluate(expr.right);
   }
 
   // a value inside () is just the value
@@ -187,6 +210,12 @@ export class Interpreter
   visitPrintStmt(printStatement: Print): void {
     const value: LiteralType = this.evaluate(printStatement.expression);
     console.log(this.stringify(value));
+  }
+
+  visitWhileStmt(stmt: While): void {
+    while (this.isTruthy(this.evaluate(stmt.condition))) {
+      this.execute(stmt.body);
+    }
   }
 
   // NOTE the default value of an uninitialized variable is nil/null

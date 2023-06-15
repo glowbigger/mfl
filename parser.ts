@@ -1,10 +1,10 @@
 import reportLangError from "./main";
 import { TokenType as TT } from "./tokenType"
 import Token from "./token"
-import { Stmt, Print, Expression, Var, Block, If } from "./stmt";
+import { Stmt, Print, Expression, Var, Block, If, While } from "./stmt";
 
 import {  Expr, Binary, Grouping, Literal, 
-          Unary, Variable, Assign } from "./expr";
+          Unary, Variable, Assign, Logical } from "./expr";
 
 import { Nullable } from "./types";
 
@@ -91,6 +91,7 @@ export default class Parser {
   private statement(): Stmt {
     if (this.match(TT.IF)) return this.ifStatement();
     if (this.match(TT.PRINT)) return this.printStatement();
+    if (this.match(TT.WHILE)) return this.whileStatement();
     if (this.match(TT.LEFT_BRACE)) return new Block(this.block());
 
     return this.expressionStatement();
@@ -119,6 +120,15 @@ export default class Parser {
     const value = this.expression();
     this.consume(TT.SEMICOLON, "Expect ';' after value.");
     return new Print(value);
+  }
+
+  private whileStatement(): Stmt {
+    this.consume(TT.LEFT_PAREN, "Expect '(' after 'while'.");
+    const condition: Expr = this.expression();
+    this.consume(TT.RIGHT_PAREN, "Expect ')' after condition.");
+    const body: Stmt = this.statement();
+
+    return new While(condition, body);
   }
 
   // grammar:
@@ -183,10 +193,10 @@ export default class Parser {
 
   // grammar:
   // assignment     -> IDENTIFIER "=" assignment
-  //                | equality ;
+  //                | logic_or ;
   // TODO comment this, does not match the grammar at all
   private assignment(): Expr {
-    const expr: Expr = this.equality();
+    const expr: Expr = this.or();
 
     if (this.match(TT.EQUAL)) {
       const equals: Token = this.previous();
@@ -200,6 +210,30 @@ export default class Parser {
       }
 
       this.error(equals, "Invalid assignment target."); 
+    }
+
+    return expr;
+  }
+
+  private or(): Expr {
+    let expr: Expr = this.and();
+
+    while (this.match(TT.OR)) {
+      const operator: Token = this.previous();
+      const right: Expr = this.and();
+      expr = new Logical(expr, operator, right);
+    }
+
+    return expr;
+  }
+
+  private and(): Expr {
+    let expr: Expr = this.equality();
+
+    while (this.match(TT.AND)) {
+      const operator: Token = this.previous();
+      const right: Expr = this.equality();
+      expr = new Logical(expr, operator, right);
     }
 
     return expr;
@@ -369,7 +403,7 @@ export default class Parser {
     return new ParseError();
   }
 
-  // not fully implemented yet, consume characters until a semicolon
+  // consume characters until a semicolon
   // or CLASS, FUN, etc. token is hit, in which case the statement
   // is over and the parser has been synchronized
   private synchronize(): void {

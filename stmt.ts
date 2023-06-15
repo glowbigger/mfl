@@ -12,6 +12,7 @@ export interface StmtVisitor<R> {
   visitIfStmt(stmt: If): R;
   visitPrintStmt(stmt: Print): R;
   visitVarStmt(stmt: Var): R;
+  visitWhileStmt(stmt: While): R;
 }
 
 export abstract class Stmt {
@@ -88,5 +89,20 @@ export class Var extends Stmt {
 
   accept<R>(visitor: StmtVisitor<R>) {
     return visitor.visitVarStmt(this);
+  }
+}
+
+export class While extends Stmt {
+  readonly condition: Expr;
+  readonly body: Stmt;
+
+  constructor(condition: Expr, body: Stmt) {
+    super();
+    this.condition = condition;
+    this.body = body;
+  }
+
+  accept<R>(visitor: StmtVisitor<R>) {
+    return visitor.visitWhileStmt(this);
   }
 }
