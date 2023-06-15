@@ -4,7 +4,8 @@ import {  Expr, ExprVisitor, Binary, Grouping, Literal,
 import { LiteralType, Nullable } from "./types";
 import { TokenType as TT } from "./tokenType";
 import Token from "./token";
-import { Stmt, StmtVisitor, Expression, Print, Var, Block } from "./stmt";
+import { Stmt, StmtVisitor, Expression, Print,
+         Var, Block, If } from "./stmt";
 import reportLangError from "./main";
 import Environment from "./environment";
 
@@ -153,7 +154,6 @@ export class Interpreter
     return null;
   }
 
-  // 
   visitVariableExpr(expr: Variable): LiteralType {
     return this.environment.get(expr.name);
   }
@@ -173,6 +173,14 @@ export class Interpreter
   // discard these by commenting the this.evaluate
   visitExpressionStmt(expressionStatement: Expression): void {
     this.evaluate(expressionStatement.expression);
+  }
+
+  visitIfStmt(stmt: If): void {
+    if (this.isTruthy(this.evaluate(stmt.condition))) {
+      this.execute(stmt.thenBranch);
+    } else if (stmt.elseBranch != null) {
+      this.execute(stmt.elseBranch);
+    }
   }
 
   // evaluates and prints the given statement

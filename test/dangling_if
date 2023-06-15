@@ -1,0 +1,14 @@
+// a dangling if will bind to the nearest if
+if (true)
+  if (false)
+    print "this will not execute";
+  else
+    print "this will execute";
+
+// here, the else doesn't bind to the outer if, even though
+// the indendation makes it seem like it should
+if (true)
+  if (false)
+    print "this will not execute";
+else
+  print "this will still execute";

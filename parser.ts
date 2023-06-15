@@ -1,7 +1,7 @@
 import reportLangError from "./main";
 import { TokenType as TT } from "./tokenType"
 import Token from "./token"
-import { Stmt, Print, Expression, Var, Block } from "./stmt";
+import { Stmt, Print, Expression, Var, Block, If } from "./stmt";
 
 import {  Expr, Binary, Grouping, Literal, 
           Unary, Variable, Assign } from "./expr";
@@ -84,13 +84,67 @@ export default class Parser {
   }
 
   // parses a statement
-  // statement      -> exprStmt
-  //                | printStmt ;
+  // statement      → exprStmt
+  //                | ifStmt
+  //                | printStmt
+  //                | block ;
   private statement(): Stmt {
+    if (this.match(TT.IF)) return this.ifStatement();
     if (this.match(TT.PRINT)) return this.printStatement();
     if (this.match(TT.LEFT_BRACE)) return new Block(this.block());
 
     return this.expressionStatement();
+  }
+
+  // ifStmt         → "if" "(" expression ")" statement
+  //                ( "else" statement )? ;
+  // NOTE a dangling else is bound to the nearest if
+  private ifStatement(): Stmt {
+    this.consume(TT.LEFT_PAREN, "Expect '(' after 'if'.");
+    const condition: Expr = this.expression();
+    this.consume(TT.RIGHT_PAREN, "Expect ')' after if condition."); 
+    const thenBranch: Stmt = this.statement();
+
+    // option else
+    if (this.match(TT.ELSE)) {
+      const elseBranch = this.statement();
+      return new If(condition, thenBranch, elseBranch);
+    }
+
+    return new If(condition, thenBranch);
+  }
+
+  // printStmt      -> "print" expression ";" ;
+  private printStatement(): Stmt {
+    const value = this.expression();
+    this.consume(TT.SEMICOLON, "Expect ';' after value.");
+    return new Print(value);
+  }
+
+  // grammar:
+  // exprStmt       -> expression ";" ;
+  private expressionStatement(): Stmt {
+    const value = this.expression();
+    this.consume(TT.SEMICOLON, "Expect ';' after value.");
+    return new Expression(value);
+  }
+
+  // grammar:
+  // block          -> "{" declaration* "}";
+  private block(): Array<Stmt> {
+    const statements: Array<Stmt> = [];
+
+    // NOTE we must also check that EOF is reached, in case the
+    // user enters a hanging {
+    while (!this.check(TT.RIGHT_BRACE) && !this.isAtEnd()) {
+      const declaration = this.declaration();
+      if (declaration !== null) {
+        statements.push(declaration);
+      }
+    }
+
+    this.consume(TT.RIGHT_BRACE, "Expect '}' after block.");
+    return statements;
   }
 
   // declaration    -> varDecl
@@ -125,39 +179,6 @@ export default class Parser {
 
     this.consume(TT.SEMICOLON, "Expect ';' after variable declaration.");
     return new Var(name, initializer);
-  }
-
-  // printStmt      -> "print" expression ";" ;
-  private printStatement(): Stmt {
-    const value = this.expression();
-    this.consume(TT.SEMICOLON, "Expect ';' after value.");
-    return new Print(value);
-  }
-
-  // grammar:
-  // exprStmt       -> expression ";" ;
-  private expressionStatement(): Stmt {
-    const value = this.expression();
-    this.consume(TT.SEMICOLON, "Expect ';' after value.");
-    return new Expression(value);
-  }
-
-  // grammar:
-  // block          -> "{" declaration* "}";
-  private block(): Array<Stmt> {
-    const statements: Array<Stmt> = [];
-
-    // NOTE we must also check that EOF is reached, in case the
-    // user enters a hanging {
-    while (!this.check(TT.RIGHT_BRACE) && !this.isAtEnd()) {
-      const declaration = this.declaration();
-      if (declaration !== null) {
-        statements.push(declaration);
-      }
-    }
-
-    this.consume(TT.RIGHT_BRACE, "Expect '}' after block.");
-    return statements;
   }
 
   // grammar:
