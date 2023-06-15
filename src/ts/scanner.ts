@@ -1,5 +1,4 @@
-import Token from './token';
-import { TokenType as TT } from './tokenType';
+import { Token, TokenType as TT } from './token';
 import { Nullable, Primitive } from './types';
 import reportLangError from './main';
 

@@ -1,5 +1,8 @@
 {
   "devDependencies": {
     "@types/node": "^20.2.1"
+  },
+  "scripts": {
+      "interactive": "tsc && node ./src/js/main.js"
   }
 }

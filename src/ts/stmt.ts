@@ -1,5 +1,5 @@
 import { Expr } from './expr';
-import Token from './token';
+import { Token } from './token';
 import { Nullable } from './types';
 
 /*

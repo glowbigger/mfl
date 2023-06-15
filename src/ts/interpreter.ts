@@ -2,8 +2,7 @@ import {  Expr, ExprVisitor, Binary, Grouping, Literal,
           Unary, Variable, Assign, Logical } from "./expr";
 // import { LangError } from "./langError";
 import { LiteralType, Nullable } from "./types";
-import { TokenType as TT } from "./tokenType";
-import Token from "./token";
+import { Token, TokenType as TT } from './token';
 import { Stmt, StmtVisitor, Expression, Print,
          Var, Block, If, While } from "./stmt";
 import reportLangError from "./main";

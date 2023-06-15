@@ -2,7 +2,7 @@
 // it is a wrapper for a dictionary/object/hashmap
 
 import { RuntimeError } from "./interpreter";
-import Token from "./token";
+import { Token } from "./token";
 import { LiteralType, Nullable } from "./types";
 
 export default class Environment {

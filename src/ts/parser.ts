@@ -1,6 +1,5 @@
 import reportLangError from "./main";
-import { TokenType as TT } from "./tokenType"
-import Token from "./token"
+import { Token, TokenType as TT } from './token';
 import { Stmt, Print, Expression, Var, Block, If, While } from "./stmt";
 
 import {  Expr, Binary, Grouping, Literal, 

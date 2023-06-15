@@ -1,11 +1,7 @@
-// TODO interactive mode
 import * as fs from 'fs';
 import Scanner from './scanner';
 import Parser from './parser';
-// import AstPrinter from './astPrinter';
 import { Interpreter } from './interpreter';
-// import { Nullable } from './types';
-// import { Expr } from './expr';
 
 let hadSyntaxError = false;
 let hadRuntimeError = false;
