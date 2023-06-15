@@ -3,6 +3,11 @@
     "@types/node": "^20.2.1"
   },
   "scripts": {
-      "interactive": "tsc && node ./src/js/main.js"
+    "lang": "tsc && node ./src/js/main.js",
+    "demo": "tsc && node ./src/js/main.js ./test/demo"
+  },
+  "dependencies": {
+    "prompt-sync": "^4.2.0",
+    "typescript": "^5.1.3"
   }
 }
