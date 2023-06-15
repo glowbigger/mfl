@@ -1,7 +1,7 @@
 import reportLangError from "./main";
 import { TokenType as TT } from "./tokenType"
 import Token from "./token"
-import { Stmt, Print, Expression, Var } from "./stmt";
+import { Stmt, Print, Expression, Var, Block } from "./stmt";
 
 import {  Expr, Binary, Grouping, Literal, 
           Unary, Variable, Assign } from "./expr";
@@ -10,6 +10,11 @@ import { Nullable } from "./types";
 
 /* 
  * a recursive descent parser for the following expression grammar: 
+ *
+ * statement      → exprStmt
+ *                | printStmt
+ *                | block ;
+ * block          → "{" declaration* "}" ;
  *
  * expression     -> assignment ;
  * assignment     -> IDENTIFIER "=" assignment
@@ -83,6 +88,7 @@ export default class Parser {
   //                | printStmt ;
   private statement(): Stmt {
     if (this.match(TT.PRINT)) return this.printStatement();
+    if (this.match(TT.LEFT_BRACE)) return new Block(this.block());
 
     return this.expressionStatement();
   }
@@ -137,13 +143,34 @@ export default class Parser {
   }
 
   // grammar:
+  // block          -> "{" declaration* "}";
+  private block(): Array<Stmt> {
+    const statements: Array<Stmt> = [];
+
+    // NOTE we must also check that EOF is reached, in case the
+    // user enters a hanging {
+    while (!this.check(TT.RIGHT_BRACE) && !this.isAtEnd()) {
+      const declaration = this.declaration();
+      if (declaration !== null) {
+        statements.push(declaration);
+      }
+    }
+
+    this.consume(TT.RIGHT_BRACE, "Expect '}' after block.");
+    return statements;
+  }
+
+  // grammar:
   // assignment     -> IDENTIFIER "=" assignment
   //                | equality ;
+  // TODO comment this, does not match the grammar at all
   private assignment(): Expr {
     const expr: Expr = this.equality();
 
     if (this.match(TT.EQUAL)) {
       const equals: Token = this.previous();
+      // recursively calls assignemnt to support statements like
+      // a = b = c
       const value: Expr = this.assignment();
 
       if (expr instanceof Variable) {

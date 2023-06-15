@@ -7,6 +7,7 @@ import { Nullable } from './types';
 */
 
 export interface StmtVisitor<R> {
+  visitBlockStmt(stmt: Block): R;
   visitExpressionStmt(stmt: Expression): R;
   visitPrintStmt(stmt: Print): R;
   visitVarStmt(stmt: Var): R;
@@ -14,6 +15,19 @@ export interface StmtVisitor<R> {
 
 export abstract class Stmt {
   abstract accept<R>(visitor: StmtVisitor<R>): R;
+}
+
+export class Block extends Stmt {
+  readonly statements: Array<Stmt>;
+
+  constructor(statements: Array<Stmt>) {
+    super();
+    this.statements = statements;
+  }
+
+  accept<R>(visitor: StmtVisitor<R>): R {
+    return visitor.visitBlockStmt(this);
+  }
 }
 
 export class Expression extends Stmt {

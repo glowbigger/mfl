@@ -4,7 +4,7 @@ import {  Expr, ExprVisitor, Binary, Grouping, Literal,
 import { LiteralType, Nullable } from "./types";
 import { TokenType as TT } from "./tokenType";
 import Token from "./token";
-import { Stmt, StmtVisitor, Expression, Print, Var } from "./stmt";
+import { Stmt, StmtVisitor, Expression, Print, Var, Block } from "./stmt";
 import reportLangError from "./main";
 import Environment from "./environment";
 
@@ -164,6 +164,10 @@ export class Interpreter
   * except in a roundabout way from interpret()
   ***********************************************************************/
 
+  visitBlockStmt(stmt: Block): void {
+    this.executeBlock(stmt.statements, new Environment(this.environment));
+  }
+
   // NOTE this doesn't actual do anything, because there is nothing
   // to execute for an expression, we could modify the compiler to simply
   // discard these by commenting the this.evaluate
@@ -206,6 +210,23 @@ export class Interpreter
   // just like evaluate, express for statements
   private execute(stmt: Stmt): void {
     stmt.accept(this);
+  }
+
+  // executes a given block by storing the current environment
+  // temporarily, and then executing all statements within the block
+  // using the given environment within the block
+  private executeBlock( statements: Array<Stmt>,
+                        blockEnvironment: Environment): void {
+    const outerEnvironment: Environment = this.environment;
+    try {
+      this.environment = blockEnvironment;
+
+      for (const statement of statements) {
+        this.execute(statement);
+      }
+    } finally {
+      this.environment = outerEnvironment;
+    }
   }
 
   // false and nil are falsey, everything else is truthy
