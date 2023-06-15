@@ -89,12 +89,68 @@ export default class Parser {
   //                | printStmt
   //                | block ;
   private statement(): Stmt {
+    if (this.match(TT.FOR)) return this.forStatement();
     if (this.match(TT.IF)) return this.ifStatement();
     if (this.match(TT.PRINT)) return this.printStatement();
     if (this.match(TT.WHILE)) return this.whileStatement();
     if (this.match(TT.LEFT_BRACE)) return new Block(this.block());
 
     return this.expressionStatement();
+  }
+
+  // forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
+  //                  expression? ";"
+  //                  expression? ")" statement ;
+  // NOTE this uses desugaring into while loops:
+  // the for loops are translated into a while loop which is returned
+  // rather than a custom For() statement, in this way the interpreter
+  // code does not need to be modified at all
+  // NOTE therefore for loops are all just syntactic sugar
+  private forStatement(): Stmt {
+    this.consume(TT.LEFT_PAREN, "Expect '(' after 'for'.");
+
+    let initializer: Nullable<Stmt>;
+    if (this.match(TT.SEMICOLON)) {
+      initializer = null;
+    } else if (this.match(TT.VAR)) {
+      initializer = this.varDeclaration();
+    } else {
+      initializer = this.expressionStatement();
+    }
+
+    let condition: Nullable<Expr> = null;
+    if (!this.check(TT.SEMICOLON)) {
+      condition = this.expression();
+    }
+    this.consume(TT.SEMICOLON, "Expect ';' after loop condition.");
+
+    let increment: Nullable<Expr> = null;
+    if (!this.check(TT.RIGHT_PAREN)) {
+      increment = this.expression();
+    }
+    this.consume(TT.RIGHT_PAREN, "Expect ')' after for clauses.");
+
+    // the body of the loop
+    let body: Stmt = this.statement();
+
+    // if an increment exists, make the body a block with the increment
+    // statement at the end
+    if (increment !== null) {
+      body = new Block([ body, new Expression(increment) ]);
+    }
+
+    // an ommitted terminating condition results in a forever loop
+    if (condition === null) condition = new Literal(true);
+
+    let loop: Stmt = new While(condition, body);
+
+    // the loop should have the initializer run once before the 
+    // rest of the loop does, so combine them into a block statement
+    if (initializer != null) {
+      loop = new Block([ initializer, loop ]);
+    }
+
+    return loop;
   }
 
   // ifStmt         → "if" "(" expression ")" statement
