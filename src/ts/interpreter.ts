@@ -1,14 +1,16 @@
 import {  Expr, ExprVisitor, Binary, Grouping, Literal, 
-          Unary, Variable, Assign, Logical } from "./expr";
-// import { LangError } from "./langError";
-import { LiteralType, Nullable } from "./types";
+          Unary, Variable, Assign, Logical, Call } from "./expr";
+import { ObjectType, Nullable, isCallable } from "./types";
 import { Token, TokenType as TT } from './token';
 import { Stmt, StmtVisitor, Expression, Print,
-         Var, Block, If, While } from "./stmt";
+         Var, Block, If, While, Fun, Return } from "./stmt";
 import reportLangError from "./main";
 import Environment from "./environment";
+import Callable from "./callable";
+import LangFunction from "./langFunction";
+import ReturnIndicator from "./returnIndicator";
 
-// TODO maybe move this?
+// TODO move this into its own file maybe?
 export class RuntimeError extends Error {
   token: Token;
 
@@ -21,8 +23,24 @@ export class RuntimeError extends Error {
 // NOTE since StmtVisitor is called with the generic void, the methods
 // that must be implemented will have be voids, i.e. return nothing
 export class Interpreter 
-  implements ExprVisitor<LiteralType>, StmtVisitor<void> {
-  private environment: Environment = new Environment();
+  implements ExprVisitor<ObjectType>, StmtVisitor<void> {
+  // a global environment which can be accessed outside the interpreter
+  readonly globalEnvironment: Environment = new Environment();
+  private environment: Environment = this.globalEnvironment;
+
+  // for now, the global environment has a native function called
+  // clock() which simply allows access to js's Date.now() function
+  constructor() {
+    const clockFunction: Callable = {
+      arity(): number { return 0; },
+      call( interpreter: Interpreter, 
+            args: Array<ObjectType>): ObjectType {
+        return Date.now();
+      },
+      toString(): string { return "<native fn>"; }
+    }
+    this.globalEnvironment.define("clock", clockFunction);
+  }
 
   // tries to interpret the given statements, and returns any errors
   interpret(statements: Array<Stmt>): void { 
@@ -55,7 +73,7 @@ export class Interpreter
   // "asdf" -> asdf or 123 -> 123
   // in other words, you can always find the value of a literal
   // in the user's source code, it is never computed
-  visitLiteralExpr(expr: Literal): LiteralType {
+  visitLiteralExpr(expr: Literal): ObjectType {
     return expr.value;
   }
 
@@ -66,8 +84,8 @@ export class Interpreter
   // also, 
   // nil and ...
   // returns nil without evaluating ...
-  visitLogicalExpr(expr: Logical): LiteralType {
-    const left: LiteralType = this.evaluate(expr.left);
+  visitLogicalExpr(expr: Logical): ObjectType {
+    const left: ObjectType = this.evaluate(expr.left);
 
     if (expr.operator.type == TT.OR) {
       if (this.isTruthy(left)) return left;
@@ -88,12 +106,12 @@ export class Interpreter
   // node for the inner expression. We do create a node for parentheses 
   // in Lox because we’ll need it later to correctly handle the left-hand 
   // sides of assignment expressions.
-  visitGroupingExpr(expr: Grouping): LiteralType {
+  visitGroupingExpr(expr: Grouping): ObjectType {
     return this.evaluate(expr.expression);
   }
 
-  visitUnaryExpr(expr: Unary): LiteralType {
-    const right: LiteralType = this.evaluate(expr.right);
+  visitUnaryExpr(expr: Unary): ObjectType {
+    const right: ObjectType = this.evaluate(expr.right);
 
     switch (expr.operator.type) {
       case TT.MINUS:
@@ -108,10 +126,10 @@ export class Interpreter
     return null;
   }
 
-  visitBinaryExpr(expr: Binary): LiteralType {
+  visitBinaryExpr(expr: Binary): ObjectType {
     // let is used because left and right may have their types asserted
-    let left: LiteralType = this.evaluate(expr.left);
-    let right: LiteralType = this.evaluate(expr.right); 
+    let left: ObjectType = this.evaluate(expr.left);
+    let right: ObjectType = this.evaluate(expr.right); 
 
     switch (expr.operator.type) {
       case TT.MINUS:
@@ -176,7 +194,29 @@ export class Interpreter
     return null;
   }
 
-  visitVariableExpr(expr: Variable): LiteralType {
+  visitCallExpr(expr: Call): ObjectType {
+    const callee: ObjectType = this.evaluate(expr.callee);
+    const args: Array<ObjectType> = [];
+    for (const arg of expr.args) { 
+      args.push(this.evaluate(arg));
+    }
+
+    if (!isCallable(callee)) {
+      throw new RuntimeError(expr.paren,
+          "Can only call functions and classes.");
+    }
+    const func: Callable = callee as Callable;
+
+    if (args.length != func.arity()) {
+      throw new RuntimeError(expr.paren, "Expected " +
+          func.arity() + " arguments but got " +
+          args.length + ".");
+    }
+
+    return func.call(this, args);
+  }
+
+  visitVariableExpr(expr: Variable): ObjectType {
     return this.environment.get(expr.name);
   }
 
@@ -197,6 +237,11 @@ export class Interpreter
     this.evaluate(expressionStatement.expression);
   }
 
+  visitFunctionStmt(stmt: Fun): void {
+    const func: LangFunction = new LangFunction(stmt, this.environment);
+    this.environment.define(stmt.name.lexeme, func);
+  }
+
   visitIfStmt(stmt: If): void {
     if (this.isTruthy(this.evaluate(stmt.condition))) {
       this.execute(stmt.thenBranch);
@@ -205,10 +250,16 @@ export class Interpreter
     }
   }
 
-  // evaluates and prints the given statement
   visitPrintStmt(printStatement: Print): void {
-    const value: LiteralType = this.evaluate(printStatement.expression);
+    const value: ObjectType = this.evaluate(printStatement.expression);
     console.log(this.stringify(value));
+  }
+
+  visitReturnStmt(stmt: Return): void {
+    let value: Nullable<ObjectType> = null;
+    if (stmt.value != null) value = this.evaluate(stmt.value);
+
+    throw new ReturnIndicator(value);
   }
 
   visitWhileStmt(stmt: While): void {
@@ -219,15 +270,15 @@ export class Interpreter
 
   // NOTE the default value of an uninitialized variable is nil/null
   visitVarStmt(stmt: Var): void {
-    let value: Nullable<LiteralType> = null;
+    let value: Nullable<ObjectType> = null;
     if (stmt.initializer != null) {
       value = this.evaluate(stmt.initializer);
     }
     this.environment.define(stmt.name.lexeme, value);
   }
 
-  visitAssignExpr(expr: Assign): LiteralType {
-    const value: LiteralType = this.evaluate(expr.value);
+  visitAssignExpr(expr: Assign): ObjectType {
+    const value: ObjectType = this.evaluate(expr.value);
     this.environment.assign(expr.name, value);
     return value;
   }
@@ -239,7 +290,7 @@ export class Interpreter
   // evaluates a given expression in accordance with the visitor pattern,
   // so the given expression will in turn call the appropriate visit
   // method above based on its own type
-  private evaluate(expr: Expr): LiteralType {
+  private evaluate(expr: Expr): ObjectType {
     return expr.accept(this);
   }
 
@@ -251,7 +302,7 @@ export class Interpreter
   // executes a given block by storing the current environment
   // temporarily, and then executing all statements within the block
   // using the given environment within the block
-  private executeBlock( statements: Array<Stmt>,
+  executeBlock( statements: Array<Stmt>,
                         blockEnvironment: Environment): void {
     const outerEnvironment: Environment = this.environment;
     try {
@@ -266,7 +317,7 @@ export class Interpreter
   }
 
   // false and nil are falsey, everything else is truthy
-  private isTruthy(object: LiteralType): boolean {
+  private isTruthy(object: ObjectType): boolean {
     if (object === null) return false;
     if (typeof(object) === "boolean") return object;
     return true;
@@ -276,7 +327,7 @@ export class Interpreter
   // first check for nulls, so that you don't get a nullpointerexception
   // if the object's are of different types, then return false
   // otherwise return true if the object's have the same value
-  private isEqual(a: LiteralType, b: LiteralType) {
+  private isEqual(a: ObjectType, b: ObjectType) {
     if (a === null && b === null) return true;
     if (a === null) return false;
 
@@ -285,7 +336,7 @@ export class Interpreter
 
   // turns an object into a string
   // NOTE recall that objects are nil, strings, numbers, and booleans
-  private stringify(object: LiteralType): string {
+  private stringify(object: ObjectType): string {
     if (object === null) return "nil";
 
     if (typeof(object) === "number") {
@@ -300,14 +351,17 @@ export class Interpreter
         return "true";
       }
       return "false";
-    } 
+    } else if (isCallable(object)) {
+      return object.toString();
+    }
+    // if it's a string, just return it
     return object;
   }
 
   // returns whether the given operand is a number operand
   // NOTE the operator is only used for error reporting
   // the operator will be returned as the RuntimeError token
-  private checkNumberOperand(operator: Token, operand: LiteralType) {
+  private checkNumberOperand(operator: Token, operand: ObjectType) {
     if (typeof(operand) === "number") return;
     throw new RuntimeError(operator, "Operand must be a number.");
   }
@@ -316,8 +370,8 @@ export class Interpreter
   // NOTE the operator is only used for error reporting
   // the operator will be returned as the RuntimeError token
   private checkNumberOperands(operator: Token, 
-                      left: LiteralType, 
-                      right: LiteralType) {
+                      left: ObjectType, 
+                      right: ObjectType) {
     if (typeof(left) === "number" && typeof(right) === "number") return;
     
     throw new RuntimeError(operator, "Operands must be numbers.");

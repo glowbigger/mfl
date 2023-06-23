@@ -1,4 +1,4 @@
-import { Nullable, Primitive } from "./types";
+import { ObjectType } from "./types";
 
 export enum TokenType {
 	// Single-character tokens.
@@ -22,7 +22,7 @@ export enum TokenType {
 }
 
 export class Token {
-  type: TokenType; lexeme: string; literal: Nullable<Primitive>; line: number;
+  type: TokenType; lexeme: string; literal: ObjectType; line: number;
   
   // the type is an enum, and can be a value like CLASS or FUNCTION
   // the lexeme is the substring the token was extracted from
@@ -30,7 +30,7 @@ export class Token {
   // the line is the line number the token was found in
   // NOTE most tokens will not have a literal, so null is an option
   constructor(type: TokenType, lexeme: string,
-              literal: Nullable<Primitive>, line: number) {
+              literal: ObjectType, line: number) {
 		this.type = type;
 		this.lexeme = lexeme;
 		this.literal = literal;

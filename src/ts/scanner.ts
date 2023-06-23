@@ -1,5 +1,5 @@
 import { Token, TokenType as TT } from './token';
-import { Nullable, Primitive } from './types';
+import { ObjectType } from './types';
 import reportLangError from './main';
 
 export default class Scanner {
@@ -167,7 +167,7 @@ export default class Scanner {
   }
 
 	// add a token, if no literal is given, it is null
-	private addToken(type: TT, literal: Nullable<Primitive> = null): void {
+	private addToken(type: TT, literal: ObjectType = null): void {
 		const lexeme = this.getCurrentLexeme();
 		this.tokens.push(new Token(type, lexeme, literal, this.line));
 	}

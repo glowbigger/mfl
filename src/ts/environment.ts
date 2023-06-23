@@ -3,11 +3,12 @@
 
 import { RuntimeError } from "./interpreter";
 import { Token } from "./token";
-import { LiteralType, Nullable } from "./types";
+import { ObjectType, Nullable } from "./types";
 
 export default class Environment {
   readonly enclosing: Nullable<Environment>;
-  private readonly values:{ [key: string] : Nullable<LiteralType> } = {};
+  private readonly values:{ [key: string] : Nullable<ObjectType> } 
+    = {};
 
   // the global scope constructor will be the only environment
   // with an empty constructor, everything else will inherit
@@ -21,7 +22,7 @@ export default class Environment {
   // if it exists, otherwise try the enclosing environment, if a variable 
   // doesn't exist at the global level, a runtime error is thrown
   // thus, all environments up to the global level will be searched
-  get(name: Token): LiteralType {
+  get(name: Token): ObjectType {
     if (name.lexeme in this.values) {
       return this.values[name.lexeme];
     }
@@ -37,7 +38,7 @@ export default class Environment {
   // check if a token's lexeme is in the environment and update the
   // value if it exists, otherwise thy the enclosing environment, if a
   // variable doesn't exist at the global level, a runtime error is thrown
-  assign(name: Token, value: LiteralType): void {
+  assign(name: Token, value: ObjectType): void {
     if (name.lexeme in this.values) {
       this.values[name.lexeme] = value;
       return;
@@ -53,7 +54,7 @@ export default class Environment {
   }
 
   // NOTE redefining an existing variable is fine
-  define(name: string, value: Nullable<LiteralType>): void {
+  define(name: string, value: Nullable<ObjectType>): void {
     this.values[name] = value;
   }
 }

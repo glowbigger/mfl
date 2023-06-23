@@ -1,0 +1,16 @@
+// this function returns another function that can be called to
+// increment a number stored persistently in that inner function 
+// in other words, a closure
+fun makeCounter() {
+  var i = 0;
+  fun count() {
+    i = i + 1;
+    print i;
+  }
+
+  return count;
+}
+
+var counter = makeCounter();
+counter(); // 1
+counter(); // 2

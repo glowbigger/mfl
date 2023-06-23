@@ -1,0 +1,11 @@
+// void functions that work at the global level
+fun sayHi(first, last) {
+  print "Hi, " + first + " " + last + "!";
+}
+
+fun addTwo(x, y) {
+  print x + y;
+}
+
+sayHi("Dear", "Reader");
+addTwo(34809, 20948);

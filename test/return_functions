@@ -1,0 +1,22 @@
+// various functions that can return values
+fun returnInt() {
+  return 5;
+}
+
+fun returnString() {
+  return "hey";
+}
+
+fun returnBool() {
+  return true;
+}
+
+// void functions return nil
+fun returnNil() {
+  return;
+}
+
+print returnInt();
+print returnString();
+print returnBool();
+print returnNil();

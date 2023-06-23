@@ -1,9 +1,9 @@
 import reportLangError from "./main";
 import { Token, TokenType as TT } from './token';
-import { Stmt, Print, Expression, Var, Block, If, While } from "./stmt";
+import { Stmt, Print, Expression, Var, Block, If, While, Fun, Return } from "./stmt";
 
 import {  Expr, Binary, Grouping, Literal, 
-          Unary, Variable, Assign, Logical } from "./expr";
+          Unary, Variable, Assign, Logical, Call } from "./expr";
 
 import { Nullable } from "./types";
 
@@ -91,6 +91,7 @@ export default class Parser {
     if (this.match(TT.FOR)) return this.forStatement();
     if (this.match(TT.IF)) return this.ifStatement();
     if (this.match(TT.PRINT)) return this.printStatement();
+    if (this.match(TT.RETURN)) return this.returnStatement();
     if (this.match(TT.WHILE)) return this.whileStatement();
     if (this.match(TT.LEFT_BRACE)) return new Block(this.block());
 
@@ -177,6 +178,20 @@ export default class Parser {
     return new Print(value);
   }
 
+  private returnStatement(): Stmt {
+    // keyword, the return token, is kept only for error reporting
+    const keyword: Token = this.previous();
+    let value: Nullable<Expr> = null;
+
+    // if "return" is not followed by a ;, then a value is being returned
+    if (!this.check(TT.SEMICOLON)) {
+      value = this.expression();
+    }
+
+    this.consume(TT.SEMICOLON, "Expect ';' after return value.");
+    return new Return(keyword, value);
+  }
+
   private whileStatement(): Stmt {
     this.consume(TT.LEFT_PAREN, "Expect '(' after 'while'.");
     const condition: Expr = this.expression();
@@ -195,7 +210,34 @@ export default class Parser {
   }
 
   // grammar:
+  // funDecl        -> "fun" function ;
+  // (funDecl is done in delcaration())
+  // function       -> IDENTIFIER "(" parameters? ")" block ;
+  private function(kind: string): Fun {
+    const name: Token = this.consume( TT.IDENTIFIER, 
+                                      "Expect " + kind + " name.");
+    this.consume(TT.LEFT_PAREN, "Expect '(' after " + kind + " name.");
+    const parameters: Array<Token> = [];
+    if (!this.check(TT.RIGHT_PAREN)) {
+      do {
+        if (parameters.length >= 255) {
+          this.error(this.peek(), "Can't have more than 255 parameters.");
+        }
+
+        parameters.push(
+            this.consume(TT.IDENTIFIER, "Expect parameter name."));
+      } while (this.match(TT.COMMA));
+    }
+    this.consume(TT.RIGHT_PAREN, "Expect ')' after parameters.");
+
+    this.consume(TT.LEFT_BRACE, "Expect '{' before " + kind + " body.");
+    const body: Array<Stmt> = this.block();
+    return new Fun(name, parameters, body);
+  }
+
+  // grammar:
   // block          -> "{" declaration* "}";
+  // (assumes that the { has already been matched)
   private block(): Array<Stmt> {
     const statements: Array<Stmt> = [];
 
@@ -216,6 +258,7 @@ export default class Parser {
   //                | statement ;
   private declaration(): Nullable<Stmt> {
     try {
+      if (this.match(TT.FUN)) return this.function("function");
       if (this.match(TT.VAR)) return this.varDeclaration();
       return this.statement();
     } catch (error) {
@@ -366,7 +409,48 @@ export default class Parser {
       return new Unary(operator, right);
     }
 
-    return this.primary();
+    return this.call();
+  }
+
+  // arguments      -> expression ( "," expression )* ;
+  // parses the inner arguments of a function call
+  // NOTE this returns a call, and finishes the call() function below
+  private callArguments(callee: Expr): Expr {
+    const args: Array<Expr> = []; 
+    if (!this.check(TT.RIGHT_PAREN)) {
+      do {
+        if (args.length >= 255) {
+          // NOTE no error is thrown, an error is only reported
+          this.error(this.peek(), "Can't have more than 255 arguments.");
+        }
+        args.push(this.expression());
+      } while (this.match(TT.COMMA));
+    }
+
+    // the right parenthesis is only stored for its location, which
+    // will be reported in runtime errors
+    const paren: Token = this.consume(TT.RIGHT_PAREN,
+                          "Expect ')' after arguments.");
+
+    return new Call(callee, paren, args);
+  }
+
+  // call           -> primary ( "(" callArguments? ")" )* ;
+  // after a primary is hit, look for parentheses
+  // TODO why isn't an error throw if expr is not an identifier?
+  // ^ this is thrown at runtime for some reason
+  private call(): Expr {
+    let expr: Expr = this.primary();
+
+    while (true) { 
+      if (this.match(TT.LEFT_PAREN)) {
+        expr = this.callArguments(expr);
+      } else {
+        break;
+      }
+    }
+
+    return expr;
   }
 
   // primary      -> "true" | "false" | "nil"

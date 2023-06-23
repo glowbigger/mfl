@@ -9,9 +9,11 @@ import { Nullable } from './types';
 export interface StmtVisitor<R> {
   visitBlockStmt(stmt: Block): R;
   visitExpressionStmt(stmt: Expression): R;
+  visitFunctionStmt(stmt: Fun): R;
   visitIfStmt(stmt: If): R;
   visitPrintStmt(stmt: Print): R;
   visitVarStmt(stmt: Var): R;
+  visitReturnStmt(stmt: Return): R;
   visitWhileStmt(stmt: While): R;
 }
 
@@ -45,6 +47,23 @@ export class Expression extends Stmt {
   }
 }
 
+export class Fun extends Stmt {
+  readonly name: Token;
+  readonly params: Array<Token>;
+  readonly body: Array<Stmt>;
+
+  constructor(name: Token, params: Array<Token>, body: Array<Stmt>  ) {
+    super();
+    this.name = name;
+    this.params = params;
+    this.body = body;
+  }
+
+  accept<R>(visitor: StmtVisitor<R>): R {
+    return visitor.visitFunctionStmt(this);
+  }
+}
+
 export class If extends Stmt {
   readonly condition: Expr;
   readonly thenBranch: Stmt;
@@ -74,6 +93,21 @@ export class Print extends Stmt {
 
   accept<R>(visitor: StmtVisitor<R>) {
     return visitor.visitPrintStmt(this);
+  }
+}
+
+export class Return extends Stmt {
+  readonly keyword: Token;
+  readonly value: Nullable<Expr>;
+
+  constructor(keyword: Token, value: Nullable<Expr>) {
+    super();
+    this.keyword = keyword;
+    this.value = value;
+  }
+
+  accept<R>(visitor: StmtVisitor<R>) {
+    return visitor.visitReturnStmt(this);
   }
 }
 

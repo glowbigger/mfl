@@ -13,7 +13,6 @@ Then
 git clone https://github.com/glowbigger/mfl
 cd mfl
 npm install
-tsc
 ```
 
 Then run the demo with `npm run demo`, the interactive mode with 

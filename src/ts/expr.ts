@@ -1,5 +1,5 @@
 import { Token } from './token';
-import { LiteralType } from './types';
+import { ObjectType } from './types';
 
 /*
 the visitor pattern is used here
@@ -23,6 +23,7 @@ instead it is called ExprVisitor
 export interface ExprVisitor<R> {
   visitAssignExpr(expr: Assign): R;
   visitBinaryExpr(expr: Binary): R;
+  visitCallExpr(expr: Call): R;
   visitGroupingExpr(expr: Grouping): R;
   visitLiteralExpr(expr: Literal): R;
   visitLogicalExpr(expr: Logical): R;
@@ -83,6 +84,26 @@ export class Binary extends Expr {
   }
 }
 
+export class Call extends Expr {
+  readonly callee: Expr;
+  // the right parenthesis is stored for its location, which will be
+  // returned if there was a runtime error
+  readonly paren: Token;
+  // can't use the name "arguments" because that is reserved by js
+  readonly args: Array<Expr>;
+
+  constructor(callee: Expr, paren: Token, args: Array<Expr>) {
+    super();
+    this.callee = callee;
+    this.paren = paren;
+    this.args = args;
+  }
+
+  accept<R>(visitor: ExprVisitor<R>): R {
+    return visitor.visitCallExpr(this);
+  }
+}
+
 export class Grouping extends Expr {
   readonly expression: Expr;
 
@@ -114,9 +135,9 @@ export class Logical extends Expr {
 }
 
 export class Literal extends Expr {
-  readonly value: LiteralType;
+  readonly value: ObjectType;
 
-  constructor(value: LiteralType) {
+  constructor(value: ObjectType) {
     super();
     this.value = value;
   }

@@ -1,0 +1,3 @@
+// functions themselves can be printed
+fun doNothing() { }
+print doNothing;
