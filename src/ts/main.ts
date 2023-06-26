@@ -2,12 +2,15 @@ import * as fs from 'fs';
 import Scanner from './scanner';
 import Parser from './parser';
 import { Interpreter } from './interpreter';
+import { Token } from './token';
+import { TokenType as TT } from './token';
+import Resolver from './resolver';
 
 let hadSyntaxError = false;
 let hadRuntimeError = false;
 
 // allows the scanner, parser and interpreter to report errors
-export default function reportLangError(line: number,
+export default function reportLangError(lineOrToken: number | Token,
                                     message: string,
                                     isRuntimeError: boolean) {
   if (isRuntimeError) {
@@ -15,7 +18,17 @@ export default function reportLangError(line: number,
   } else {
     hadSyntaxError = true;
   }
-  console.log(`[line ${line}] Error: ${message}`);
+  if (typeof(lineOrToken) === "string") {
+    console.log(`[line ${lineOrToken}] Error: ${message}`);
+  } else {
+    const token: Token = lineOrToken as Token;
+    if (token.type == TT.EOF) {
+      console.log("[line " + token.line + " at end]" + message);
+    } else {
+      console.log("[line " + token.line + " at '" +
+        token.lexeme + "'] " + message);
+    }
+  }
 }
 
 function runFile(source: string) {
@@ -40,8 +53,13 @@ function run(source: string) {
   const parser = new Parser(tokens)
   const statements = parser.parse();
 
-  // interpret the statements
+  // resolve the variables, it will pass its results to the interpreter
   const interpreter = new Interpreter();
+  const resolver: Resolver = new Resolver(interpreter);
+  resolver.resolveStatements(statements);
+
+  // interpret the statements if there were no errors
+  if (hadSyntaxError) return;
   interpreter.interpret(statements);
 }
 

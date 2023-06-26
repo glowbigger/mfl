@@ -1,0 +1,6 @@
+// this should return an error from the resolver
+
+var a = "outer";
+{
+  var a = a;
+}

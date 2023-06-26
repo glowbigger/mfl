@@ -1,0 +1,6 @@
+// return statements outside of functions are invalid
+return "at top level";
+
+{
+  return "outside of a function";
+}

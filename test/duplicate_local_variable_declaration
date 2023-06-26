@@ -1,0 +1,12 @@
+// should get an error from the resolver
+// in nonglobal scopes, duplicate variable declarations are not allowed
+
+// this is fine
+var a = 5;
+var a = 5;
+
+// this is not
+{
+  var a = "first";
+  var a = "second";
+}

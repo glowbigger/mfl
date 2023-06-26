@@ -1,0 +1,14 @@
+// without proper variable resolution, this will print
+// "global" and then "block"
+// it should print "global" twice
+
+var a = "global";
+{
+  fun showA() {
+    print a;
+  }
+
+  showA();
+  var a = "block";
+  showA();
+}

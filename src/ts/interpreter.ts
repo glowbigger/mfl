@@ -27,6 +27,15 @@ export class Interpreter
   // a global environment which can be accessed outside the interpreter
   readonly globalEnvironment: Environment = new Environment();
   private environment: Environment = this.globalEnvironment;
+  // for local variables only (global variables are handled differently),
+  // the number of scopes between the scope it was declared and the
+  // scope it was defined in
+  // these values are calculated and set by the resolver before
+  // interpret() is called
+  // NOTE a map is used so that these values can be easily discarded
+  // as opposed to storing these values in the expressions themselves
+  private readonly localDistances: Map<Expr, number> =
+                                                new Map<Expr, number>()
 
   // for now, the global environment has a native function called
   // clock() which simply allows access to js's Date.now() function
@@ -217,7 +226,17 @@ export class Interpreter
   }
 
   visitVariableExpr(expr: Variable): ObjectType {
-    return this.environment.get(expr.name);
+    return this.lookUpVariable(expr.name, expr);
+  }
+
+  private lookUpVariable(name: Token, expr: Expr): ObjectType {
+    const distance: number | undefined = this.localDistances.get(expr);
+    if (distance !== undefined) {
+      return this.environment.getAt(distance, name.lexeme);
+    } else {
+      // if the token is not in the map, then it must be global
+      return this.globalEnvironment.get(name);
+    }
   }
 
   /*********************************************************************** 
@@ -277,9 +296,18 @@ export class Interpreter
     this.environment.define(stmt.name.lexeme, value);
   }
 
+  // similar to lookUpVariable, except with assignment
   visitAssignExpr(expr: Assign): ObjectType {
     const value: ObjectType = this.evaluate(expr.value);
-    this.environment.assign(expr.name, value);
+
+    const distance: number | undefined = this.localDistances.get(expr);
+    if (distance !== undefined) {
+      this.environment.assignAt(distance, expr.name, value);
+    } else {
+      // if the token is not in the map, then it must be global
+      this.globalEnvironment.assign(expr.name, value);
+    }
+
     return value;
   }
 
@@ -297,6 +325,10 @@ export class Interpreter
   // just like evaluate, express for statements
   private execute(stmt: Stmt): void {
     stmt.accept(this);
+  }
+
+  resolve(expr: Expr, depth: number): void {
+    this.localDistances.set(expr, depth);
   }
 
   // executes a given block by storing the current environment

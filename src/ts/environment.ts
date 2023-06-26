@@ -7,8 +7,7 @@ import { ObjectType, Nullable } from "./types";
 
 export default class Environment {
   readonly enclosing: Nullable<Environment>;
-  private readonly values:{ [key: string] : Nullable<ObjectType> } 
-    = {};
+  private readonly values: { [key: string] : Nullable<ObjectType> } = {};
 
   // the global scope constructor will be the only environment
   // with an empty constructor, everything else will inherit
@@ -33,6 +32,31 @@ export default class Environment {
 
     throw new RuntimeError(name,
         "Undefined variable '" + name.lexeme + "'.");
+  }
+
+  // gets the nth enclosing environment, where is n is the argument
+  ancestor(distance: number): Environment {
+    let environment: Environment = this;
+    for (let i = 0; i < distance; i++) {
+      // only the global environment will have a null enclosing
+      // environment, so we can safely assert that environment.enclosing
+      // is an environment
+      environment = environment.enclosing as Environment;
+    }
+
+    return environment;
+  }
+
+  // finds the value of the target variable given its known
+  // distance, the number of enclosing environments in which the
+  // declared variable is
+  getAt(distance: number, name: string): ObjectType {
+    return this.ancestor(distance).values[name];
+  }
+
+  // same as getAt except with assignment
+  assignAt(distance: number, name: Token, value: ObjectType): void {
+    this.ancestor(distance).values[name.lexeme] = value;
   }
 
   // check if a token's lexeme is in the environment and update the
