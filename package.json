@@ -1,0 +1,19 @@
+{
+  "name": "mfl",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "clang":  "tsc && node src/js/main.js",
+    "lang":   "node src/ts/main.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.3.2"
+  },
+  "dependencies": {
+    "prompt-sync": "^4.2.0"
+  }
+}
