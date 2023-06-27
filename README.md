@@ -57,9 +57,65 @@ print x; // 5
 Control flow:
 
 ```
+// if statements
 if (1 > 0) {
   print "yes";
 } else {
   print "no";
 }
+```
+
+```
+// while loops
+var i = 10;
+while (i > 0) {
+  i = i - 1;
+  print i;
+}
+```
+
+```
+// for loops
+for (var i = 1; i < 10; i = i + 1) {
+  print i;
+}
+```
+
+Functions:
+
+```
+fun foo(string) {
+  print string;
+}
+
+foo("hello, functions!");
+```
+
+```
+// recursion
+fun fib(n) {
+  if (n <= 1) return n;
+  return fib(n - 2) + fib(n - 1);
+}
+
+for (var i = 0; i < 20; i = i + 1) {
+  print fib(i);
+}
+```
+
+```
+// nested functions
+fun makeCounter() {
+  var i = 0;
+  fun count() {
+    i = i + 1;
+    print i;
+  }
+
+  return count;
+}
+
+var counter = makeCounter();
+counter(); // prints 1
+counter(); // prints 2
 ```

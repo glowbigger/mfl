@@ -1,0 +1,5 @@
+fun foo(string) {
+  print string;
+}
+
+foo("hello, functions!");
