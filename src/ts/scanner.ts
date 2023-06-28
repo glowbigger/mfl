@@ -143,7 +143,11 @@ export default class Scanner {
 			case '\t': 	break;
 			case '\n':  break;
 
+      // strings start with " or '
 			case '"': 
+        this.scanString();
+        break;
+			case '\'': 
         this.scanString();
         break;
 
@@ -188,23 +192,24 @@ export default class Scanner {
   }
 
   private scanString(): void {
-    // get the position of the first " for potential error reporting
-    const firstQuoteLine = this.line;
+    // firstQuote refers to the starting ' or "
+    const firstQuote: string = this.source[this.start];
+    const firstQuoteLine: number = this.line;
     const firstQuoteColumn: number = (this.start - this.lineStart) + 1;
 
     // scan characters until a terminating " is found
     let stringLiteral = '';
-    while (!this.isAtEnd() && this.peek() !== '"') {
+    while (!this.isAtEnd() && this.peek() !== firstQuote) {
       stringLiteral += this.consume();
     }
 
-    // if the end of the file is reached before the ", it's an error
+    // if the end of the file is reached before the quote, it's an error
     if (this.isAtEnd()) {
       this.addError("Unterminated string.", firstQuoteLine, firstQuoteColumn);
       return;
     }
 
-    // consume the final "
+    // consume the final " or '
     this.consume();
     
     // create and add the token
