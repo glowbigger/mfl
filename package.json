@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "clang":  "tsc && node src/js/main.js",
-    "lang":   "node src/ts/main.js"
+    "clang":    "tsc && node src/js/main.js",
+    "lang":     "node src/js/main.js"
   },
   "keywords": [],
   "author": "",

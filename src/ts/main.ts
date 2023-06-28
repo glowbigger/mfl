@@ -1,15 +1,17 @@
 import { readFileSync } from 'fs';
+import Scanner from './scanner';
+import { Token } from './token';
 
 /**
  * the main method, runs a given file or, if no arguments are given,
  * runs an interactive prompt
  */
 function main(): void {
-  // ignore the first elements of args, which are node and the script path
+  // ignore the first two elements of args, which are node and the script path
   const args: string[] = process.argv.slice(2);
 
   // if no arguments are given, run in interactive mode
-  // if an argument is given, read the file path and run it
+  // if an argument is given, 
   if (args.length === 0) {
     const prompt = require("prompt-sync")({ sigint: true });
     console.log("Interactive mode started (Ctrl-c to exit):");
@@ -31,12 +33,28 @@ function main(): void {
  * runs (scans, parses, etc.) a given string, which can be either a text 
  * file or a line entered from the interactive prompt
  *
- * @remarks
- *
  * @param source - the source code to run
  */
+// TODO comment this
 function run(source: string): void {
-  console.log(source);
+  const scanner: Scanner = new Scanner(source);
+  let tokens: Token[];
+
+  try {
+    tokens = scanner.scan();
+  } catch(errors: unknown) {
+    if (errors instanceof Array) {
+      for (const error of errors) {
+        console.log("" + error);
+      }
+    } else {
+      console.log("Native Javascript error:");
+      console.log(errors);
+    }
+    return;
+  }
+
+  console.log(tokens);
 }
 
 if (require.main === module) {
