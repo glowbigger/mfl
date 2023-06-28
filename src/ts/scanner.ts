@@ -113,26 +113,25 @@ export default class Scanner {
 
       // text for tokens that may be one or two characters long
 			case '!':
-				this.addToken(this.match('=') ? 'BANG_EQUAL' : 'BANG');
+				this.addToken(this.consumeIfMatching('=') ? 'BANG_EQUAL' : 'BANG');
         break;
 			case '=':
-				this.addToken(this.match('=') ? 'EQUAL_EQUAL' : 'EQUAL');
+				this.addToken(this.consumeIfMatching('=') ? 'EQUAL_EQUAL' : 'EQUAL');
         break;
 			case '<':
-				this.addToken(this.match('=') ? 'LESS_EQUAL' : 'LESS');
+				this.addToken(this.consumeIfMatching('=') ? 'LESS_EQUAL' : 'LESS');
         break;
 			case '>':
-				this.addToken(this.match('=') ? 'GREATER_EQUAL' : 'GREATER');
+				this.addToken(this.consumeIfMatching('=') ? 'GREATER_EQUAL' : 'GREATER');
         break;
 
       // / can be a division sign or a comment
 			case '/':
-        // if a second / is found, ignore the line because it's a comment
-        // otherwise, it's a division symbol
-				if (this.match('/')) {
-				  while (this.peek() != '\n' && !this.isAtEnd()) this.consume();
-        // TODO implement embedded comments
-        // } else if (this.match('*')) {
+        // / can be either //, /*, or just /
+				if (this.consumeIfMatching('/')) {
+          this.scanOneLineComment();
+        } else if (this.consumeIfMatching('*')) {
+          this.scanMultiLineComment();
 				} else {
 				  this.addToken('SLASH');
 				}
@@ -163,6 +162,29 @@ export default class Scanner {
         }
         break;
 		}
+  }
+
+  private scanOneLineComment(): void {
+    while (this.peek() != '\n' && !this.isAtEnd()) this.consume();
+  }
+
+  private scanMultiLineComment(): void {
+    // starts at 1 because one /* was consumed to trigger this method
+    let unpairedOpeningDelimiters = 1;
+
+    // keep scanning characters until scanning a corresponding */ for each /*
+    while (unpairedOpeningDelimiters > 0 && !this.isAtEnd()) {
+      const currentChar: string = this.consume();
+
+      // handle a potential opening delimiter
+      if (currentChar === '/' && this.consumeIfMatching('*')) {
+        unpairedOpeningDelimiters++;
+      }
+      // handle a potential closing delimiter
+      if (currentChar === '*' && this.consumeIfMatching('/')) {
+        unpairedOpeningDelimiters--;
+      }
+    }
   }
 
   private scanString(): void {
@@ -283,7 +305,7 @@ export default class Scanner {
    * @param target - the character to check for
    * @returns the character after the current character without consuming it
    */
-  private match(target: string): boolean {
+  private consumeIfMatching(target: string): boolean {
 		if (this.isAtEnd()) return false;
 		if (this.source[this.current] != target) return false;
 

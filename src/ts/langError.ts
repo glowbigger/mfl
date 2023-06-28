@@ -9,8 +9,8 @@ abstract class langError extends Error {
 
 // scan errors happen during, so they need positions in the source code
 export class scanError extends langError {
-  column: number;
-  line: number;
+  private readonly column: number;
+  private readonly line: number;
 
   constructor(message: string, line: number, column: number) {
     super(message);
