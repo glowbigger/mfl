@@ -35,15 +35,17 @@ function main(): void {
  *
  * @param source - the source code to run
  */
-// TODO comment this
 function run(source: string): void {
   const scanner: Scanner = new Scanner(source);
   let tokens: Token[];
 
+  // scan the tokens
   try {
     tokens = scanner.scan();
   } catch(errors: unknown) {
-    if (errors instanceof Array) {
+    // if an array of errors is caught, then it must be from the scanner
+    // otherwise, a js error was thrown and something is wrong with the code
+    if (Array.isArray(errors)) {
       for (const error of errors) {
         console.log("" + error);
       }
