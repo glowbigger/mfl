@@ -1,6 +1,9 @@
 import { readFileSync } from 'fs';
 import Scanner from './scanner';
 import { Token } from './token';
+import Parser from './parser';
+import { Expr } from './expr';
+import { ParseError } from './langError';
 
 /**
  * the main method, runs a given file or, if no arguments are given,
@@ -36,10 +39,9 @@ function main(): void {
  * @param source - the source code to run
  */
 function run(source: string): void {
-  const scanner: Scanner = new Scanner(source);
+  // scanning
+  const scanner = new Scanner(source);
   let tokens: Token[];
-
-  // scan the tokens
   try {
     tokens = scanner.scan();
   } catch(errors: unknown) {
@@ -55,8 +57,30 @@ function run(source: string): void {
     }
     return;
   }
+  // console.log('\nTokens:');
+  // console.log(tokens)
 
-  console.log(tokens);
+  // parsing
+  const parser = new Parser(tokens);
+  let expr: Expr | null;
+  try {
+    expr = parser.parse();
+  } catch(errors: unknown) {
+    if (errors instanceof ParseError) {
+      console.log(errors);
+    } else {
+      console.log("Native Javascript error:");
+      console.log(errors);
+    }
+    return;
+  }
+  console.log();
+  console.log(expr);
+  console.log();
+
+  // type checking
+  
+  // interpreting
 }
 
 if (require.main === module) {

@@ -1,6 +1,6 @@
-import { scanError } from './langError';
+import { ScanError } from './langError';
 import { EOF_TOKEN, Token, TokenType } from './token';
-import { ObjectType } from './types';
+import { LangObject } from './types';
 
 const EOF_CHAR: string = '\0';
 
@@ -37,7 +37,7 @@ export default class Scanner {
   private line: number; private lineStart: number;
 
   // any errors encountered during scanning will be thrown all at once
-  private errors: scanError[];
+  private errors: ScanError[];
 
   constructor(source: string) {
     this.source = source;
@@ -256,6 +256,20 @@ export default class Scanner {
     let type: TokenType | undefined = KEYWORDS.get(text);
     if (type === undefined) type = "IDENTIFIER";
 
+    // true, false, and null have true, false and null as literal values
+    if (type === 'TRUE') {
+      this.addToken(type, true);
+      return;
+    }
+    if (type === 'FALSE') {
+      this.addToken(type, false);
+      return;
+    }
+    if (type === 'NULL') {
+      this.addToken(type, null);
+      return;
+    }
+
     this.addToken(type);
   }
 
@@ -263,22 +277,17 @@ export default class Scanner {
   // Helpers
   //======================================================================
 
-  /**
+  /*
    * checks if the given index is out of the bounds of the source string,
    * if no index given, it defaults to the position of the current character
-   *
-   * @param index - the index to check
-   * @returns whether the index is the ending index or not
    */
   private isAtEnd(index: number = this.current): boolean {
     // >= (as opposed to ==) is neccessary for lookahead values
 		return index >= this.source.length;
   }
 
-  /**
+  /*
    * returns the current character and advances the pointer
-   *
-   * @returns the current unconsumed character
    */
 	private consume(): string {
     const currChar: string = this.peek();
@@ -293,22 +302,17 @@ export default class Scanner {
     return currChar;
 	}
 
-  /**
+  /*
    * peeks the current character without consuming it
-   *
-   * @returns the current unconsumed character
    */
 	private peek(): string {
 		if (this.isAtEnd()) return EOF_CHAR;
     return this.source[this.current];
 	}
 
-  /**
+  /*
 	 * return whether the current character matches the given one, and consume
    * it if it does
-   *
-   * @param target - the character to check for
-   * @returns the character after the current character without consuming it
    */
   private consumeIfMatching(target: string): boolean {
 		if (this.isAtEnd()) return false;
@@ -318,7 +322,7 @@ export default class Scanner {
 		return true;
   }
 
-  private addToken(type: TokenType, literal: ObjectType = null): void {
+  private addToken(type: TokenType, literal: LangObject = null): void {
     // get the corresponding text for the token
     const text: string = this.getCurrentLexeme();
     const column: number = (this.start - this.lineStart) + 1;
@@ -338,7 +342,7 @@ export default class Scanner {
   }
 
   private addError(message: string, line: number, column: number): void {
-    this.errors.push(new scanError(message, line, column));
+    this.errors.push(new ScanError(message, line, column));
   }
 
   private getCurrentLexeme(): string {

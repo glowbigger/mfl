@@ -1,0 +1,158 @@
+import { EOF_TOKEN, Token, TokenType } from './token';
+import { Expr, Binary, Grouping, Literal, Unary } from './expr'
+import { ParseError } from './langError';
+
+export default class Parser {
+  // the tokens to be parsed
+  private readonly tokens: Token[];
+
+  // the index of the current token
+  private currentIndex: number;
+
+  private errors: ParseError[];
+
+  constructor(tokens: Token[]) {
+    this.tokens = tokens;
+    this.currentIndex = 0;
+    this.errors = [];
+  }
+
+  //======================================================================
+  // Parsing Methods
+  //======================================================================
+
+  parse(): Expr | null {
+    // NOTE null is returned if and only if there are no tokens to parse
+    let expr: Expr | null = null;
+    while (!this.isAtEnd()) {
+      expr = this.parseExpression();
+    }
+
+    // if (this.errors.length > 0) throw this.errors;
+    return expr;
+  }
+
+  // expression     → equality ;
+  parseExpression(): Expr {
+    return this.parseEquality();
+  }
+
+  // equality       → comparison ( ( "!=" | "==" ) comparison )* ;
+  parseEquality(): Expr {
+    let expr: Expr = this.parseComparison();
+    while (this.match('BANG_EQUAL', 'EQUAL_EQUAL')) {
+      const left: Expr = expr;
+      const operator: Token = this.consume();
+      const right: Expr = this.parseComparison();
+      expr = new Binary(left, operator, right);
+    }
+    return expr;
+  }
+
+  // comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
+  parseComparison(): Expr {
+    let expr: Expr = this.parseTerm();
+    while (this.match('GREATER', 'GREATER_EQUAL', 'LESS', 'LESS_EQUAL')) {
+      const left: Expr = expr;
+      const operator: Token = this.consume();
+      const right: Expr = this.parseTerm();
+      expr = new Binary(left, operator, right);
+    }
+    return expr;
+  }
+
+  // term           → factor ( ( "-" | "+" ) factor )* ;
+  parseTerm(): Expr {
+    let expr: Expr = this.parseFactor();
+    while (this.match('MINUS', 'PLUS')) {
+      const left: Expr = expr;
+      const operator: Token = this.consume();
+      const right: Expr = this.parseFactor();
+      expr = new Binary(left, operator, right);
+    }
+    return expr;
+  }
+
+  // factor         → unary ( ( "/" | "*" ) unary )* ;
+  parseFactor(): Expr {
+    let expr: Expr = this.parseUnary();
+    while (this.match('SLASH', 'STAR')) {
+      const left: Expr = expr;
+      const operator: Token = this.consume();
+      const right: Expr = this.parseUnary();
+      expr = new Binary(left, operator, right);
+    }
+    return expr;
+  }
+
+  // unary          → ( "!" | "-" ) unary
+  //                | primary ;
+  parseUnary(): Expr {
+    if (this.match('BANG', 'MINUS')) {
+      const operator: Token = this.consume();
+      const right: Expr = this.parseUnary();
+      return new Unary(operator, right);
+    } else {
+      return this.parsePrimary();
+    }
+  }
+
+  // primary        → NUMBER | STRING | "true" | "false" | "null"
+  //                | "(" expression ")" ;
+  parsePrimary(): Expr {
+    if (this.match('NUMBER', 'STRING', 'TRUE', 'FALSE', 'NULL')) {
+      return new Literal(this.consume().literal);
+    }
+    
+    if (this.match('LEFT_PAREN')) {
+      const primaryExpr = this.parseExpression();
+      this.expect('RIGHT_PAREN', 'Expect \')\' after expression.');
+      return new Grouping(primaryExpr);
+    }
+
+    throw new ParseError('Expect expression within parentheses.', this.peek());
+  }
+
+  //======================================================================
+  // Helpers
+  //======================================================================
+
+  private peek(): Token {
+    return this.tokens[this.currentIndex];
+  }
+
+  private consume(): Token {
+    return this.tokens[this.currentIndex++];
+  }
+
+  // conditionally advance if the current token has the given token type,
+  // otherwise throws an error with the given message
+  private expect(tokenType: TokenType, message: string): Token {
+    if (this.peek().type === tokenType) return this.consume();
+
+    throw new ParseError('Expect closing \')\'.', this.peek());
+  }
+
+  // returns whether the current token's type matches the given token type
+  private match(...types: TokenType[]): boolean {
+    // NOTE better to not have the below line and find implementation errors
+    // if (this.isAtEnd()) return false;
+
+    for (const type of types) {
+      if (this.peek().type === type) {
+        return true;
+      } 
+    }
+
+    return false;
+  }
+  
+  // checks if there are no more tokens to consume
+  private isAtEnd(): boolean {
+    return this.peek() === EOF_TOKEN;
+  }
+
+  // TODO change LangError and implement this
+  // private addError(error: LangError): void {
+  // }
+}

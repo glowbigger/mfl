@@ -1,4 +1,6 @@
-abstract class langError extends Error {
+import { Token } from "./token";
+
+abstract class LangError extends Error {
   message: string;
 
   constructor(message: string) {
@@ -7,8 +9,8 @@ abstract class langError extends Error {
   };
 }
 
-// scan errors happen during, so they need positions in the source code
-export class scanError extends langError {
+export class ScanError extends LangError {
+  // need positions in the source code since there are no tokens yet
   private readonly column: number;
   private readonly line: number;
 
@@ -19,11 +21,28 @@ export class scanError extends langError {
   }
 
   toString() {
-    const string =  `[line ${this.line}, column ${this.column}] ` + 
-                    `Scanner Error: ${this.message}`
-    return string;
+    return 'Scanner error at: ' + 
+           `line ${this.line}, ` + 
+           `column ${this.column}]:\n` + 
+           `${this.message}`
   }
 }
 
-export class parseError extends langError { }
-export class runtimeError extends langError { }
+export class ParseError extends LangError {
+  // the tokens contain the positions of the error
+  private readonly token: Token;
+
+  constructor(message: string, token: Token) {
+    super(message);
+    this.token = token;
+  }
+
+  toString() {
+    return  'Parser error at: ' + 
+            `line ${this.token.line}, ` + 
+            `column ${this.token.column}]:\n` + 
+            `${this.message}`
+  }
+}
+
+export class RuntimeError extends LangError { }
