@@ -4,6 +4,7 @@ import { Token } from './token';
 import Parser from './parser';
 import { Expr } from './expr';
 import { ParseError } from './langError';
+import Printer from './printer';
 
 /**
  * the main method, runs a given file or, if no arguments are given,
@@ -57,8 +58,6 @@ function run(source: string): void {
     }
     return;
   }
-  // console.log('\nTokens:');
-  // console.log(tokens)
 
   // parsing
   const parser = new Parser(tokens);
@@ -67,16 +66,20 @@ function run(source: string): void {
     expr = parser.parse();
   } catch(errors: unknown) {
     if (errors instanceof ParseError) {
-      console.log(errors);
+      console.log('' + errors);
     } else {
       console.log("Native Javascript error:");
       console.log(errors);
     }
     return;
   }
-  console.log();
-  console.log(expr);
-  console.log();
+  const printer: Printer = new Printer();
+  if (expr === null) {
+    console.log();
+  } else {
+    const exprString: string = printer.print(expr);
+    console.log(exprString);
+  }
 
   // type checking
   
@@ -84,5 +87,5 @@ function run(source: string): void {
 }
 
 if (require.main === module) {
-    main();
+  main();
 }

@@ -39,50 +39,26 @@ export default class Parser {
 
   // equality       → comparison ( ( "!=" | "==" ) comparison )* ;
   parseEquality(): Expr {
-    let expr: Expr = this.parseComparison();
-    while (this.match('BANG_EQUAL', 'EQUAL_EQUAL')) {
-      const left: Expr = expr;
-      const operator: Token = this.consume();
-      const right: Expr = this.parseComparison();
-      expr = new Binary(left, operator, right);
-    }
-    return expr;
+    return this.parseBinary(() => this.parseComparison(),
+                            'BANG_EQUAL', 'EQUAL_EQUAL');
   }
 
   // comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
   parseComparison(): Expr {
-    let expr: Expr = this.parseTerm();
-    while (this.match('GREATER', 'GREATER_EQUAL', 'LESS', 'LESS_EQUAL')) {
-      const left: Expr = expr;
-      const operator: Token = this.consume();
-      const right: Expr = this.parseTerm();
-      expr = new Binary(left, operator, right);
-    }
-    return expr;
+    return this.parseBinary(() => this.parseTerm(),
+                            'LESS', 'LESS_EQUAL', 'GREATER', 'GREATER_EQUAL');
   }
 
   // term           → factor ( ( "-" | "+" ) factor )* ;
   parseTerm(): Expr {
-    let expr: Expr = this.parseFactor();
-    while (this.match('MINUS', 'PLUS')) {
-      const left: Expr = expr;
-      const operator: Token = this.consume();
-      const right: Expr = this.parseFactor();
-      expr = new Binary(left, operator, right);
-    }
-    return expr;
+    return this.parseBinary(() => this.parseFactor(),
+                            'MINUS', 'PLUS');
   }
 
   // factor         → unary ( ( "/" | "*" ) unary )* ;
   parseFactor(): Expr {
-    let expr: Expr = this.parseUnary();
-    while (this.match('SLASH', 'STAR')) {
-      const left: Expr = expr;
-      const operator: Token = this.consume();
-      const right: Expr = this.parseUnary();
-      expr = new Binary(left, operator, right);
-    }
-    return expr;
+    return this.parseBinary(() => this.parseUnary(),
+                            'SLASH', 'STAR');
   }
 
   // unary          → ( "!" | "-" ) unary
@@ -105,12 +81,26 @@ export default class Parser {
     }
     
     if (this.match('LEFT_PAREN')) {
+      // skip the (
+      this.consume();
       const primaryExpr = this.parseExpression();
       this.expect('RIGHT_PAREN', 'Expect \')\' after expression.');
       return new Grouping(primaryExpr);
     }
 
     throw new ParseError('Expect expression within parentheses.', this.peek());
+  }
+
+  // equality, comparison, term, factor have the same syntax, so they share code
+  parseBinary(innerFunction: () => Expr, ...matchTypes: TokenType[]): Expr {
+    let expr: Expr = innerFunction();
+    while (this.match(...matchTypes)) {
+      const left: Expr = expr;
+      const operator: Token = this.consume();
+      const right: Expr = innerFunction();
+      expr = new Binary(left, operator, right);
+    }
+    return expr;
   }
 
   //======================================================================

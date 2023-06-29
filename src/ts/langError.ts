@@ -9,6 +9,25 @@ abstract class LangError extends Error {
   };
 }
 
+export class CharacterError extends LangError {
+  // need positions in the source code since there are no tokens yet
+  private readonly column: number;
+  private readonly line: number;
+
+  constructor(message: string, line: number, column: number) {
+    super(message);
+    this.column = column;
+    this.line = line;
+  }
+
+  toString() {
+    return 'Scanner error at ' + 
+           `line ${this.line}, ` + 
+           `column ${this.column}:\n` + 
+           `${this.message}`
+  }
+}
+
 export class ScanError extends LangError {
   // need positions in the source code since there are no tokens yet
   private readonly column: number;
@@ -21,9 +40,9 @@ export class ScanError extends LangError {
   }
 
   toString() {
-    return 'Scanner error at: ' + 
+    return 'Scanner error at ' + 
            `line ${this.line}, ` + 
-           `column ${this.column}]:\n` + 
+           `column ${this.column}:\n` + 
            `${this.message}`
   }
 }
@@ -38,11 +57,9 @@ export class ParseError extends LangError {
   }
 
   toString() {
-    return  'Parser error at: ' + 
+    return  'Parser error at ' + 
             `line ${this.token.line}, ` + 
-            `column ${this.token.column}]:\n` + 
+            `column ${this.token.column}:\n` + 
             `${this.message}`
   }
 }
-
-export class RuntimeError extends LangError { }

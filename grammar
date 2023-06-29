@@ -1,3 +1,7 @@
+(see the https://craftinginterpreters.com/appendix-i.html)
+(remove this file from .gitignore when you're done)
+DOUBLE CHECK THE GRAMMAR COMMENTS IN THE PARSER WHEN YOU FINISH THE GRAMMAR
+
 expression     → equality ;
 equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
