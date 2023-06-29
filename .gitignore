@@ -2,3 +2,4 @@ node_modules
 notes
 todo
 grammar
+src/js/*
