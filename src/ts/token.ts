@@ -67,5 +67,3 @@ export class Token {
     return tokenTypeString + ' ' + this.lexeme + ' ' + this.literal;
   }
 }
-
-export const EOF_TOKEN = new Token('EOF', '', null, -1, -1);

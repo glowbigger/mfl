@@ -1,6 +1,6 @@
 import { Token } from "./token";
 
-abstract class LangError extends Error {
+export abstract class LangError extends Error {
   message: string;
 
   constructor(message: string) {
@@ -9,57 +9,68 @@ abstract class LangError extends Error {
   };
 }
 
+// an error at a single character
 export class CharacterError extends LangError {
-  // need positions in the source code since there are no tokens yet
-  private readonly column: number;
-  private readonly line: number;
+  readonly column: number;
+  readonly line: number;
 
   constructor(message: string, line: number, column: number) {
     super(message);
     this.column = column;
     this.line = line;
   }
-
-  toString() {
-    return 'Scanner error at ' + 
-           `line ${this.line}, ` + 
-           `column ${this.column}:\n` + 
-           `${this.message}`
-  }
 }
 
-export class ScanError extends LangError {
-  // need positions in the source code since there are no tokens yet
-  private readonly column: number;
-  private readonly line: number;
-
-  constructor(message: string, line: number, column: number) {
-    super(message);
-    this.column = column;
-    this.line = line;
-  }
-
-  toString() {
-    return 'Scanner error at ' + 
-           `line ${this.line}, ` + 
-           `column ${this.column}:\n` + 
-           `${this.message}`
-  }
-}
-
-export class ParseError extends LangError {
-  // the tokens contain the positions of the error
-  private readonly token: Token;
+// an error at a token
+export class TokenError extends LangError {
+  readonly token: Token;
 
   constructor(message: string, token: Token) {
     super(message);
     this.token = token;
   }
+}
 
-  toString() {
-    return  'Parser error at ' + 
-            `line ${this.token.line}, ` + 
-            `column ${this.token.column}:\n` + 
-            `${this.message}`
+// a class that can print the above errors
+export class LangErrorPrinter {
+  // the source code and the source code lines as a string array
+  private readonly lines: string[];
+
+  constructor(source: string) {
+    // split the source code into an array of strings
+    this.lines = source.split(/\r?\n/);
+  }
+
+  print(error: LangError): string {
+    let errorMessage: string = '';
+
+    // check for each LangError type
+    if (error instanceof CharacterError) {
+      const line: number = error.line;
+      const col: number = error.column;
+      const msg: string = error.message;
+      const char: string = this.lines[line - 1][col - 1];
+      const lineString: string = this.lines[line - 1];
+
+      errorMessage += `Error at the character '${char}' on ` +
+                      `line ${line}, at column ${col}:\n` +
+                      lineString + `\n${msg}`;
+    } else if (error instanceof TokenError) {
+      const line: number = error.token.line;
+      const col: number = error.token.column;
+      const msg: string = error.message;
+      const lineString: string = this.lines[line - 1];
+
+      if (error.token.type == 'EOF') {
+        errorMessage += `Error at the end of the file:\n` +
+                        this.lines[line - 1] + `\n${msg}`;
+      } else { 
+        errorMessage += `Error at the token of type ${error.token.type} on ` +
+                        `line ${line}, at column ${col}:\n` +
+                        lineString + `\n${msg}`;
+      }
+    }
+
+    return errorMessage;
   }
 }

@@ -3,7 +3,7 @@ import Scanner from './scanner';
 import { Token } from './token';
 import Parser from './parser';
 import { Expr } from './expr';
-import { ParseError } from './langError';
+import { LangErrorPrinter, LangError } from './langError';
 import Printer from './printer';
 
 /**
@@ -17,10 +17,10 @@ function main(): void {
   // if no arguments are given, run in interactive mode
   // if an argument is given, 
   if (args.length === 0) {
-    const prompt = require("prompt-sync")({ sigint: true });
-    console.log("Interactive mode started (Ctrl-c to exit):");
+    const prompt = require('prompt-sync')({ sigint: true });
+    console.log('Interactive mode started (Ctrl-c to exit):');
     while (true) {
-      const input: string = prompt("> ");
+      const input: string = prompt('> ');
       run(input);
     }
   } else if (args.length === 1) {
@@ -36,8 +36,6 @@ function main(): void {
 /**
  * runs (scans, parses, etc.) a given string, which can be either a text 
  * file or a line entered from the interactive prompt
- *
- * @param source - the source code to run
  */
 function run(source: string): void {
   // scanning
@@ -49,11 +47,14 @@ function run(source: string): void {
     // if an array of errors is caught, then it must be from the scanner
     // otherwise, a js error was thrown and something is wrong with the code
     if (Array.isArray(errors)) {
+      console.log('Scanning errors exist -');
+      const errorPrinter = new LangErrorPrinter(source);
       for (const error of errors) {
-        console.log("" + error);
+        console.log();
+        console.log(errorPrinter.print(error));
       }
     } else {
-      console.log("Native Javascript error:");
+      console.log('Native Javascript error:');
       console.log(errors);
     }
     return;
@@ -65,10 +66,13 @@ function run(source: string): void {
   try {
     expr = parser.parse();
   } catch(errors: unknown) {
-    if (errors instanceof ParseError) {
-      console.log('' + errors);
+    if (errors instanceof LangError) {
+      console.log('Parsing errors exist -');
+      const errorPrinter = new LangErrorPrinter(source);
+      console.log();
+      console.log(errorPrinter.print(errors));
     } else {
-      console.log("Native Javascript error:");
+      console.log('Native Javascript error:');
       console.log(errors);
     }
     return;

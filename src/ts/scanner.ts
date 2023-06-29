@@ -1,5 +1,5 @@
-import { ScanError } from './langError';
-import { EOF_TOKEN, Token, TokenType } from './token';
+import { CharacterError } from './langError';
+import { Token, TokenType } from './token';
 import { LangObject } from './types';
 
 const EOF_CHAR: string = '\0';
@@ -37,7 +37,7 @@ export default class Scanner {
   private line: number; private lineStart: number;
 
   // any errors encountered during scanning will be thrown all at once
-  private errors: ScanError[];
+  private errors: CharacterError[];
 
   constructor(source: string) {
     this.source = source;
@@ -62,7 +62,9 @@ export default class Scanner {
     if (this.errors.length > 0) throw this.errors;
 
     // otherwise, return all of the tokens with the EOF token appended
-    this.tokens.push(EOF_TOKEN);
+    const endOfFileToken = 
+      new Token('EOF', '', null, this.line, this.source.length + 1);
+    this.tokens.push(endOfFileToken);
     return this.tokens;
   }
 
@@ -342,7 +344,7 @@ export default class Scanner {
   }
 
   private addError(message: string, line: number, column: number): void {
-    this.errors.push(new ScanError(message, line, column));
+    this.errors.push(new CharacterError(message, line, column));
   }
 
   private getCurrentLexeme(): string {

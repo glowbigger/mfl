@@ -1,6 +1,6 @@
-import { EOF_TOKEN, Token, TokenType } from './token';
+import { Token, TokenType } from './token';
 import { Expr, Binary, Grouping, Literal, Unary } from './expr'
-import { ParseError } from './langError';
+import { TokenError } from './langError';
 
 export default class Parser {
   // the tokens to be parsed
@@ -9,7 +9,7 @@ export default class Parser {
   // the index of the current token
   private currentIndex: number;
 
-  private errors: ParseError[];
+  private errors: TokenError[];
 
   constructor(tokens: Token[]) {
     this.tokens = tokens;
@@ -88,7 +88,8 @@ export default class Parser {
       return new Grouping(primaryExpr);
     }
 
-    throw new ParseError('Expect expression within parentheses.', this.peek());
+    // if nothing can be parsed in primary, then the expression rule failed
+    throw new TokenError('Expect expression.', this.peek());
   }
 
   // equality, comparison, term, factor have the same syntax, so they share code
@@ -120,7 +121,7 @@ export default class Parser {
   private expect(tokenType: TokenType, message: string): Token {
     if (this.peek().type === tokenType) return this.consume();
 
-    throw new ParseError('Expect closing \')\'.', this.peek());
+    throw new TokenError('Expect closing \')\'.', this.peek());
   }
 
   // returns whether the current token's type matches the given token type
@@ -139,7 +140,7 @@ export default class Parser {
   
   // checks if there are no more tokens to consume
   private isAtEnd(): boolean {
-    return this.peek() === EOF_TOKEN;
+    return this.peek().type === 'EOF';
   }
 
   // TODO change LangError and implement this
