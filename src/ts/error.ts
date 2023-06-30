@@ -52,7 +52,7 @@ export class LangErrorPrinter {
       const char: string = this.lines[line - 1][col - 1];
       const lineString: string = this.lines[line - 1];
 
-      errorMessage += `Error at the character '${char}' on ` +
+      errorMessage += `Error at '${char}' on ` +
                       `line ${line}, at column ${col}:\n` +
                       lineString + `\n${msg}`;
     } else if (error instanceof TokenError) {
@@ -65,7 +65,7 @@ export class LangErrorPrinter {
         errorMessage += `Error at the end of the file:\n` +
                         this.lines[line - 1] + `\n${msg}`;
       } else { 
-        errorMessage += `Error at the token of type ${error.token.type} on ` +
+        errorMessage += `Error at '${error.token.lexeme}' on ` +
                         `line ${line}, at column ${col}:\n` +
                         lineString + `\n${msg}`;
       }
