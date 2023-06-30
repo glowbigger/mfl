@@ -29,10 +29,13 @@ export default class Parser {
       try {
         statements.push(this.parseStatement());
       } catch(error: unknown) {
-        if (error instanceof LangError)
+        if (error instanceof LangError) {
           errors.push(error);
-        else
+          this.synchronize();
+        } else {
+          // errors in the implementation code will stop the program immediately
           throw error;
+        }
       }
     }
 
@@ -176,6 +179,33 @@ export default class Parser {
   // checks if there are no more tokens to consume
   private isAtEnd(): boolean {
     return this.peek().type === 'EOF';
+  }
+
+  // after an error is thrown, this function gets called; it consumes tokens
+  // until the start of a new statement
+  private synchronize(): void {
+    while (!this.isAtEnd()) {
+      switch (this.peek().type) {
+        case 'SEMICOLON':
+          // a semicolon ends a statement, so it must get consumed
+          this.consume();
+          return;
+
+        // these keywords begin a statement, so they shouldn't get consumed
+        // NOTE if one of these keywords triggers an error, but that keyword
+        // is not consumed before the error call, then you get an infinite loop
+        case 'FUNCTION':
+        case 'VAR':
+        case 'FOR':
+        case 'IF':
+        case 'WHILE':
+        case 'PRINT':
+        case 'RETURN':
+        // case 'CLASS':
+          return;
+      }
+      this.consume();
+    }
   }
 
   // TODO change LangError and implement this
