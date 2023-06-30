@@ -1,23 +1,60 @@
-import { TokenType } from './token';
 import { Expr, Binary, Grouping, Literal, Unary, ExprVisitor } from './expr'
-import { TokenError, ImplementationError } from './error';
+import { TokenError, ImplementationError, LangError } from './error';
 import { LangObject } from './types';
+import { Expression, Print, Stmt, StmtVisitor } from './stmt';
 
-export default class Interpreter implements ExprVisitor<LangObject> {
-  private expr: Expr;
-  private errors: TokenError[];
+export default class Interpreter 
+  implements ExprVisitor<LangObject>, StmtVisitor<string> {
 
-  constructor(expr: Expr) {
-    this.expr = expr;
-    this.errors = [];
-  }
+  // interprets/runs a program, ie a list of statements, returns its output
+  interpret(statements: Stmt[]): string {
+    const errors: LangError[] = [];
+    let lines: string[] = [];
 
-  interpret() {
+    for (const statement of statements) {
+      try {
+        lines.push(this.execute(statement));
+      } catch(error: unknown) {
+        if (error instanceof LangError)
+          errors.push(error);
+        else
+          throw error;
+      }
+    }
+    
+    if (errors.length > 0) throw errors;
+    return lines.join('\n');
   }
 
   evaluate(expr: Expr): LangObject {
     return(expr.accept(this));
   }
+
+  execute(stmt: Stmt): string {
+    return stmt.accept(this);
+  }
+
+  //======================================================================
+  // Statement Visitor Methods
+  // they string return types are the potential console outputs, which are almost
+  // always ''; maybe there's a better solution, but this works for now
+  // NOTE this is needed for the web interpreter
+  //======================================================================
+
+  visitPrintStmt(stmt: Print): string {
+    const evaluatedExpression: LangObject = this.evaluate(stmt.expression);
+    return this.stringify(evaluatedExpression);
+  }
+
+  visitExpressionStmt(stmt: Expression): string {
+    // only does something if the expression is the output of a function call
+    this.evaluate(stmt.expression);
+    return '';
+  }
+
+  //======================================================================
+  // Expression Visitor Methods
+  //======================================================================
 
   visitBinaryExpr(expr: Binary): LangObject {
     let leftValue: LangObject; let rightValue: LangObject;
@@ -88,6 +125,9 @@ export default class Interpreter implements ExprVisitor<LangObject> {
       case 'SLASH':
         leftValue = this.evaluate(expr.left) as number;
         rightValue = this.evaluate(expr.right) as number;
+        if (rightValue == 0) {
+          throw new TokenError('Division by 0.', expr.operator);
+        }
         return leftValue / rightValue;
     }
 
@@ -116,5 +156,27 @@ export default class Interpreter implements ExprVisitor<LangObject> {
 
   visitLiteralExpr(expr: Literal): LangObject {
     return expr.value;
+  }
+
+  //======================================================================
+  // HELPERS
+  //======================================================================
+
+  // turns an object into a string
+  stringify(object: LangObject): string {
+    if (object === null) return "null";
+
+    if (typeof(object) === "number") {
+      return object.toString();
+    } 
+    if (typeof(object) === "boolean") {
+      if (object) {
+        return "true";
+      }
+      return "false";
+    } 
+
+    // if it's a string, just return it
+    return object;
   }
 }

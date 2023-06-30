@@ -279,18 +279,14 @@ export default class Scanner {
   // Helpers
   //======================================================================
 
-  /*
-   * checks if the given index is out of the bounds of the source string,
-   * if no index given, it defaults to the position of the current character
-   */
+   // checks if the given index is out of the bounds of the source string,
+   // if no index given, it defaults to the position of the current character
   private isAtEnd(index: number = this.current): boolean {
     // >= (as opposed to ==) is neccessary for lookahead values
 		return index >= this.source.length;
   }
 
-  /*
-   * returns the current character and advances the pointer
-   */
+  // returns the current character and advances the pointer
 	private consume(): string {
     const currChar: string = this.peek();
     this.current++;
@@ -304,18 +300,14 @@ export default class Scanner {
     return currChar;
 	}
 
-  /*
-   * peeks the current character without consuming it
-   */
+  // peeks the current character without consuming it
 	private peek(): string {
 		if (this.isAtEnd()) return EOF_CHAR;
     return this.source[this.current];
 	}
 
-  /*
-	 * return whether the current character matches the given one, and consume
-   * it if it does
-   */
+	// returns whether the current character matches the given one, and consumes
+  // it if it does
   private consumeIfMatching(target: string): boolean {
 		if (this.isAtEnd()) return false;
 		if (this.source[this.current] != target) return false;

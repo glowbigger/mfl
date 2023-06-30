@@ -2,6 +2,14 @@
 (remove this file from .gitignore when you're done)
 DOUBLE CHECK THE GRAMMAR COMMENTS IN THE PARSER WHEN YOU FINISH THE GRAMMAR
 
+program        → statement* EOF ;
+
+statement      → exprStmt
+               | printStmt ;
+
+exprStmt       → expression ";" ;
+printStmt      → "print" expression ";" ;
+
 expression     → equality ;
 equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;

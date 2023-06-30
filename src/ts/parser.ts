@@ -1,6 +1,7 @@
 import { Token, TokenType } from './token';
 import { Expr, Binary, Grouping, Literal, Unary } from './expr'
-import { TokenError } from './error';
+import { LangError, TokenError } from './error';
+import { Expression, Print, Stmt } from './stmt';
 
 export default class Parser {
   // the tokens to be parsed
@@ -9,61 +10,95 @@ export default class Parser {
   // the index of the current token
   private currentIndex: number;
 
-  private errors: TokenError[];
-
   constructor(tokens: Token[]) {
     this.tokens = tokens;
     this.currentIndex = 0;
-    this.errors = [];
   }
 
   //======================================================================
   // Parsing Methods
   //======================================================================
 
-  parse(): Expr | null {
-    // NOTE null is returned if and only if there are no tokens to parse
-    let expr: Expr | null = null;
+  // program        → statement* EOF ;
+  // NOTE no need to worry about the EOF
+  parse(): Stmt[] {
+    const statements: Stmt[] = [];
+    const errors: LangError[] = [];
+
     while (!this.isAtEnd()) {
-      expr = this.parseExpression();
+      try {
+        statements.push(this.parseStatement());
+      } catch(error: unknown) {
+        if (error instanceof LangError)
+          errors.push(error);
+        else
+          throw error;
+      }
     }
 
-    // if (this.errors.length > 0) throw this.errors;
-    return expr;
+    if (errors.length > 0) throw errors;
+    return statements;
+  }
+
+  // statement      → exprStmt
+  //                | printStmt ;
+  private parseStatement(): Stmt {
+    if (this.match('PRINT')) return this.parsePrintStatement();
+
+    return this.parseExpressionStatement();
+  }
+
+  // exprStmt       → expression ";" ;
+  private parseExpressionStatement(): Stmt {
+    const expression: Expr = this.parseExpression();
+    this.expect('SEMICOLON', 'Semicolon expected at the end of a statement.');
+    return new Expression(expression);
+  }
+  
+  // printStmt      → "print" expression ";" ;
+  private parsePrintStatement(): Stmt {
+    // not strictly needed now, but may be needed if the grammar changes
+    if (this.match('PRINT')) {
+      this.expect('PRINT', 'Expect initial \'print\' for print statement.');
+    }
+
+    const expression: Expr = this.parseExpression();
+    this.expect('SEMICOLON', 'Semicolon expected at the end of a statement.');
+    return new Print(expression);
   }
 
   // expression     → equality ;
-  parseExpression(): Expr {
+  private parseExpression(): Expr {
     return this.parseEquality();
   }
 
   // equality       → comparison ( ( "!=" | "==" ) comparison )* ;
-  parseEquality(): Expr {
+  private parseEquality(): Expr {
     return this.parseBinary(() => this.parseComparison(),
                             'BANG_EQUAL', 'EQUAL_EQUAL');
   }
 
   // comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
-  parseComparison(): Expr {
+  private parseComparison(): Expr {
     return this.parseBinary(() => this.parseTerm(),
                             'LESS', 'LESS_EQUAL', 'GREATER', 'GREATER_EQUAL');
   }
 
   // term           → factor ( ( "-" | "+" ) factor )* ;
-  parseTerm(): Expr {
+  private parseTerm(): Expr {
     return this.parseBinary(() => this.parseFactor(),
                             'MINUS', 'PLUS');
   }
 
   // factor         → unary ( ( "/" | "*" ) unary )* ;
-  parseFactor(): Expr {
+  private parseFactor(): Expr {
     return this.parseBinary(() => this.parseUnary(),
                             'SLASH', 'STAR');
   }
 
   // unary          → ( "!" | "-" ) unary
   //                | primary ;
-  parseUnary(): Expr {
+  private parseUnary(): Expr {
     if (this.match('BANG', 'MINUS')) {
       const operator: Token = this.consume();
       const right: Expr = this.parseUnary();
@@ -75,7 +110,7 @@ export default class Parser {
 
   // primary        → NUMBER | STRING | "true" | "false" | "null"
   //                | "(" expression ")" ;
-  parsePrimary(): Expr {
+  private parsePrimary(): Expr {
     if (this.match('NUMBER', 'STRING', 'TRUE', 'FALSE', 'NULL')) {
       return new Literal(this.consume().literal);
     }
@@ -93,7 +128,7 @@ export default class Parser {
   }
 
   // equality, comparison, term, factor have the same syntax, so they share code
-  parseBinary(innerFunction: () => Expr, ...matchTypes: TokenType[]): Expr {
+  private parseBinary(innerFunction: () => Expr, ...matchTypes: TokenType[]): Expr {
     let expr: Expr = innerFunction();
     while (this.match(...matchTypes)) {
       const left: Expr = expr;
@@ -121,7 +156,7 @@ export default class Parser {
   private expect(tokenType: TokenType, message: string): Token {
     if (this.peek().type === tokenType) return this.consume();
 
-    throw new TokenError('Expect closing \')\'.', this.peek());
+    throw new TokenError(message, this.peek());
   }
 
   // returns whether the current token's type matches the given token type

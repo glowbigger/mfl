@@ -4,9 +4,9 @@ import { Token } from './token';
 import Parser from './parser';
 import { Expr } from './expr';
 import { LangErrorPrinter, LangError } from './error';
-import Printer from './printer';
 import TypeChecker from './typeChecker';
 import Interpreter from './interpreter';
+import { Stmt } from './stmt';
 
 /**
  * the main method, runs a given file or, if no arguments are given,
@@ -63,63 +63,62 @@ function run(source: string): void {
 
   // parsing
   const parser = new Parser(tokens);
-  let expr: Expr | null;
+  let statements: Stmt[]; 
   try {
-    expr = parser.parse();
+    statements = parser.parse();
   } catch(errors: unknown) {
-    if (errors instanceof LangError) {
+    if (Array.isArray(errors)) {
       console.log('Parsing errors exist -');
       const errorPrinter = new LangErrorPrinter(source);
-      console.log();
-      console.log(errorPrinter.print(errors));
+
+      for (const error of errors) {
+        console.log();
+        console.log(errorPrinter.print(error));
+      }
     } else {
       console.log(errors);
     }
     return;
   }
-
-  // printing (remove later)
-  if (expr == null) {
-    console.log(); 
-    return;
-  }
-  const printer: Printer = new Printer();
-  console.log('Syntax tree:');
-  const exprString: string = printer.print(expr);
-  console.log();
-  console.log(exprString);
-  console.log();
 
   // resolving (should come before type checking)
 
   // type checking
-  const typeChecker = new TypeChecker(expr);
+  const typeChecker = new TypeChecker();
   try {
-    typeChecker.validate(expr);
+    typeChecker.validateProgram(statements);
   } catch(errors: unknown) {
-    if (errors instanceof LangError) {
+    if (Array.isArray(errors)) {
       console.log('Type checking errors exist -');
       const errorPrinter = new LangErrorPrinter(source);
-      console.log();
-      console.log(errorPrinter.print(errors));
+
+      for (const error of errors) {
+        console.log();
+        console.log(errorPrinter.print(error));
+      }
     } else {
       console.log(errors);
     }
+    return;
   }
   
   // interpreting
-  const interpreter = new Interpreter(expr);
+  const interpreter = new Interpreter();
   try {
-    console.log(interpreter.evaluate(expr));
+    console.log(interpreter.interpret(statements));
   } catch(errors: unknown) {
-    if (errors instanceof LangError) {
+    if (Array.isArray(errors)) {
       console.log('Runtime errors exist -');
       const errorPrinter = new LangErrorPrinter(source);
-      console.log();
-      console.log(errorPrinter.print(errors));
+
+      for (const error of errors) {
+        console.log();
+        console.log(errorPrinter.print(error));
+      }
     } else {
       console.log(errors);
     }
+    return;
   }
 }
 

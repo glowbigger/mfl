@@ -1,3 +1,5 @@
+// TODO delete this when you're done with the interpreter
+
 import { Expr, ExprVisitor, Binary, Grouping, Literal, Unary } from './expr';
 
 export default class Printer implements ExprVisitor<string> {
