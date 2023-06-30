@@ -101,11 +101,13 @@ export default class TypeChecker
     if (this.tokenTypeMatch(opType, 'PLUS')) {
       const leftType: ExprType = this.validateExpression(expr.left);
       if (leftType != 'NUMBER' && leftType != 'STRING') {
-        throw new TokenError('Left operand is not a number.', expr.operator);
+        throw new TokenError('Left operand is not a number or string.',
+                              expr.operator);
       }
       const rightType = this.validateExpression(expr.right);
       if (rightType != 'NUMBER' && rightType != 'STRING') {
-        throw new TokenError('Right operand is not a number.', expr.operator);
+        throw new TokenError('Right operand is not a number or string.',
+                              expr.operator);
       }
       if (rightType != leftType) {
         throw new TokenError('Operands do not match.', expr.operator);
