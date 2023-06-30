@@ -74,3 +74,10 @@ export class LangErrorPrinter {
     return errorMessage;
   }
 }
+
+// for errors in the interpreter code proper
+export class ImplementationError extends Error {
+  constructor(message: string) {
+    super("Implementation error: " + message);
+  }
+}

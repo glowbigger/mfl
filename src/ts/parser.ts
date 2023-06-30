@@ -1,6 +1,6 @@
 import { Token, TokenType } from './token';
 import { Expr, Binary, Grouping, Literal, Unary } from './expr'
-import { TokenError } from './langError';
+import { TokenError } from './error';
 
 export default class Parser {
   // the tokens to be parsed

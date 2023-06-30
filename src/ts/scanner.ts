@@ -1,4 +1,4 @@
-import { CharacterError } from './langError';
+import { CharacterError } from './error';
 import { Token, TokenType } from './token';
 import { LangObject } from './types';
 

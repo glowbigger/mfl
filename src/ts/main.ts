@@ -3,8 +3,9 @@ import Scanner from './scanner';
 import { Token } from './token';
 import Parser from './parser';
 import { Expr } from './expr';
-import { LangErrorPrinter, LangError } from './langError';
+import { LangErrorPrinter, LangError } from './error';
 import Printer from './printer';
+import TypeChecker from './typeChecker';
 
 /**
  * the main method, runs a given file or, if no arguments are given,
@@ -54,7 +55,6 @@ function run(source: string): void {
         console.log(errorPrinter.print(error));
       }
     } else {
-      console.log('Native Javascript error:');
       console.log(errors);
     }
     return;
@@ -72,20 +72,37 @@ function run(source: string): void {
       console.log();
       console.log(errorPrinter.print(errors));
     } else {
-      console.log('Native Javascript error:');
       console.log(errors);
     }
     return;
   }
-  const printer: Printer = new Printer();
-  if (expr === null) {
-    console.log();
-  } else {
-    const exprString: string = printer.print(expr);
-    console.log(exprString);
+
+  // printing (remove later)
+  if (expr == null) {
+    console.log(); 
+    return;
   }
+  const printer: Printer = new Printer();
+  console.log('Syntax tree:');
+  const exprString: string = printer.print(expr);
+  console.log();
+  console.log(exprString);
+  console.log();
 
   // type checking
+  const typeChecker = new TypeChecker(expr);
+  try {
+    typeChecker.validate(expr);
+  } catch(errors: unknown) {
+    if (errors instanceof LangError) {
+      console.log('Type checking errors exist -');
+      const errorPrinter = new LangErrorPrinter(source);
+      console.log();
+      console.log(errorPrinter.print(errors));
+    } else {
+      console.log(errors);
+    }
+  }
   
   // interpreting
 }
