@@ -20,7 +20,6 @@ export default class TypeChecker implements ExprVisitor<ExprType> {
   // checks whether the types are valid in a given expression or statement, adds
   // an error if they are not, and returns the type if possible
   validate(expr: Expr): ExprType {
-    // this will call the appropriate visitor method below
     return expr.accept(this);
   }
 
@@ -54,8 +53,8 @@ export default class TypeChecker implements ExprVisitor<ExprType> {
       return 'BOOLEAN';
     }
 
-    // boolean operations: +, -, *, /
-    if (this.tokenTypeMatch(opType, 'PLUS', 'MINUS', 'STAR', 'SLASH')) {
+    // number operations: -, *, /
+    if (this.tokenTypeMatch(opType, 'MINUS', 'STAR', 'SLASH')) {
       const leftType: ExprType = this.validate(expr.left);
       if (leftType != 'NUMBER') {
         throw new TokenError('Left operand is not a number.', expr.operator);
@@ -67,7 +66,24 @@ export default class TypeChecker implements ExprVisitor<ExprType> {
       return 'NUMBER';
     }
 
-    throw new ImplementationError('unknown operator in binary expression.');
+    // + is defined for both strings and numbers
+    if (this.tokenTypeMatch(opType, 'PLUS')) {
+      const leftType: ExprType = this.validate(expr.left);
+      if (leftType != 'NUMBER' && leftType != 'STRING') {
+        throw new TokenError('Left operand is not a number.', expr.operator);
+      }
+      const rightType = this.validate(expr.right);
+      if (rightType != 'NUMBER' && rightType != 'STRING') {
+        throw new TokenError('Right operand is not a number.', expr.operator);
+      }
+      if (rightType != leftType) {
+        throw new TokenError('Operands do not match.', expr.operator);
+      }
+      // NOTE we could just as easily return leftType
+      return rightType;
+    }
+
+    throw new ImplementationError('Unknown operator in binary expression.');
   }
 
   visitUnaryExpr(expr: Unary): ExprType {
@@ -89,7 +105,7 @@ export default class TypeChecker implements ExprVisitor<ExprType> {
       return 'BOOLEAN';
     }
 
-    throw new ImplementationError('unknown operator in unary expression.');
+    throw new ImplementationError('Unknown operator in unary expression.');
   }
 
   visitGroupingExpr(expr: Grouping): ExprType {

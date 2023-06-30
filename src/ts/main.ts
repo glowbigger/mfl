@@ -6,6 +6,7 @@ import { Expr } from './expr';
 import { LangErrorPrinter, LangError } from './error';
 import Printer from './printer';
 import TypeChecker from './typeChecker';
+import Interpreter from './interpreter';
 
 /**
  * the main method, runs a given file or, if no arguments are given,
@@ -89,6 +90,8 @@ function run(source: string): void {
   console.log(exprString);
   console.log();
 
+  // resolving (should come before type checking)
+
   // type checking
   const typeChecker = new TypeChecker(expr);
   try {
@@ -105,6 +108,19 @@ function run(source: string): void {
   }
   
   // interpreting
+  const interpreter = new Interpreter(expr);
+  try {
+    console.log(interpreter.evaluate(expr));
+  } catch(errors: unknown) {
+    if (errors instanceof LangError) {
+      console.log('Runtime errors exist -');
+      const errorPrinter = new LangErrorPrinter(source);
+      console.log();
+      console.log(errorPrinter.print(errors));
+    } else {
+      console.log(errors);
+    }
+  }
 }
 
 if (require.main === module) {
