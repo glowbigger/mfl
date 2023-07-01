@@ -1,6 +1,7 @@
 import { Token, TokenType } from './token';
 import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, 
-         VariableExpr } from './expr'
+         VariableExpr, 
+         AssignExpr} from './expr'
 import { ImplementationError, LangError, TokenError, 
          TokenRangeError } from './error';
 import { Stmt, BlankStmt, ExpressionStmt, PrintStmt, 
@@ -175,9 +176,36 @@ export default class Parser {
     throw new ImplementationError('Unknown lexeme in primitive token.');
   }
 
-  // expression     → equality ;
+  // expression     → assignment ;
   private parseExpression(): Expr {
-    return this.parseEquality();
+    return this.parseAssignment();
+  }
+
+  // assignment     → IDENTIFIER "=" assignment
+  //                | equality ;
+  // NOTE the code does not follow the grammar exactly
+  // NOTE as a reminder, an assignment is not a statement: a = (b = c), but it
+  // almost always gets called as apart of an expression statement
+  private parseAssignment(): Expr {
+    // first parse for an equality rule, which may return a variable
+    let expr: Expr = this.parseEquality();
+
+    // if the next token is an =, then the assignment is valid if expr is a 
+    // variable, otherwise just return the expression
+    if (this.match('EQUAL')) {
+      const equalsSign: Token = this.consume();
+
+      if (expr instanceof VariableExpr) {
+        // NOTE the parseAssignemnt() can go outside the if too, error reporting
+        // will differ slightly, consider a statement like a + b = c;
+        const value: Expr = this.parseAssignment();
+        return new AssignExpr(expr.identifier, value);
+      }
+
+      throw new TokenError('Trying to assign to invalid target.', equalsSign);
+    }
+
+    return expr;
   }
 
   // equality       → comparison ( ( "!=" | "==" ) comparison )* ;

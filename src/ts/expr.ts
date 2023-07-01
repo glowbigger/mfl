@@ -2,7 +2,7 @@ import { Token } from './token';
 import { TokenValueType } from './types';
 
 export interface ExprVisitor<R> {
-  // visitAssignExpr(expr: AssignExpr): R;
+  visitAssignExpr(expr: AssignExpr): R;
   visitBinaryExpr(expr: BinaryExpr): R;
   // visitCallExpr(expr: CallExpr): R;
   visitGroupingExpr(expr: GroupingExpr): R;
@@ -16,20 +16,20 @@ export abstract class Expr {
   abstract accept<R>(visitor: ExprVisitor<R>): R;
 }
 
-// export class AssignExpr extends Expr {
-//   readonly name: Token;
-//   readonly value: Expr;
+export class AssignExpr extends Expr {
+  readonly variableIdentifier: Token;
+  readonly value: Expr;
 
-//   constructor(name: Token, value: Expr) {
-//     super();
-//     this.name = name;
-//     this.value = value;
-//   }
+  constructor(variableIdentifier: Token, value: Expr) {
+    super();
+    this.variableIdentifier = variableIdentifier;
+    this.value = value;
+  }
 
-//   accept<R>(visitor: ExprVisitor<R>): R {
-//     return visitor.visitAssignExpr(this);
-//   }
-// }
+  accept<R>(visitor: ExprVisitor<R>): R {
+    return visitor.visitAssignExpr(this);
+  }
+}
 
 export class BinaryExpr extends Expr {
   readonly left: Expr;

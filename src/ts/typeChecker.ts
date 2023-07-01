@@ -1,7 +1,7 @@
-import { TokenType } from './token';
-import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, ExprVisitor, VariableExpr } from './expr'
+import { Token, TokenType } from './token';
+import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, ExprVisitor, VariableExpr, AssignExpr } from './expr'
 import { TokenError, ImplementationError, LangError } from './error';
-import { LangObjectType } from './types';
+import { LangObjectType, PrimitiveLOT } from './types';
 import { BlankStmt, DeclarationStmt, ExpressionStmt, PrintStmt, Stmt, StmtVisitor } from './stmt';
 import { TypeEnvironment } from './environment';
 
@@ -70,8 +70,8 @@ export default class TypeChecker
     const rightType: LangObjectType = this.validateExpression(stmt.initialValue);
 
     if (leftType != rightType) {
-      throw new TokenError('Variable declaration types do not match',
-                            stmt.identifier);
+      throw new TokenError('Types do not match in declaration.',
+                           stmt.identifier);
     }
 
     this.globalEnvironment.define(stmt.identifier.lexeme, leftType);
@@ -185,6 +185,24 @@ export default class TypeChecker
       throw new TokenError('Undefined identifier used.', expr.identifier);
     }
     return maybeType;
+  }
+
+  visitAssignExpr(expr: AssignExpr): LangObjectType {
+    const variableToken: Token = expr.variableIdentifier;
+    const variableName: string = variableToken.lexeme;
+    if (!this.globalEnvironment.has(variableName)){
+      throw new TokenError('Undefined variable.', variableToken);
+    }
+
+    const rightType: LangObjectType = this.validateExpression(expr.value);
+    const leftType: LangObjectType = 
+      this.globalEnvironment.get(variableName) as LangObjectType;
+
+    if (leftType != rightType) {
+      throw new TokenError('Types do not match in assignment.', variableToken);
+    }
+
+    return leftType;
   }
 
   //======================================================================

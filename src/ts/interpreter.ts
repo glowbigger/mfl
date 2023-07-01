@@ -1,6 +1,6 @@
 import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, 
-          ExprVisitor, VariableExpr } from './expr'
-import { TokenError, ImplementationError } from './error';
+          ExprVisitor, VariableExpr, AssignExpr } from './expr'
+import { TokenError, ImplementationError, LangError } from './error';
 import { LangObject } from './types';
 import { Stmt, ExpressionStmt, PrintStmt, BlankStmt, StmtVisitor,
         DeclarationStmt} from './stmt';
@@ -60,6 +60,7 @@ export default class Interpreter
 
   visitExpressionStmt(stmt: ExpressionStmt): void {
     // only does something if the expression is the output of a function call
+    // or an assignment expression
     this.evaluate(stmt.expression);
   }
 
@@ -185,6 +186,20 @@ export default class Interpreter
       throw new TokenError('Undefined variable.', expr.identifier);
     }
     return value;
+  }
+
+  visitAssignExpr(expr: AssignExpr): LangObject {
+    const variable: string = expr.variableIdentifier.lexeme;
+    const value: LangObject = this.evaluate(expr.value);
+    try {
+      this.globalEnvironment.assign(variable, value);
+      return value;
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw new TokenError(error.message, expr.variableIdentifier);
+      }
+      throw new ImplementationError('Unable to assign to environment.');
+    }
   }
 
   //======================================================================
