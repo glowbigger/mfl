@@ -1,0 +1,8 @@
+if (true or false) {
+  print "hi";
+}
+if (true and false) {
+  print "hello";
+}
+
+print false or false and true;

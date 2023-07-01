@@ -1,10 +1,11 @@
 import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, 
-          ExprVisitor, VariableExpr, AssignExpr } from './expr'
+          ExprVisitor, VariableExpr, AssignExpr, LogicalExpr } from './expr'
 import { TokenError, ImplementationError, LangError } from './error';
 import { LangObject } from './types';
 import { Stmt, ExpressionStmt, PrintStmt, BlankStmt, StmtVisitor,
         DeclarationStmt,
-        BlockStmt} from './stmt';
+        BlockStmt,
+        IfStmt} from './stmt';
 import { LOEnvironment } from './environment';
 
 export default class Interpreter 
@@ -102,6 +103,12 @@ export default class Interpreter
     // send a copy of the current environment to be the inner environment of the
     // block; the inner block might get different variables declared inside
     this.executeBlockStatement(stmt, new LOEnvironment(this.currentEnvironment));
+  }
+
+  visitIfStmt(stmt: IfStmt): void {
+    const condition: boolean = this.evaluate(stmt.condition) as boolean;
+    if (condition) this.execute(stmt.thenBranch);
+    else if (stmt.elseBranch !== null) this.execute(stmt.elseBranch);
   }
 
   //======================================================================
@@ -233,6 +240,21 @@ export default class Interpreter
       }
       throw new ImplementationError('Unable to assign to environment.');
     }
+  }
+
+  visitLogicalExpr(expr: LogicalExpr): LangObject {
+    const leftValue: boolean = this.evaluate(expr.left) as boolean;
+
+    if (expr.operator.type === 'OR') {
+      // or, if the left side is true, then the 'or' expression is true
+      if (leftValue) return true;
+    } else {
+      // and, if the left side is false, then the 'and' expression is false
+      if (!leftValue) return false;
+    }
+
+    const rightValue: boolean = this.evaluate(expr.right) as boolean;
+    return rightValue;
   }
 
   //======================================================================

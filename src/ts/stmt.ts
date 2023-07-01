@@ -10,12 +10,12 @@ export interface StmtVisitor<R> {
   visitBlankStmt(stmt: BlankStmt): R;
   visitBlockStmt(stmt: BlockStmt): R;
   visitExpressionStmt(stmt: ExpressionStmt): R;
-  // visitFunctionStmt(stmt: Fun): R;
-  // visitIfStmt(stmt: If): R;
+  // visitFunctionStmt(stmt: FunStmt): R;
+  visitIfStmt(stmt: IfStmt): R;
   visitPrintStmt(stmt: PrintStmt): R;
   visitDeclarationStmt(stmt: DeclarationStmt): R;
-  // visitReturnStmt(stmt: Return): R;
-  // visitWhileStmt(stmt: While): R;
+  // visitReturnStmt(stmt: ReturnStmt): R;
+  // visitWhileStmt(stmt: WhileStmt): R;
 }
 
 export abstract class Stmt {
@@ -75,24 +75,27 @@ export class ExpressionStmt extends Stmt {
 //   }
 // }
 
-// export class IfStmt extends Stmt {
-//   readonly condition: Expr;
-//   readonly thenBranch: Stmt;
-//   readonly elseBranch: Stmt | null;
+export class IfStmt extends Stmt {
+  readonly ifToken: Token;
+  readonly condition: Expr;
+  readonly thenBranch: Stmt;
+  readonly elseBranch: Stmt | null;
 
-//   constructor(condition: Expr, 
-//               thenBranch: Stmt, 
-//               elseBranch: Stmt | null = null) {
-//     super();
-//     this.condition  = condition;
-//     this.thenBranch = thenBranch;
-//     this.elseBranch = elseBranch;
-//   }
+  constructor(ifToken: Token,
+              condition: Expr, 
+              thenBranch: Stmt, 
+              elseBranch: Stmt | null = null) {
+    super();
+    this.ifToken = ifToken;
+    this.condition  = condition;
+    this.thenBranch = thenBranch;
+    this.elseBranch = elseBranch;
+  }
 
-//   accept<R>(visitor: StmtVisitor<R>): R {
-//     return visitor.visitIfStmt(this);
-//   }
-// }
+  accept<R>(visitor: StmtVisitor<R>): R {
+    return visitor.visitIfStmt(this);
+  }
+}
 
 export class PrintStmt extends Stmt {
   readonly expression: Expr;

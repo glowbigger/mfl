@@ -7,7 +7,7 @@ export interface ExprVisitor<R> {
   // visitCallExpr(expr: CallExpr): R;
   visitGroupingExpr(expr: GroupingExpr): R;
   visitLiteralExpr(expr: LiteralExpr): R;
-  // visitLogicalExpr(expr: LogicalExpr): R;
+  visitLogicalExpr(expr: LogicalExpr): R;
   visitUnaryExpr(expr: UnaryExpr): R;
   visitVariableExpr(expr: VariableExpr): R;
 }
@@ -81,22 +81,22 @@ export class GroupingExpr extends Expr {
   }
 }
 
-// export class LogicalExpr extends Expr {
-//   readonly left: Expr;
-//   readonly operator: Token;
-//   readonly right: Expr;
+export class LogicalExpr extends Expr {
+  readonly left: Expr;
+  readonly operator: Token;
+  readonly right: Expr;
 
-//   constructor(left: Expr, operator: Token, right: Expr) {
-//     super();
-//     this.left = left;
-//     this.operator = operator;
-//     this.right = right;
-//   }
+  constructor(left: Expr, operator: Token, right: Expr) {
+    super();
+    this.left = left;
+    this.operator = operator;
+    this.right = right;
+  }
 
-//   accept<R>(visitor: ExprVisitor<R>): R {
-//     return visitor.visitLogicalExpr(this);
-//   }
-// }
+  accept<R>(visitor: ExprVisitor<R>): R {
+    return visitor.visitLogicalExpr(this);
+  }
+}
 
 export class LiteralExpr extends Expr {
   readonly value: TokenValueType;

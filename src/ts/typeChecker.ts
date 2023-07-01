@@ -1,8 +1,8 @@
 import { Token, TokenType } from './token';
-import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, ExprVisitor, VariableExpr, AssignExpr } from './expr'
+import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, ExprVisitor, VariableExpr, AssignExpr, LogicalExpr } from './expr'
 import { TokenError, ImplementationError, LangError } from './error';
-import { LangObjectType } from './types';
-import { BlankStmt, BlockStmt, DeclarationStmt, ExpressionStmt, PrintStmt, Stmt, StmtVisitor } from './stmt';
+import { LangObjectType, PrimitiveLOT } from './types';
+import { BlankStmt, BlockStmt, DeclarationStmt, ExpressionStmt, IfStmt, PrintStmt, Stmt, StmtVisitor } from './stmt';
 import { TypeEnvironment } from './environment';
 
 export default class TypeChecker
@@ -100,6 +100,13 @@ export default class TypeChecker
     for (const statement of stmt.statements) {
       this.validateStatement(statement);
     }
+  }
+
+  visitIfStmt(stmt: IfStmt): void {
+    if (this.validateExpression(stmt.condition) !== 'BoolLOT') 
+      throw new TokenError('If statement requires a bool.', stmt.ifToken);
+    this.validateStatement(stmt.thenBranch);
+    if (stmt.elseBranch !== null) this.validateStatement(stmt.elseBranch);
   }
 
   //======================================================================
@@ -228,6 +235,18 @@ export default class TypeChecker
     }
 
     return leftType;
+  }
+
+  visitLogicalExpr(expr: LogicalExpr): LangObjectType {
+    const leftType: LangObjectType = this.validateExpression(expr.left);
+    if (leftType != 'BoolLOT')
+      throw new TokenError('Left operand must be a bool.', expr.operator);
+
+    const rightType: LangObjectType = this.validateExpression(expr.right);
+    if (rightType != 'BoolLOT')
+      throw new TokenError('Right operand must be a bool.', expr.operator);
+
+    return 'BoolLOT';
   }
 
   //======================================================================

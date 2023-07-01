@@ -1,12 +1,14 @@
 import { Token, TokenType } from './token';
 import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, 
          VariableExpr, 
-         AssignExpr} from './expr'
+         AssignExpr,
+         LogicalExpr} from './expr'
 import { ImplementationError, LangError, TokenError, 
          TokenRangeError } from './error';
 import { Stmt, BlankStmt, ExpressionStmt, PrintStmt, 
          DeclarationStmt, 
-         BlockStmt} from './stmt';
+         BlockStmt,
+         IfStmt} from './stmt';
 import { LangObjectType } from './types';
 
 export default class Parser {
@@ -81,7 +83,8 @@ export default class Parser {
     return statements;
   }
 
-  // statement           → blockStmt | ((declarationStmt | printStmt | exprStmt) ";") ;
+  // statement           → ifStmt | blockStmt |
+  //                     ((declarationStmt | printStmt | exprStmt) ";") ;
   private parseStatement(): Stmt {
     let statement: Stmt;
 
@@ -91,8 +94,10 @@ export default class Parser {
         this.consume();
         return new BlankStmt();
 
+      // no semicolon required for if and block statements
+      case 'IF':
+        return(this.parseIfStatement());
       case 'LEFT_BRACE':
-        // no semicolon is required, so just return the statement after parsing
         return(this.parseBlockStatement());
 
       case 'LET':
@@ -138,15 +143,14 @@ export default class Parser {
 
   // blockStmt           → "{" statement* "}" ;
   private parseBlockStatement(): Stmt {
-    this.expect('LEFT_BRACE', 'Expect left brace for block statement.');
+    this.expect('LEFT_BRACE', 'Expect \'{\' for block statement.');
 
     const statements: Stmt[] = [];
-    while (this.peek().type !== 'RIGHT_BRACE') {
+    while (!this.match('RIGHT_BRACE', 'EOF')) {
       statements.push(this.parseStatement());
     }
 
-    // consume the right brace
-    this.consume();
+    this.expect('RIGHT_BRACE', 'Expect \'}\' after statement.');
 
     return new BlockStmt(statements);
   }
@@ -180,6 +184,23 @@ export default class Parser {
     return new DeclarationStmt(identifier, type, initialValue);
   }
 
+  // ifStmt              → "if" "(" expression ")" statement ("else" statement)? ;
+  private parseIfStatement(): Stmt {
+    const ifToken: Token = this.expect('IF', 'Expect \'if\' to start if statement.');
+    this.expect('LEFT_PAREN', 'Expect \'(\' before expression.');
+    const condition: Expr = this.parseExpression();
+    this.expect('RIGHT_PAREN', 'Expect \')\' after expression.');
+    const thenBranch: Stmt = this.parseStatement();
+
+    let elseBranch: Stmt | null = null;
+    if (this.match('ELSE')) {
+      this.consume();
+      elseBranch = this.parseStatement();
+    }
+
+    return new IfStmt(ifToken, condition, thenBranch, elseBranch);
+  }
+
   // objectType     → "number" | "string" | "bool" ;
   private parseObjectType(): LangObjectType {
     const token: Token = 
@@ -196,18 +217,19 @@ export default class Parser {
   }
 
   // expression     → assignment ;
+  //
   private parseExpression(): Expr {
     return this.parseAssignment();
   }
 
-  // assignment     → IDENTIFIER "=" assignment
-  //                | equality ;
+  // assignment          → IDENTIFIER "=" assignment
+  //                     | logic_or ;
   // NOTE the code does not follow the grammar exactly
   // NOTE as a reminder, an assignment is not a statement: a = (b = c), but it
   // almost always gets called as apart of an expression statement
   private parseAssignment(): Expr {
-    // first parse for an equality rule, which may return a variable
-    let expr: Expr = this.parseEquality();
+    // first parse for an equality rule, which may return an identifier
+    let expr: Expr = this.parseLogicOr();
 
     // if the next token is an =, then the assignment is valid if expr is a 
     // variable, otherwise just return the expression
@@ -222,6 +244,36 @@ export default class Parser {
       }
 
       throw new TokenError('Trying to assign to invalid target.', equalsSign);
+    }
+
+    return expr;
+  }
+
+  // logic_or            → logic_and ( "or" expression )* ;
+  private parseLogicOr(): Expr {
+    let expr: Expr = this.parseLogicAnd();
+
+    if (this.match('OR')) {
+      const left: Expr = expr;
+      const operator: Token = this.consume();
+      const right: Expr = this.parseExpression();
+
+      return new LogicalExpr(left, operator, right);
+    }
+
+    return expr;
+  }
+
+  // logic_and           → equality ( "and" expression )* ;
+  private parseLogicAnd(): Expr {
+    let expr: Expr = this.parseEquality();
+
+    if (this.match('AND')) {
+      const left: Expr = expr;
+      const operator: Token = this.consume();
+      const right: Expr = this.parseExpression();
+
+      return new LogicalExpr(left, operator, right);
     }
 
     return expr;

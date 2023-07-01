@@ -2,8 +2,10 @@ program             → statement* EOF ;
 
 // statements
 
-statement           → blockStmt | ((declarationStmt | printStmt | exprStmt) ";") ;
+statement           → ifStmt | blockStmt |
+                    ((declarationStmt | printStmt | exprStmt) ";") ;
 
+ifStmt              → "if" "(" expression ")" statement ("else" statement)? ;
 blockStmt           → "{" statement* "}" ;
 declarationStmt     → "let" IDENTIFIER ":" objType "=" expression ;
 // only shown to make clear that exprStmt is a possible statement type
@@ -16,7 +18,9 @@ objectType          → "number" | "string" | "bool" ;
 
 expression          → assignment ;
 assignment          → IDENTIFIER "=" assignment
-                    | equality ;
+                    | logic_or ;
+logic_or            → logic_and ( "or" expression )* ;
+logic_and           → equality ( "and" expression )* ;
 equality            → comparison ( ( "!=" | "==" ) comparison )* ;
 comparison          → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term                → factor ( ( "-" | "+" ) factor )* ;
