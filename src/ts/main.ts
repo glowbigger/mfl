@@ -2,7 +2,6 @@ import { readFileSync } from 'fs';
 import Scanner from './scanner';
 import { Token } from './token';
 import Parser from './parser';
-import { Expr } from './expr';
 import { LangErrorPrinter, LangError } from './error';
 import TypeChecker from './typeChecker';
 import Interpreter from './interpreter';
@@ -63,9 +62,9 @@ function run(source: string): void {
 
   // parsing
   const parser = new Parser(tokens);
-  let statements: Stmt[]; 
+  let program: Stmt[]; 
   try {
-    statements = parser.parse();
+    program = parser.parse();
   } catch(errors: unknown) {
     if (Array.isArray(errors)) {
       console.log('Parsing errors exist -');
@@ -84,9 +83,9 @@ function run(source: string): void {
   // resolving (should come before type checking)
 
   // type checking
-  const typeChecker = new TypeChecker();
+  const typeChecker = new TypeChecker(program);
   try {
-    typeChecker.validateProgram(statements);
+    typeChecker.validateProgram();
   } catch(errors: unknown) {
     if (Array.isArray(errors)) {
       console.log('Type checking errors exist -');
@@ -103,9 +102,9 @@ function run(source: string): void {
   }
   
   // interpreting
-  const interpreter = new Interpreter();
+  const interpreter = new Interpreter(program);
   try {
-    console.log(interpreter.interpret(statements));
+    console.log(interpreter.interpret());
   } catch(errors: unknown) {
     if (Array.isArray(errors)) {
       console.log('Runtime errors exist -');

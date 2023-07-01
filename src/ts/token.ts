@@ -1,4 +1,4 @@
-import { LangObject } from './types';
+import { TokenValueType } from './types';
 
 export type TokenType = 
   // single character tokens
@@ -15,6 +15,7 @@ export type TokenType =
 	'SEMICOLON' |
 	'SLASH' |
 	'STAR' |
+	'COLON' |
 
 	// one or two character tokens
 	'BANG' |
@@ -38,32 +39,34 @@ export type TokenType =
 	'FUNCTION' |
 	'FOR' |
 	'IF' |
-	'NULL' |
 	'OR' |
 	'PRINT' |
 	'RETURN' |
 	'TRUE' |
-	'VAR' |
+	'LET' |
 	'WHILE' |
+
+  // primitive type
+  'PRIMITIVE' |
 
   // end of file
 	'EOF';
 
 export class Token {
-  type: TokenType; lexeme: string; literal: LangObject;
+  type: TokenType; lexeme: string; value: TokenValueType;
   line: number; column: number;
   
-  constructor(type: TokenType, lexeme: string, literal: LangObject, 
+  constructor(type: TokenType, lexeme: string, value: TokenValueType, 
               line: number, column: number) {
 		this.type = type;
 		this.lexeme = lexeme;
-		this.literal = literal;
+		this.value = value;
 		this.line = line;
     this.column = column;
   }
   
   toString() {
     const tokenTypeString: string = this.type;
-    return tokenTypeString + ' ' + this.lexeme + ' ' + this.literal;
+    return tokenTypeString + ' ' + this.lexeme + ' ' + this.value;
   }
 }

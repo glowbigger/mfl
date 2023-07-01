@@ -31,6 +31,19 @@ export class TokenError extends LangError {
   }
 }
 
+
+// an error at a token
+export class TokenRangeError extends LangError {
+  readonly tokenStart: Token;
+  readonly tokenEnd: Token;
+
+  constructor(message: string, tokenStart: Token, tokenEnd: Token) {
+    super(message);
+    this.tokenStart = tokenStart;
+    this.tokenEnd = tokenEnd;
+  }
+}
+
 // a class that can print the above errors
 export class LangErrorPrinter {
   // the source code and the source code lines as a string array
@@ -42,7 +55,7 @@ export class LangErrorPrinter {
   }
 
   print(error: LangError): string {
-    let errorMessage: string = '';
+    let errorMessage: string;
 
     // check for each LangError type
     if (error instanceof CharacterError) {
@@ -52,7 +65,7 @@ export class LangErrorPrinter {
       const char: string = this.lines[line - 1][col - 1];
       const lineString: string = this.lines[line - 1];
 
-      errorMessage += `Error at '${char}' on ` +
+      errorMessage = `Error at '${char}' on ` +
                       `line ${line}, at column ${col}:\n` +
                       lineString + `\n${msg}`;
     } else if (error instanceof TokenError) {
@@ -62,15 +75,41 @@ export class LangErrorPrinter {
       const lineString: string = this.lines[line - 1];
 
       if (error.token.type == 'EOF') {
-        errorMessage += `Error at the end of the file:\n` +
-                        this.lines[line - 1] + `\n${msg}`;
+        errorMessage = `Error at the end of the file:\n` +
+                        lineString + `\n${msg}`;
       } else { 
-        errorMessage += `Error at '${error.token.lexeme}' on ` +
+        errorMessage = `Error at '${error.token.lexeme}' on ` +
                         `line ${line}, at column ${col}:\n` +
                         lineString + `\n${msg}`;
       }
-    }
+    } else if (error instanceof TokenRangeError) {
+      const tokenStart = error.tokenStart;
+      const tokenEnd = error.tokenEnd;
+      const startLine: number = tokenStart.line;
+      const startCol: number = tokenStart.column;
+      const endLine: number = tokenEnd.line;
+      const endCol: number = tokenEnd.column;
+      const startLineString: string = this.lines[startLine - 1];
+      const endLineString: string = this.lines[endLine - 1];
+      const msg: string = error.message;
 
+      // validate the token ranges
+      if (startLine > endLine || 
+         (startLine == endLine && startCol > endCol) ||
+         tokenStart == tokenEnd ||
+         tokenStart.type == 'EOF') {
+        throw new ImplementationError(`TokenRangeError was created with invalid
+                                       tokens ${tokenStart} and ${tokenEnd}.`);
+      }
+      errorMessage = `Error starting with ${tokenStart.lexeme} on ` +
+                     `line ${startLine}, at column ${startCol} ` +
+                     `and ending with ${tokenEnd.lexeme} on ` +
+                     `line ${endLine}, at column ${endCol}:\n` +
+                     `${startLineString}\n${endLineString}\n${msg}`;
+    } else {
+      throw new ImplementationError('Trying to print unknown LangError.');
+    }
+    
     return errorMessage;
   }
 }

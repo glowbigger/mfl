@@ -1,23 +1,35 @@
 import { Expr } from './expr';
 import { Token } from './token';
+import { LangObjectType } from './types';
 
 /*
 * see expr.ts for detailed notes on this class
 */
 
 export interface StmtVisitor<R> {
+  visitBlankStmt(stmt: BlankStmt): R;
   // visitBlockStmt(stmt: Block): R;
-  visitExpressionStmt(stmt: Expression): R;
+  visitExpressionStmt(stmt: ExpressionStmt): R;
   // visitFunctionStmt(stmt: Fun): R;
   // visitIfStmt(stmt: If): R;
-  visitPrintStmt(stmt: Print): R;
-  // visitVarStmt(stmt: Var): R;
+  visitPrintStmt(stmt: PrintStmt): R;
+  visitDeclarationStmt(stmt: DeclarationStmt): R;
   // visitReturnStmt(stmt: Return): R;
   // visitWhileStmt(stmt: While): R;
 }
 
 export abstract class Stmt {
   abstract accept<R>(visitor: StmtVisitor<R>): R;
+}
+
+export class BlankStmt extends Stmt {
+  constructor() {
+    super();
+  }
+
+  accept<R>(visitor: StmtVisitor<R>): R {
+    return visitor.visitBlankStmt(this);
+  }
 }
 
 // export class Block extends Stmt {
@@ -33,7 +45,7 @@ export abstract class Stmt {
 //   }
 // }
 
-export class Expression extends Stmt {
+export class ExpressionStmt extends Stmt {
   readonly expression: Expr;
 
   constructor(expression: Expr) {
@@ -46,7 +58,7 @@ export class Expression extends Stmt {
   }
 }
 
-// export class Fun extends Stmt {
+// export class FunStmt extends Stmt {
 //   readonly name: Token;
 //   readonly params: Array<Token>;
 //   readonly body: Array<Stmt>;
@@ -63,7 +75,7 @@ export class Expression extends Stmt {
 //   }
 // }
 
-// export class If extends Stmt {
+// export class IfStmt extends Stmt {
 //   readonly condition: Expr;
 //   readonly thenBranch: Stmt;
 //   readonly elseBranch: Stmt | null;
@@ -82,7 +94,7 @@ export class Expression extends Stmt {
 //   }
 // }
 
-export class Print extends Stmt {
+export class PrintStmt extends Stmt {
   readonly expression: Expr;
 
   constructor(expression: Expr) {
@@ -110,22 +122,24 @@ export class Print extends Stmt {
 //   }
 // }
 
-// export class Var extends Stmt {
-//   readonly name: Token;
-//   readonly initializer: Expr | null;
+export class DeclarationStmt extends Stmt {
+  readonly identifier: Token;
+  readonly type: LangObjectType;
+  readonly initialValue: Expr;
 
-//   constructor(name: Token, initializer: Expr | null) {
-//     super();
-//     this.name = name;
-//     this.initializer = initializer;
-//   }
+  constructor(identifier: Token, type: LangObjectType, initialValue: Expr) {
+    super();
+    this.identifier = identifier;
+    this.type = type;
+    this.initialValue = initialValue;
+  }
 
-//   accept<R>(visitor: StmtVisitor<R>) {
-//     return visitor.visitVarStmt(this);
-//   }
-// }
+  accept<R>(visitor: StmtVisitor<R>) {
+    return visitor.visitDeclarationStmt(this);
+  }
+}
 
-// export class While extends Stmt {
+// export class WhileStmt extends Stmt {
 //   readonly condition: Expr;
 //   readonly body: Stmt;
 

@@ -1,0 +1,6 @@
+let num: number = 5;
+let str: string = "hey";
+let boolean: bool = true;
+print num;
+print str;
+print boolean;

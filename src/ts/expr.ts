@@ -1,22 +1,22 @@
 import { Token } from './token';
-import { LangObject } from './types';
+import { TokenValueType } from './types';
 
 export interface ExprVisitor<R> {
-  // visitAssignExpr(expr: Assign): R;
-  visitBinaryExpr(expr: Binary): R;
-  // visitCallExpr(expr: Call): R;
-  visitGroupingExpr(expr: Grouping): R;
-  visitLiteralExpr(expr: Literal): R;
-  // visitLogicalExpr(expr: Logical): R;
-  visitUnaryExpr(expr: Unary): R;
-  // visitVariableExpr(expr: Variable): R;
+  // visitAssignExpr(expr: AssignExpr): R;
+  visitBinaryExpr(expr: BinaryExpr): R;
+  // visitCallExpr(expr: CallExpr): R;
+  visitGroupingExpr(expr: GroupingExpr): R;
+  visitLiteralExpr(expr: LiteralExpr): R;
+  // visitLogicalExpr(expr: LogicalExpr): R;
+  visitUnaryExpr(expr: UnaryExpr): R;
+  visitVariableExpr(expr: VariableExpr): R;
 }
 
 export abstract class Expr {
   abstract accept<R>(visitor: ExprVisitor<R>): R;
 }
 
-// export class Assign extends Expr {
+// export class AssignExpr extends Expr {
 //   readonly name: Token;
 //   readonly value: Expr;
 
@@ -31,7 +31,7 @@ export abstract class Expr {
 //   }
 // }
 
-export class Binary extends Expr {
+export class BinaryExpr extends Expr {
   readonly left: Expr;
   readonly operator: Token;
   readonly right: Expr;
@@ -68,7 +68,7 @@ export class Binary extends Expr {
 //   }
 // }
 
-export class Grouping extends Expr {
+export class GroupingExpr extends Expr {
   readonly expression: Expr;
 
   constructor(expression: Expr) {
@@ -81,7 +81,7 @@ export class Grouping extends Expr {
   }
 }
 
-// export class Logical extends Expr {
+// export class LogicalExpr extends Expr {
 //   readonly left: Expr;
 //   readonly operator: Token;
 //   readonly right: Expr;
@@ -98,10 +98,10 @@ export class Grouping extends Expr {
 //   }
 // }
 
-export class Literal extends Expr {
-  readonly value: LangObject;
+export class LiteralExpr extends Expr {
+  readonly value: TokenValueType;
 
-  constructor(value: LangObject) {
+  constructor(value: TokenValueType) {
     super();
     this.value = value;
   }
@@ -111,7 +111,7 @@ export class Literal extends Expr {
   }
 }
 
-export class Unary extends Expr {
+export class UnaryExpr extends Expr {
   readonly operator: Token;
   readonly right: Expr;
 
@@ -126,15 +126,15 @@ export class Unary extends Expr {
   }
 }
 
-// export class Variable extends Expr {
-//   readonly name: Token;
+export class VariableExpr extends Expr {
+  readonly identifier: Token;
 
-//   constructor(name: Token) {
-//     super();
-//     this.name = name;
-//   }
+  constructor(identifier: Token) {
+    super();
+    this.identifier = identifier;
+  }
 
-//   accept<R>(visitor: ExprVisitor<R>): R {
-//     return visitor.visitVariableExpr(this);
-//   }
-// }
+  accept<R>(visitor: ExprVisitor<R>): R {
+    return visitor.visitVariableExpr(this);
+  }
+}

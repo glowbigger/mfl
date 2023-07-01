@@ -1,6 +1,6 @@
 import { CharacterError } from './error';
 import { Token, TokenType } from './token';
-import { LangObject } from './types';
+import { TokenValueType } from './types';
 
 const EOF_CHAR: string = '\0';
 
@@ -11,13 +11,16 @@ const KEYWORDS = new Map<string, TokenType>([
   ["for", "FOR"],
   ["fn", "FUNCTION"],
   ["if", "IF"],
-  ["null", "NULL"],
   ["or", "OR"],
   ["print", "PRINT"],
   ["return", "RETURN"],
   ["true", "TRUE"],
-  ["var", "VAR"],
+  ["let", "LET"],
   ["while", "WHILE"],
+  // primitive object types
+  ["number", "PRIMITIVE"],
+  ["string", "PRIMITIVE"],
+  ["bool", "PRIMITIVE"],
 ]);
 
 export default class Scanner {
@@ -111,6 +114,9 @@ export default class Scanner {
         break;
 			case '*': 
         this.addToken('STAR'); 
+        break; 
+			case ':': 
+        this.addToken('COLON'); 
         break; 
 
       // text for tokens that may be one or two characters long
@@ -249,30 +255,27 @@ export default class Scanner {
   }
 
   private scanIdentifierOrKeyword(): void {
+    // get the actual string of characters
     while (this.isAlphaOrUnderscore(this.peek()) || this.isDigit(this.peek())) {
       this.consume();
     }
     const text: string = this.getCurrentLexeme();
 
     // check if the lexeme is a keyword, if it's not, it's an identifier 
-    let type: TokenType | undefined = KEYWORDS.get(text);
-    if (type === undefined) type = "IDENTIFIER";
+    let tokenType: TokenType | undefined = KEYWORDS.get(text);
+    if (tokenType === undefined) tokenType = "IDENTIFIER";
 
-    // true, false, and null have true, false and null as literal values
-    if (type === 'TRUE') {
-      this.addToken(type, true);
+    // true and false have true, false and null as literal values
+    if (tokenType === 'TRUE') {
+      this.addToken(tokenType, true);
       return;
     }
-    if (type === 'FALSE') {
-      this.addToken(type, false);
-      return;
-    }
-    if (type === 'NULL') {
-      this.addToken(type, null);
+    if (tokenType === 'FALSE') {
+      this.addToken(tokenType, false);
       return;
     }
 
-    this.addToken(type);
+    this.addToken(tokenType);
   }
 
   //======================================================================
@@ -316,13 +319,13 @@ export default class Scanner {
 		return true;
   }
 
-  private addToken(type: TokenType, literal: LangObject = null): void {
+  private addToken(type: TokenType, value: TokenValueType = null): void {
     // get the corresponding text for the token
     const text: string = this.getCurrentLexeme();
     const column: number = (this.start - this.lineStart) + 1;
 
     // push the token
-    this.tokens.push(new Token(type, text, literal, this.line, column));
+    this.tokens.push(new Token(type, text, value, this.line, column));
   }
 
   private isDigit(c: string): boolean {

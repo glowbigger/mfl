@@ -1,14 +1,14 @@
-(see the https://craftinginterpreters.com/appendix-i.html)
-(remove this file from .gitignore when you're done)
-DOUBLE CHECK THE GRAMMAR COMMENTS IN THE PARSER WHEN YOU FINISH THE GRAMMAR
-
 program        → statement* EOF ;
 
-statement      → exprStmt
-               | printStmt ;
+statement      → (declaration | printStmt | exprStmt) ";" ;
 
-exprStmt       → expression ";" ;
-printStmt      → "print" expression ";" ;
+declaration    → "let" IDENTIFIER ":" objType "=" expression ;
+
+objectType     → "number" | "string" | "bool" ;
+
+// only shown to make clear that exprStmt is a possible statement type
+exprStmt       → expression ;
+printStmt      → "print" expression ;
 
 expression     → equality ;
 equality       → comparison ( ( "!=" | "==" ) comparison )* ;
@@ -17,5 +17,5 @@ term           → factor ( ( "-" | "+" ) factor )* ;
 factor         → unary ( ( "/" | "*" ) unary )* ;
 unary          → ( "!" | "-" ) unary
                | primary ;
-primary        → NUMBER | STRING | "true" | "false" | "nil"
-               | "(" expression ")" ;
+primary        → NUMBER | STRING | "true" | "false"
+               | "(" expression ")" | IDENTIFIER ;

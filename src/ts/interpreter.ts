@@ -1,37 +1,44 @@
-import { Expr, Binary, Grouping, Literal, Unary, ExprVisitor } from './expr'
-import { TokenError, ImplementationError, LangError } from './error';
+import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, 
+          ExprVisitor, VariableExpr } from './expr'
+import { TokenError, ImplementationError } from './error';
 import { LangObject } from './types';
-import { Expression, Print, Stmt, StmtVisitor } from './stmt';
+import { Stmt, ExpressionStmt, PrintStmt, BlankStmt, StmtVisitor,
+        DeclarationStmt} from './stmt';
+import { ValueEnvironment } from './environment';
 
 export default class Interpreter 
-  implements ExprVisitor<LangObject>, StmtVisitor<string> {
+  implements ExprVisitor<LangObject>, StmtVisitor<void> {
 
-  // interprets/runs a program, ie a list of statements, returns its output
-  interpret(statements: Stmt[]): string {
-    const errors: LangError[] = [];
-    let lines: string[] = [];
+  // the lines printed by the program given
+  private printedLines: string[];
 
-    for (const statement of statements) {
-      try {
-        lines.push(this.execute(statement));
-      } catch(error: unknown) {
-        if (error instanceof LangError)
-          errors.push(error);
-        else
-          throw error;
-      }
+  // the program is defined as a list of statements
+  private program: Stmt[];
+
+  private globalEnvironment: ValueEnvironment;
+  
+  constructor(program: Stmt[]) {
+    this.program = program;
+    this.printedLines = [];
+    this.globalEnvironment = new ValueEnvironment();
+  }
+
+  // interprets the program and returns the possible printed output
+  interpret(): string {
+    // NOTE a single error will end interpretation
+    for (const statement of this.program) {
+      this.execute(statement);
     }
     
-    if (errors.length > 0) throw errors;
-    return lines.join('\n');
+    return this.printedLines.join('\n');
   }
 
   evaluate(expr: Expr): LangObject {
     return(expr.accept(this));
   }
 
-  execute(stmt: Stmt): string {
-    return stmt.accept(this);
+  execute(stmt: Stmt): void {
+    stmt.accept(this);
   }
 
   //======================================================================
@@ -41,22 +48,33 @@ export default class Interpreter
   // NOTE this is needed for the web interpreter
   //======================================================================
 
-  visitPrintStmt(stmt: Print): string {
-    const evaluatedExpression: LangObject = this.evaluate(stmt.expression);
-    return this.stringify(evaluatedExpression);
+  visitBlankStmt(stmt: BlankStmt): void {
+    // do nothing
+    return;
   }
 
-  visitExpressionStmt(stmt: Expression): string {
+  visitPrintStmt(stmt: PrintStmt): void {
+    const evaluatedExpression: LangObject = this.evaluate(stmt.expression);
+    this.printedLines.push(this.stringify(evaluatedExpression));
+  }
+
+  visitExpressionStmt(stmt: ExpressionStmt): void {
     // only does something if the expression is the output of a function call
     this.evaluate(stmt.expression);
-    return '';
+  }
+
+  visitDeclarationStmt(stmt: DeclarationStmt): void {
+    const value: LangObject = this.evaluate(stmt.initialValue);
+    const identifier: string = stmt.identifier.lexeme;
+
+    this.globalEnvironment.define(identifier, value);
   }
 
   //======================================================================
   // Expression Visitor Methods
   //======================================================================
 
-  visitBinaryExpr(expr: Binary): LangObject {
+  visitBinaryExpr(expr: BinaryExpr): LangObject {
     let leftValue: LangObject; let rightValue: LangObject;
 
     switch(expr.operator.type) {
@@ -134,7 +152,7 @@ export default class Interpreter
     throw new ImplementationError('Unknown operator in binary expression.');
   }
 
-  visitUnaryExpr(expr: Unary): LangObject {
+  visitUnaryExpr(expr: UnaryExpr): LangObject {
     let rightValue: LangObject;
 
     switch(expr.operator.type) {
@@ -150,12 +168,23 @@ export default class Interpreter
     throw new ImplementationError('Unknown operator in unary expression.');
   }
 
-  visitGroupingExpr(expr: Grouping): LangObject {
+  visitGroupingExpr(expr: GroupingExpr): LangObject {
     return this.evaluate(expr.expression);
   }
 
-  visitLiteralExpr(expr: Literal): LangObject {
-    return expr.value;
+  visitLiteralExpr(expr: LiteralExpr): LangObject {
+    // literals must have number, string, or boolean types
+    // NOTE the below is more clear than asserting as LangObject
+    return expr.value as (number | string | boolean);
+  }
+
+  visitVariableExpr(expr: VariableExpr): LangObject {
+    const value: LangObject | undefined
+      = this.globalEnvironment.get(expr.identifier.lexeme);
+    if (value === undefined) {
+      throw new TokenError('Undefined variable.', expr.identifier);
+    }
+    return value;
   }
 
   //======================================================================

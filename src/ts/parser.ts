@@ -1,7 +1,11 @@
 import { Token, TokenType } from './token';
-import { Expr, Binary, Grouping, Literal, Unary } from './expr'
-import { LangError, TokenError } from './error';
-import { Expression, Print, Stmt } from './stmt';
+import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, 
+         VariableExpr } from './expr'
+import { ImplementationError, LangError, TokenError, 
+         TokenRangeError } from './error';
+import { Stmt, BlankStmt, ExpressionStmt, PrintStmt, 
+         DeclarationStmt } from './stmt';
+import { LangObjectType } from './types';
 
 export default class Parser {
   // the tokens to be parsed
@@ -22,52 +26,153 @@ export default class Parser {
   // program        → statement* EOF ;
   // NOTE no need to worry about the EOF
   parse(): Stmt[] {
+    // after an error is thrown, this function gets called; it consumes tokens
+    // until the start of a new statement
+    // NOTE it's a nested function because it shouldn't be called elsewhere
+    // NOTE uses an arrow function so that 'this' can be used within the method 
+    const synchronize = (): void => {
+      while (!this.isAtEnd()) {
+        switch (this.peek().type) {
+          case 'SEMICOLON':
+            // a semicolon ends a statement, so it must get consumed
+            this.consume();
+            return;
+
+          // these keywords begin a statement, so they shouldn't get consumed
+          // NOTE if one of these keywords triggers an error, but that keyword
+          // is not consumed before the error call, then you get an infinite loop
+          case 'FUNCTION':
+          case 'LET':
+          case 'FOR':
+          case 'IF':
+          case 'WHILE':
+          case 'PRINT':
+          case 'RETURN':
+          // case 'CLASS':
+            return;
+        }
+        this.consume();
+      }
+    };
+
     const statements: Stmt[] = [];
     const errors: LangError[] = [];
 
+    // parse all statements, catching any errors
     while (!this.isAtEnd()) {
       try {
         statements.push(this.parseStatement());
       } catch(error: unknown) {
         if (error instanceof LangError) {
           errors.push(error);
-          this.synchronize();
+          synchronize();
         } else {
-          // errors in the implementation code will stop the program immediately
+          // unexpected errors will stop the parser immediately
           throw error;
         }
       }
     }
 
+    // throw the errors all at once as an array
     if (errors.length > 0) throw errors;
+
     return statements;
   }
 
-  // statement      → exprStmt
-  //                | printStmt ;
+  // statement      → (varDecl | printStmt | exprStmt)? ";" ;
   private parseStatement(): Stmt {
-    if (this.match('PRINT')) return this.parsePrintStatement();
+    let statement: Stmt;
 
-    return this.parseExpressionStatement();
+    switch(this.peek().type) {
+      // if the initial token is a ;, then return an empty statement
+      case 'SEMICOLON': 
+        this.consume();
+        return new BlankStmt();
+
+      case 'LET':
+        statement = this.parseDeclaration();
+        break;
+
+      case 'PRINT':
+        statement = this.parsePrintStatement();
+        break;
+
+      default:
+        /*
+        * if no statement can be found, then report an error over a range of
+        * tokens, starting from the current token and up until the token right 
+        * BEFORE where the next statement is presumed to start
+        */
+        try {
+          statement = this.parseExpressionStatement();
+        } catch(error: unknown) {
+          const start: Token = this.peek();
+          let end: Token = this.peek();
+
+          // NOTE unlike synchronize(), the semicolon should not get consumed,
+          // because it will get consumed by synchronize()
+          while (!this.isAtEnd() && !this.match('SEMICOLON', 'FUNCTION', 
+                                               'LET', 'FOR', 'IF', 'WHILE',
+                                               'PRINT', 'RETURN')) {
+            end = this.consume();
+          }
+          if (start !== end) {
+            throw new TokenRangeError('Expect statement.', start, end);
+          } else {
+            throw new TokenError('Expect statement.', start);
+          }
+        }
+
+        break;
+    }
+
+    this.expect('SEMICOLON', 'Semicolon expected at the end of a statement.');
+    return statement;
   }
 
-  // exprStmt       → expression ";" ;
+  // exprStmt       → expression ;
+  // NOTE exprStmt only exists to make clear that expression statements exist
   private parseExpressionStatement(): Stmt {
     const expression: Expr = this.parseExpression();
-    this.expect('SEMICOLON', 'Semicolon expected at the end of a statement.');
-    return new Expression(expression);
+    return new ExpressionStmt(expression);
   }
   
-  // printStmt      → "print" expression ";" ;
+  // printStmt      → "print" expression ;
   private parsePrintStatement(): Stmt {
-    // not strictly needed now, but may be needed if the grammar changes
     if (this.match('PRINT')) {
       this.expect('PRINT', 'Expect initial \'print\' for print statement.');
     }
 
     const expression: Expr = this.parseExpression();
-    this.expect('SEMICOLON', 'Semicolon expected at the end of a statement.');
-    return new Print(expression);
+    return new PrintStmt(expression);
+  }
+
+  // declaration    → "let" IDENTIFIER ":" objectType "=" expression ;
+  private parseDeclaration(): Stmt {
+    this.expect('LET', 'Expect \'let\' before variable declaration.');
+    const identifier: Token = 
+      this.expect('IDENTIFIER', 'Expect identifier name in declaration.');
+    this.expect('COLON', 'Expect a colon after an identifier in a declaration.');
+    const type: LangObjectType = this.parseObjectType();
+    this.expect('EQUAL', 'Expect an \'=\' after a type in a declaration.');
+    const initialValue: Expr = this.parseExpression();
+    
+    return new DeclarationStmt(identifier, type, initialValue);
+  }
+
+  // objectType     → "number" | "string" | "bool" ;
+  private parseObjectType(): LangObjectType {
+    const token: Token = 
+      this.expect('PRIMITIVE', 'Expect a type after \':\' in a declaration.');
+    switch(token.lexeme) {
+      case 'number':
+        return 'NumberLOT';
+      case 'string':
+        return 'StringLOT';
+      case 'bool':
+        return 'BoolLOT';
+    }
+    throw new ImplementationError('Unknown lexeme in primitive token.');
   }
 
   // expression     → equality ;
@@ -105,17 +210,17 @@ export default class Parser {
     if (this.match('BANG', 'MINUS')) {
       const operator: Token = this.consume();
       const right: Expr = this.parseUnary();
-      return new Unary(operator, right);
+      return new UnaryExpr(operator, right);
     } else {
       return this.parsePrimary();
     }
   }
 
-  // primary        → NUMBER | STRING | "true" | "false" | "null"
-  //                | "(" expression ")" ;
+  // primary        → NUMBER | STRING | "true" | "false"
+  //                | "(" expression ")" | IDENTIFIER ;
   private parsePrimary(): Expr {
-    if (this.match('NUMBER', 'STRING', 'TRUE', 'FALSE', 'NULL')) {
-      return new Literal(this.consume().literal);
+    if (this.match('NUMBER', 'STRING', 'TRUE', 'FALSE')) {
+      return new LiteralExpr(this.consume().value);
     }
     
     if (this.match('LEFT_PAREN')) {
@@ -123,7 +228,11 @@ export default class Parser {
       this.consume();
       const primaryExpr = this.parseExpression();
       this.expect('RIGHT_PAREN', 'Expect \')\' after expression.');
-      return new Grouping(primaryExpr);
+      return new GroupingExpr(primaryExpr);
+    }
+
+    if (this.match('IDENTIFIER')) {
+      return new VariableExpr(this.consume());
     }
 
     // if nothing can be parsed in primary, then the expression rule failed
@@ -137,7 +246,7 @@ export default class Parser {
       const left: Expr = expr;
       const operator: Token = this.consume();
       const right: Expr = innerFunction();
-      expr = new Binary(left, operator, right);
+      expr = new BinaryExpr(left, operator, right);
     }
     return expr;
   }
@@ -179,33 +288,6 @@ export default class Parser {
   // checks if there are no more tokens to consume
   private isAtEnd(): boolean {
     return this.peek().type === 'EOF';
-  }
-
-  // after an error is thrown, this function gets called; it consumes tokens
-  // until the start of a new statement
-  private synchronize(): void {
-    while (!this.isAtEnd()) {
-      switch (this.peek().type) {
-        case 'SEMICOLON':
-          // a semicolon ends a statement, so it must get consumed
-          this.consume();
-          return;
-
-        // these keywords begin a statement, so they shouldn't get consumed
-        // NOTE if one of these keywords triggers an error, but that keyword
-        // is not consumed before the error call, then you get an infinite loop
-        case 'FUNCTION':
-        case 'VAR':
-        case 'FOR':
-        case 'IF':
-        case 'WHILE':
-        case 'PRINT':
-        case 'RETURN':
-        // case 'CLASS':
-          return;
-      }
-      this.consume();
-    }
   }
 
   // TODO change LangError and implement this
