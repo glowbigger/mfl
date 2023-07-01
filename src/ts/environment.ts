@@ -1,39 +1,49 @@
-// a wrapper for a map to look up values associated with variable identifiers
+// a wrapper for a map to look up values associated with variable ids
 
 import { LangObject, LangObjectType } from "./types";
 
 abstract class Environment<R> {
-  private identifiersMap: Map<string, R>; 
+  private idMap: Map<string, R>; 
+  private readonly enclosing: Environment<R> | null;
 
-  constructor() {
-    this.identifiersMap = new Map<string, R>;
+  constructor(enclosing: Environment<R> | null) {
+    this.enclosing = enclosing;
+    this.idMap= new Map<string, R>;
   }
 
-  define(identifier: string, value: R): void {
-    this.identifiersMap.set(identifier, value);
+  define(id: string, value: R): void {
+    this.idMap.set(id, value);
   }
 
-  get(identifier: string): R | undefined {
-    // NOTE returns undefined so that the caller can throw the error
-    return this.identifiersMap.get(identifier);
+  get(id: string): R {
+    const maybeValue: R | undefined = this.idMap.get(id);
+    if (maybeValue !== undefined) return maybeValue;
+    if (this.enclosing !== null) return this.enclosing.get(id);
+
+    // this error is to be transformed into a LangError by the caller
+    throw new Error('Undefined variable.');
   }
 
-  assign(identifier: string, value: R): void {
-    if (this.identifiersMap.has(identifier)) {
-      this.identifiersMap.set(identifier, value);
+  assign(id: string, value: R): void {
+    if (this.idMap.has(id)) {
+      this.idMap.set(id, value);
       return;
     }
 
-    // this error is to be transformed into a LangError
+    if (this.enclosing !== null) {
+      this.enclosing.assign(id, value);
+    }
+
+    // this error is to be transformed into a LangError by the caller
     throw Error('Undefined variable.');
   }
 
-  has(identifier: string): boolean {
-    return this.identifiersMap.has(identifier);
+  has(id: string): boolean {
+    return this.idMap.has(id);
   }
 }
 
-export class ValueEnvironment extends Environment<LangObject> {
+export class LOEnvironment extends Environment<LangObject> {
 }
 
 export class TypeEnvironment extends Environment<LangObjectType> {

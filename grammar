@@ -1,23 +1,27 @@
-program        → statement* EOF ;
+program             → statement* EOF ;
 
-statement      → (declaration | printStmt | exprStmt) ";" ;
+// statements
 
-declaration    → "let" IDENTIFIER ":" objType "=" expression ;
+statement           → blockStmt | ((declarationStmt | printStmt | exprStmt) ";") ;
 
-objectType     → "number" | "string" | "bool" ;
-
+blockStmt           → "{" statement* "}" ;
+declarationStmt     → "let" IDENTIFIER ":" objType "=" expression ;
 // only shown to make clear that exprStmt is a possible statement type
-exprStmt       → expression ;
-printStmt      → "print" expression ;
+exprStmt            → expression ;
+printStmt           → "print" expression ;
 
-expression     → assignment ;
-assignment     → IDENTIFIER "=" assignment
-               | equality ;
-equality       → comparison ( ( "!=" | "==" ) comparison )* ;
-comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
-term           → factor ( ( "-" | "+" ) factor )* ;
-factor         → unary ( ( "/" | "*" ) unary )* ;
-unary          → ( "!" | "-" ) unary
-               | primary ;
-primary        → NUMBER | STRING | "true" | "false"
-               | "(" expression ")" | IDENTIFIER ;
+objectType          → "number" | "string" | "bool" ;
+
+// expressions
+
+expression          → assignment ;
+assignment          → IDENTIFIER "=" assignment
+                    | equality ;
+equality            → comparison ( ( "!=" | "==" ) comparison )* ;
+comparison          → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
+term                → factor ( ( "-" | "+" ) factor )* ;
+factor              → unary ( ( "/" | "*" ) unary )* ;
+unary               → ( "!" | "-" ) unary
+                    | primary ;
+primary             → NUMBER | STRING | "true" | "false"
+                    | "(" expression ")" | IDENTIFIER ;

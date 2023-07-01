@@ -8,7 +8,7 @@ import { LangObjectType } from './types';
 
 export interface StmtVisitor<R> {
   visitBlankStmt(stmt: BlankStmt): R;
-  // visitBlockStmt(stmt: Block): R;
+  visitBlockStmt(stmt: BlockStmt): R;
   visitExpressionStmt(stmt: ExpressionStmt): R;
   // visitFunctionStmt(stmt: Fun): R;
   // visitIfStmt(stmt: If): R;
@@ -32,18 +32,18 @@ export class BlankStmt extends Stmt {
   }
 }
 
-// export class Block extends Stmt {
-//   readonly statements: Array<Stmt>;
+export class BlockStmt extends Stmt {
+  readonly statements: Stmt[];
 
-//   constructor(statements: Array<Stmt>) {
-//     super();
-//     this.statements = statements;
-//   }
+  constructor(statements: Stmt[]) {
+    super();
+    this.statements = statements;
+  }
 
-//   accept<R>(visitor: StmtVisitor<R>): R {
-//     return visitor.visitBlockStmt(this);
-//   }
-// }
+  accept<R>(visitor: StmtVisitor<R>): R {
+    return visitor.visitBlockStmt(this);
+  }
+}
 
 export class ExpressionStmt extends Stmt {
   readonly expression: Expr;

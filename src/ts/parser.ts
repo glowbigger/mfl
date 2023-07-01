@@ -5,7 +5,8 @@ import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr,
 import { ImplementationError, LangError, TokenError, 
          TokenRangeError } from './error';
 import { Stmt, BlankStmt, ExpressionStmt, PrintStmt, 
-         DeclarationStmt } from './stmt';
+         DeclarationStmt, 
+         BlockStmt} from './stmt';
 import { LangObjectType } from './types';
 
 export default class Parser {
@@ -80,7 +81,7 @@ export default class Parser {
     return statements;
   }
 
-  // statement      → (varDecl | printStmt | exprStmt)? ";" ;
+  // statement           → blockStmt | ((declarationStmt | printStmt | exprStmt) ";") ;
   private parseStatement(): Stmt {
     let statement: Stmt;
 
@@ -90,8 +91,12 @@ export default class Parser {
         this.consume();
         return new BlankStmt();
 
+      case 'LEFT_BRACE':
+        // no semicolon is required, so just return the statement after parsing
+        return(this.parseBlockStatement());
+
       case 'LET':
-        statement = this.parseDeclaration();
+        statement = this.parseDeclarationStatement();
         break;
 
       case 'PRINT':
@@ -131,7 +136,21 @@ export default class Parser {
     return statement;
   }
 
-  // exprStmt       → expression ;
+  // blockStmt           → "{" statement* "}" ;
+  private parseBlockStatement(): Stmt {
+    this.expect('LEFT_BRACE', 'Expect left brace for block statement.');
+
+    const statements: Stmt[] = [];
+    while (this.peek().type !== 'RIGHT_BRACE') {
+      statements.push(this.parseStatement());
+    }
+
+    // consume the right brace
+    this.consume();
+
+    return new BlockStmt(statements);
+  }
+
   // NOTE exprStmt only exists to make clear that expression statements exist
   private parseExpressionStatement(): Stmt {
     const expression: Expr = this.parseExpression();
@@ -148,8 +167,8 @@ export default class Parser {
     return new PrintStmt(expression);
   }
 
-  // declaration    → "let" IDENTIFIER ":" objectType "=" expression ;
-  private parseDeclaration(): Stmt {
+  // declarationStmt     → "let" IDENTIFIER ":" objType "=" expression ;
+  private parseDeclarationStatement(): Stmt {
     this.expect('LET', 'Expect \'let\' before variable declaration.');
     const identifier: Token = 
       this.expect('IDENTIFIER', 'Expect identifier name in declaration.');

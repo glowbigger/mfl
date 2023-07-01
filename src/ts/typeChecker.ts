@@ -1,8 +1,8 @@
 import { Token, TokenType } from './token';
 import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, ExprVisitor, VariableExpr, AssignExpr } from './expr'
 import { TokenError, ImplementationError, LangError } from './error';
-import { LangObjectType, PrimitiveLOT } from './types';
-import { BlankStmt, DeclarationStmt, ExpressionStmt, PrintStmt, Stmt, StmtVisitor } from './stmt';
+import { LangObjectType } from './types';
+import { BlankStmt, BlockStmt, DeclarationStmt, ExpressionStmt, PrintStmt, Stmt, StmtVisitor } from './stmt';
 import { TypeEnvironment } from './environment';
 
 export default class TypeChecker
@@ -10,11 +10,11 @@ export default class TypeChecker
 
   private program: Stmt[];
 
-  private globalEnvironment: TypeEnvironment;
+  private currentEnvironment: TypeEnvironment;
 
   constructor(program: Stmt[]) {
     this.program = program;
-    this.globalEnvironment = new TypeEnvironment();
+    this.currentEnvironment = new TypeEnvironment(null);
   }
 
   //======================================================================
@@ -49,6 +49,25 @@ export default class TypeChecker
     return expr.accept(this);
   }
 
+  private validateBlockStatement(stmt: BlockStmt, 
+                                 blockEnvironment: TypeEnvironment): void {
+    // we save the outer environment to restore it later
+    const outerEnvironment: TypeEnvironment = this.currentEnvironment;
+
+    for (const statement of stmt.statements) {
+      this.currentEnvironment = blockEnvironment;
+      try {
+        // since undefined variable errors should get caught by the resolver,
+        // there is no need to convert the errors to LangErrors
+        this.validateStatement(statement);
+      } finally {
+        // NOTE only need the finally here to restore the outer environment
+        // regardless of whether there was an error or not
+        this.currentEnvironment = outerEnvironment;
+      }
+    }
+  }
+
   //======================================================================
   // Statement Visitor
   //======================================================================
@@ -74,7 +93,13 @@ export default class TypeChecker
                            stmt.identifier);
     }
 
-    this.globalEnvironment.define(stmt.identifier.lexeme, leftType);
+    this.currentEnvironment.define(stmt.identifier.lexeme, leftType);
+  }
+
+  visitBlockStmt(stmt: BlockStmt): void {
+    for (const statement of stmt.statements) {
+      this.validateStatement(statement);
+    }
   }
 
   //======================================================================
@@ -180,7 +205,7 @@ export default class TypeChecker
 
   visitVariableExpr(expr: VariableExpr): LangObjectType {
     const maybeType: LangObjectType | undefined 
-      = this.globalEnvironment.get(expr.identifier.lexeme);
+      = this.currentEnvironment.get(expr.identifier.lexeme);
     if (maybeType === undefined) {
       throw new TokenError('Undefined identifier used.', expr.identifier);
     }
@@ -190,13 +215,13 @@ export default class TypeChecker
   visitAssignExpr(expr: AssignExpr): LangObjectType {
     const variableToken: Token = expr.variableIdentifier;
     const variableName: string = variableToken.lexeme;
-    if (!this.globalEnvironment.has(variableName)){
+    if (!this.currentEnvironment.has(variableName)){
       throw new TokenError('Undefined variable.', variableToken);
     }
 
     const rightType: LangObjectType = this.validateExpression(expr.value);
     const leftType: LangObjectType = 
-      this.globalEnvironment.get(variableName) as LangObjectType;
+      this.currentEnvironment.get(variableName) as LangObjectType;
 
     if (leftType != rightType) {
       throw new TokenError('Types do not match in assignment.', variableToken);

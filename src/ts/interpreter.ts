@@ -3,8 +3,9 @@ import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr,
 import { TokenError, ImplementationError, LangError } from './error';
 import { LangObject } from './types';
 import { Stmt, ExpressionStmt, PrintStmt, BlankStmt, StmtVisitor,
-        DeclarationStmt} from './stmt';
-import { ValueEnvironment } from './environment';
+        DeclarationStmt,
+        BlockStmt} from './stmt';
+import { LOEnvironment } from './environment';
 
 export default class Interpreter 
   implements ExprVisitor<LangObject>, StmtVisitor<void> {
@@ -15,12 +16,15 @@ export default class Interpreter
   // the program is defined as a list of statements
   private program: Stmt[];
 
-  private globalEnvironment: ValueEnvironment;
+  // the environment of current scope / block statement being interpreted
+  // NOTE the alternative is to have each visit statement method take an
+  // environment as a parameter which is the environment for that statement
+  private currentEnvironment: LOEnvironment;
   
   constructor(program: Stmt[]) {
     this.program = program;
     this.printedLines = [];
-    this.globalEnvironment = new ValueEnvironment();
+    this.currentEnvironment = new LOEnvironment(null);
   }
 
   // interprets the program and returns the possible printed output
@@ -33,12 +37,28 @@ export default class Interpreter
     return this.printedLines.join('\n');
   }
 
-  evaluate(expr: Expr): LangObject {
+  private evaluate(expr: Expr): LangObject {
     return(expr.accept(this));
   }
 
-  execute(stmt: Stmt): void {
+  private execute(stmt: Stmt): void {
     stmt.accept(this);
+  }
+
+  private executeBlockStatement(stmt: BlockStmt, blockEnvironment: LOEnvironment): void {
+    // we save the outer environment to restore it later
+    const outerEnvironment: LOEnvironment = this.currentEnvironment;
+
+    for (const statement of stmt.statements) {
+      this.currentEnvironment = blockEnvironment;
+      try {
+        this.execute(statement);
+      } finally {
+        // NOTE we only need the finally here to restore the outer environment
+        // regardless of whether there was an error or not
+        this.currentEnvironment = outerEnvironment;
+      }
+    }
   }
 
   //======================================================================
@@ -66,9 +86,22 @@ export default class Interpreter
 
   visitDeclarationStmt(stmt: DeclarationStmt): void {
     const value: LangObject = this.evaluate(stmt.initialValue);
-    const identifier: string = stmt.identifier.lexeme;
+    const id: string = stmt.identifier.lexeme;
 
-    this.globalEnvironment.define(identifier, value);
+    try {
+      this.currentEnvironment.define(id, value);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw new TokenError(error.message, stmt.identifier);
+      }
+      throw new ImplementationError('Unable to define variable.');
+    }
+  }
+
+  visitBlockStmt(stmt: BlockStmt): void {
+    // send a copy of the current environment to be the inner environment of the
+    // block; the inner block might get different variables declared inside
+    this.executeBlockStatement(stmt, new LOEnvironment(this.currentEnvironment));
   }
 
   //======================================================================
@@ -181,7 +214,7 @@ export default class Interpreter
 
   visitVariableExpr(expr: VariableExpr): LangObject {
     const value: LangObject | undefined
-      = this.globalEnvironment.get(expr.identifier.lexeme);
+      = this.currentEnvironment.get(expr.identifier.lexeme);
     if (value === undefined) {
       throw new TokenError('Undefined variable.', expr.identifier);
     }
@@ -192,7 +225,7 @@ export default class Interpreter
     const variable: string = expr.variableIdentifier.lexeme;
     const value: LangObject = this.evaluate(expr.value);
     try {
-      this.globalEnvironment.assign(variable, value);
+      this.currentEnvironment.assign(variable, value);
       return value;
     } catch (error: unknown) {
       if (error instanceof Error) {
@@ -207,7 +240,7 @@ export default class Interpreter
   //======================================================================
 
   // turns an object into a string
-  stringify(object: LangObject): string {
+  private stringify(object: LangObject): string {
     if (object === null) return "null";
 
     if (typeof(object) === "number") {
