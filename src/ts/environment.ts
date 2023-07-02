@@ -32,6 +32,7 @@ abstract class Environment<R> {
 
     if (this.enclosing !== null) {
       this.enclosing.assign(id, value);
+      return;
     }
 
     // this error is to be transformed into a LangError by the caller

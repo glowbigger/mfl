@@ -1,11 +1,12 @@
 import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, 
           ExprVisitor, VariableExpr, AssignExpr, LogicalExpr } from './expr'
-import { TokenError, ImplementationError, LangError } from './error';
+import { TokenError, ImplementationError } from './error';
 import { LangObject } from './types';
 import { Stmt, ExpressionStmt, PrintStmt, BlankStmt, StmtVisitor,
         DeclarationStmt,
         BlockStmt,
-        IfStmt} from './stmt';
+        IfStmt,
+        WhileStmt} from './stmt';
 import { LOEnvironment } from './environment';
 
 export default class Interpreter 
@@ -109,6 +110,12 @@ export default class Interpreter
     const condition: boolean = this.evaluate(stmt.condition) as boolean;
     if (condition) this.execute(stmt.thenBranch);
     else if (stmt.elseBranch !== null) this.execute(stmt.elseBranch);
+  }
+
+  visitWhileStmt(stmt: WhileStmt): void {
+    while (this.evaluate(stmt.condition) as boolean) {
+      this.execute(stmt.body);
+    }
   }
 
   //======================================================================

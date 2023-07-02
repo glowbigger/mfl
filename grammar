@@ -2,11 +2,12 @@ program             → statement* EOF ;
 
 // statements
 
-statement           → ifStmt | blockStmt |
+statement           → ifStmt | blockStmt | whileStmt |
                     ((declarationStmt | printStmt | exprStmt) ";") ;
 
 ifStmt              → "if" "(" expression ")" statement ("else" statement)? ;
 blockStmt           → "{" statement* "}" ;
+whileStmt           → "while" "(" condition ")" statement
 declarationStmt     → "let" IDENTIFIER ":" objType "=" expression ;
 // only shown to make clear that exprStmt is a possible statement type
 exprStmt            → expression ;

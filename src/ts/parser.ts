@@ -8,7 +8,8 @@ import { ImplementationError, LangError, TokenError,
 import { Stmt, BlankStmt, ExpressionStmt, PrintStmt, 
          DeclarationStmt, 
          BlockStmt,
-         IfStmt} from './stmt';
+         IfStmt,
+         WhileStmt} from './stmt';
 import { LangObjectType } from './types';
 
 export default class Parser {
@@ -83,7 +84,7 @@ export default class Parser {
     return statements;
   }
 
-  // statement           → ifStmt | blockStmt |
+  // statement           → ifStmt | blockStmt | whileStmt |
   //                     ((declarationStmt | printStmt | exprStmt) ";") ;
   private parseStatement(): Stmt {
     let statement: Stmt;
@@ -94,11 +95,13 @@ export default class Parser {
         this.consume();
         return new BlankStmt();
 
-      // no semicolon required for if and block statements
+      // no semicolon required for control flow statements
       case 'IF':
         return(this.parseIfStatement());
       case 'LEFT_BRACE':
         return(this.parseBlockStatement());
+      case 'WHILE':
+        return(this.parseWhileStatement());
 
       case 'LET':
         statement = this.parseDeclarationStatement();
@@ -141,6 +144,23 @@ export default class Parser {
     return statement;
   }
 
+  // ifStmt              → "if" "(" expression ")" statement ("else" statement)? ;
+  private parseIfStatement(): Stmt {
+    const ifToken: Token = this.expect('IF', 'Expect \'if\' to start if statement.');
+    this.expect('LEFT_PAREN', 'Expect \'(\' before condition.');
+    const condition: Expr = this.parseExpression();
+    this.expect('RIGHT_PAREN', 'Expect \')\' after condition.');
+    const thenBranch: Stmt = this.parseStatement();
+
+    let elseBranch: Stmt | null = null;
+    if (this.match('ELSE')) {
+      this.consume();
+      elseBranch = this.parseStatement();
+    }
+
+    return new IfStmt(ifToken, condition, thenBranch, elseBranch);
+  }
+
   // blockStmt           → "{" statement* "}" ;
   private parseBlockStatement(): Stmt {
     this.expect('LEFT_BRACE', 'Expect \'{\' for block statement.');
@@ -153,6 +173,18 @@ export default class Parser {
     this.expect('RIGHT_BRACE', 'Expect \'}\' after statement.');
 
     return new BlockStmt(statements);
+  }
+
+  // whileStmt           → "while" "(" condition ")" statement
+  private parseWhileStatement(): Stmt {
+    const whileToken: Token =
+      this.expect('WHILE', 'Expect \'while\' to begin while statement.');
+    this.expect('LEFT_PAREN', 'Expect \'(\' before condition.');
+    const condition: Expr = this.parseExpression();
+    this.expect('RIGHT_PAREN', 'Expect \')\' before condition.');
+    const body: Stmt = this.parseStatement();
+
+    return new WhileStmt(whileToken, condition, body);
   }
 
   // NOTE exprStmt only exists to make clear that expression statements exist
@@ -182,23 +214,6 @@ export default class Parser {
     const initialValue: Expr = this.parseExpression();
     
     return new DeclarationStmt(identifier, type, initialValue);
-  }
-
-  // ifStmt              → "if" "(" expression ")" statement ("else" statement)? ;
-  private parseIfStatement(): Stmt {
-    const ifToken: Token = this.expect('IF', 'Expect \'if\' to start if statement.');
-    this.expect('LEFT_PAREN', 'Expect \'(\' before expression.');
-    const condition: Expr = this.parseExpression();
-    this.expect('RIGHT_PAREN', 'Expect \')\' after expression.');
-    const thenBranch: Stmt = this.parseStatement();
-
-    let elseBranch: Stmt | null = null;
-    if (this.match('ELSE')) {
-      this.consume();
-      elseBranch = this.parseStatement();
-    }
-
-    return new IfStmt(ifToken, condition, thenBranch, elseBranch);
   }
 
   // objectType     → "number" | "string" | "bool" ;

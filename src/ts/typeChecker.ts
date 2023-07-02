@@ -2,7 +2,7 @@ import { Token, TokenType } from './token';
 import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, ExprVisitor, VariableExpr, AssignExpr, LogicalExpr } from './expr'
 import { TokenError, ImplementationError, LangError } from './error';
 import { LangObjectType, PrimitiveLOT } from './types';
-import { BlankStmt, BlockStmt, DeclarationStmt, ExpressionStmt, IfStmt, PrintStmt, Stmt, StmtVisitor } from './stmt';
+import { BlankStmt, BlockStmt, DeclarationStmt, ExpressionStmt, IfStmt, PrintStmt, Stmt, StmtVisitor, WhileStmt } from './stmt';
 import { TypeEnvironment } from './environment';
 
 export default class TypeChecker
@@ -104,9 +104,17 @@ export default class TypeChecker
 
   visitIfStmt(stmt: IfStmt): void {
     if (this.validateExpression(stmt.condition) !== 'BoolLOT') 
-      throw new TokenError('If statement requires a bool.', stmt.ifToken);
+      throw new TokenError('If statement condition must be a bool.',
+                           stmt.ifToken);
     this.validateStatement(stmt.thenBranch);
     if (stmt.elseBranch !== null) this.validateStatement(stmt.elseBranch);
+  }
+
+  visitWhileStmt(stmt: WhileStmt): void {
+    if (this.validateExpression(stmt.condition) !== 'BoolLOT') 
+      throw new TokenError('While statement condition must be a bool.', 
+                           stmt.whileToken);
+    this.validateStatement(stmt.body);
   }
 
   //======================================================================

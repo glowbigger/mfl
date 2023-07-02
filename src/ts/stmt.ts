@@ -10,12 +10,12 @@ export interface StmtVisitor<R> {
   visitBlankStmt(stmt: BlankStmt): R;
   visitBlockStmt(stmt: BlockStmt): R;
   visitExpressionStmt(stmt: ExpressionStmt): R;
-  // visitFunctionStmt(stmt: FunStmt): R;
+  // visitFunctionStmt(stmt: FunctionStmt): R;
   visitIfStmt(stmt: IfStmt): R;
   visitPrintStmt(stmt: PrintStmt): R;
   visitDeclarationStmt(stmt: DeclarationStmt): R;
   // visitReturnStmt(stmt: ReturnStmt): R;
-  // visitWhileStmt(stmt: WhileStmt): R;
+  visitWhileStmt(stmt: WhileStmt): R;
 }
 
 export abstract class Stmt {
@@ -58,7 +58,7 @@ export class ExpressionStmt extends Stmt {
   }
 }
 
-// export class FunStmt extends Stmt {
+// export class FunctionStmt extends Stmt {
 //   readonly name: Token;
 //   readonly params: Array<Token>;
 //   readonly body: Array<Stmt>;
@@ -142,17 +142,19 @@ export class DeclarationStmt extends Stmt {
   }
 }
 
-// export class WhileStmt extends Stmt {
-//   readonly condition: Expr;
-//   readonly body: Stmt;
+export class WhileStmt extends Stmt {
+  readonly whileToken: Token;
+  readonly condition: Expr;
+  readonly body: Stmt;
 
-//   constructor(condition: Expr, body: Stmt) {
-//     super();
-//     this.condition = condition;
-//     this.body = body;
-//   }
+  constructor(whileToken: Token, condition: Expr, body: Stmt) {
+    super();
+    this.whileToken = whileToken;
+    this.condition = condition;
+    this.body = body;
+  }
 
-//   accept<R>(visitor: StmtVisitor<R>) {
-//     return visitor.visitWhileStmt(this);
-//   }
-// }
+  accept<R>(visitor: StmtVisitor<R>) {
+    return visitor.visitWhileStmt(this);
+  }
+}
