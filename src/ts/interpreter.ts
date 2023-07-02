@@ -6,8 +6,12 @@ import { Stmt, ExpressionStmt, PrintStmt, BlankStmt, StmtVisitor,
         DeclarationStmt,
         BlockStmt,
         IfStmt,
-        WhileStmt} from './stmt';
+        WhileStmt,
+        BreakStmt} from './stmt';
 import { LOEnvironment } from './environment';
+
+// indicates a break has been called inside a loop 
+class BreakIndicator { }
 
 export default class Interpreter 
   implements ExprVisitor<LangObject>, StmtVisitor<void> {
@@ -114,8 +118,17 @@ export default class Interpreter
 
   visitWhileStmt(stmt: WhileStmt): void {
     while (this.evaluate(stmt.condition) as boolean) {
-      this.execute(stmt.body);
+      try {
+        this.execute(stmt.body);
+      } catch (breakOrError: unknown) {
+        if (breakOrError instanceof BreakIndicator) break;
+        else throw breakOrError;
+      }
     }
+  }
+
+  visitBreakStmt(stmt: BreakStmt): void {
+    throw new BreakIndicator();
   }
 
   //======================================================================
@@ -127,9 +140,8 @@ export default class Interpreter
 
     switch(expr.operator.type) {
       case 'EQUAL_EQUAL':
-        leftValue = this.evaluate(expr.left) as boolean;
-        rightValue = this.evaluate(expr.right) as boolean;
-        // TODO overload this, probably want to use === instead of ==
+        leftValue = this.evaluate(expr.left);
+        rightValue = this.evaluate(expr.right);
         return leftValue === rightValue;
 
       case 'BANG_EQUAL':

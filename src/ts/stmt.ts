@@ -15,6 +15,7 @@ export interface StmtVisitor<R> {
   visitPrintStmt(stmt: PrintStmt): R;
   visitDeclarationStmt(stmt: DeclarationStmt): R;
   // visitReturnStmt(stmt: ReturnStmt): R;
+  visitBreakStmt(stmt: BreakStmt): R;
   visitWhileStmt(stmt: WhileStmt): R;
 }
 
@@ -29,6 +30,16 @@ export class BlankStmt extends Stmt {
 
   accept<R>(visitor: StmtVisitor<R>): R {
     return visitor.visitBlankStmt(this);
+  }
+}
+
+export class BreakStmt extends Stmt {
+  constructor() {
+    super();
+  }
+
+  accept<R>(visitor: StmtVisitor<R>): R {
+    return visitor.visitBreakStmt(this);
   }
 }
 

@@ -6,6 +6,7 @@ const EOF_CHAR: string = '\0';
 
 const KEYWORDS = new Map<string, TokenType>([
   ['and', 'AND'],
+  ['break', 'BREAK'],
   ['else', 'ELSE'],
   ['false', 'FALSE'],
   ['for', 'FOR'],

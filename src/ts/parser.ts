@@ -9,7 +9,8 @@ import { Stmt, BlankStmt, ExpressionStmt, PrintStmt,
          DeclarationStmt, 
          BlockStmt,
          IfStmt,
-         WhileStmt} from './stmt';
+         WhileStmt,
+         BreakStmt} from './stmt';
 import { LangObjectType } from './types';
 
 export default class Parser {
@@ -53,6 +54,7 @@ export default class Parser {
           case 'WHILE':
           case 'PRINT':
           case 'RETURN':
+          case 'BREAK':
           // case 'CLASS':
             return;
         }
@@ -95,6 +97,10 @@ export default class Parser {
         this.consume();
         return new BlankStmt();
 
+      case 'BREAK':
+        this.consume();
+        return new BreakStmt();
+
       // no semicolon required for control flow statements
       case 'IF':
         return(this.parseIfStatement());
@@ -127,7 +133,7 @@ export default class Parser {
           // because it will get consumed by synchronize()
           while (!this.isAtEnd() && !this.match('SEMICOLON', 'FUNCTION', 
                                                'LET', 'FOR', 'IF', 'WHILE',
-                                               'PRINT', 'RETURN')) {
+                                               'PRINT', 'RETURN', 'BREAK')) {
             end = this.consume();
           }
           if (start !== end) {

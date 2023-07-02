@@ -1,0 +1,5 @@
+let i = 0;
+while(i < 10) {
+  if i == 3 then { print "break"; break; }
+  i = i + 1;
+}

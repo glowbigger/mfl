@@ -2,7 +2,7 @@ import { Token, TokenType } from './token';
 import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, ExprVisitor, VariableExpr, AssignExpr, LogicalExpr } from './expr'
 import { TokenError, ImplementationError, LangError } from './error';
 import { LangObjectType } from './types';
-import { BlankStmt, BlockStmt, DeclarationStmt, ExpressionStmt, IfStmt, PrintStmt, Stmt, StmtVisitor, WhileStmt } from './stmt';
+import { BlankStmt, BlockStmt, BreakStmt, DeclarationStmt, ExpressionStmt, IfStmt, PrintStmt, Stmt, StmtVisitor, WhileStmt } from './stmt';
 import { TypeEnvironment } from './environment';
 
 export default class TypeValidator
@@ -62,7 +62,7 @@ export default class TypeValidator
         this.validateStatement(statement);
       } finally {
         // NOTE only need the finally here to restore the outer environment
-        // regardless of whether there was an error or not
+        // regardless of whether there was an error or not, catch is elsewhere
         this.currentEnvironment = outerEnvironment;
       }
     }
@@ -116,6 +116,10 @@ export default class TypeValidator
     this.validateStatement(stmt.body);
   }
 
+  visitBreakStmt(stmt: BreakStmt): void {
+      return;
+  }
+
   //======================================================================
   // Expression Visitor
   //======================================================================
@@ -124,15 +128,12 @@ export default class TypeValidator
     const opType: TokenType = expr.operator.type;
     
     // boolean operations / relations: ==, !=
+    // can be used for all types
     if (this.tokenTypeMatch(opType, 'EQUAL_EQUAL', 'BANG_EQUAL')) {
       const leftType: LangObjectType = this.validateExpression(expr.left);
-      if (leftType != 'BoolLOT') {
-        throw new TokenError('Left operand is not a bool.', expr.operator);
-      }
-      const rightType = this.validateExpression(expr.right);
-      if (rightType != 'BoolLOT') {
-        throw new TokenError('Right operand is not a bool.', expr.operator);
-      }
+      const rightType: LangObjectType = this.validateExpression(expr.right);
+      if (leftType != rightType)
+        throw new TokenError('Types do not match.', expr.operator);
       return 'BoolLOT';
     }
 
@@ -228,13 +229,17 @@ export default class TypeValidator
   visitAssignExpr(expr: AssignExpr): LangObjectType {
     const variableToken: Token = expr.variableIdentifier;
     const variableName: string = variableToken.lexeme;
-    if (!this.currentEnvironment.has(variableName)){
+    const variableType: LangObjectType | undefined 
+      = this.currentEnvironment.get(variableName);
+
+    // TODO delete this after making the resolver, and assert variableType as
+    // LangObjectType
+    if (variableType === undefined){
       throw new TokenError('Undefined variable.', variableToken);
     }
 
     const rightType: LangObjectType = this.validateExpression(expr.value);
-    const leftType: LangObjectType = 
-      this.currentEnvironment.get(variableName) as LangObjectType;
+    const leftType: LangObjectType = variableType;
 
     if (leftType != rightType) {
       throw new TokenError('Types do not match in assignment.', variableToken);
