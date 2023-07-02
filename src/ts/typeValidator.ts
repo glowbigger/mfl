@@ -85,15 +85,15 @@ export default class TypeValidator
   }
 
   visitDeclarationStmt(stmt: DeclarationStmt): void {
-    const leftType: LangObjectType = stmt.type;
+    const leftType: LangObjectType | null = stmt.type;
     const rightType: LangObjectType = this.validateExpression(stmt.initialValue);
 
-    if (leftType != rightType) {
+    if (leftType !== null && leftType !== rightType) {
       throw new TokenError('Types do not match in declaration.',
                            stmt.identifier);
     }
 
-    this.currentEnvironment.define(stmt.identifier.lexeme, leftType);
+    this.currentEnvironment.define(stmt.identifier.lexeme, rightType);
   }
 
   visitBlockStmt(stmt: BlockStmt): void {

@@ -85,7 +85,7 @@ export default class Parser {
   }
 
   // statement           → ifStmt | blockStmt | whileStmt | forStmt |
-  //                     ((declarationStmt | printStmt | exprStmt)? ";") ;
+  //                     ( ( declarationStmt | printStmt | exprStmt )? ";" ) ;
   private parseStatement(): Stmt {
     let statement: Stmt;
 
@@ -211,14 +211,19 @@ export default class Parser {
     return new PrintStmt(expression);
   }
 
-  // declarationStmt     → "let" IDENTIFIER ":" objType "=" expression ;
+  // declarationStmt     → "let" IDENTIFIER ( ":" objType )? "=" expression ;
   private parseDeclarationStatement(): Stmt {
     this.expect('LET', 'Expect \'let\' before variable declaration.');
     const identifier: Token = 
       this.expect('IDENTIFIER', 'Expect identifier name in declaration.');
-    this.expect('COLON', 'Expect a colon after an identifier in a declaration.');
-    const type: LangObjectType = this.parseObjectType();
-    this.expect('EQUAL', 'Expect an \'=\' after a type in a declaration.');
+
+    let type: LangObjectType | null = null;
+    if (this.match('COLON')) {
+      this.consume();
+      type = this.parseObjectType();
+    }
+
+    this.expect('EQUAL', 'Expect an \'=\' in a declaration.');
     const initialValue: Expr = this.parseExpression();
     
     return new DeclarationStmt(identifier, type, initialValue);

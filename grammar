@@ -12,7 +12,7 @@ forStmt             → "for" "(" ( declarationStmt | exprStmt )? ";" |
                                 expression? ";" |
                                 expression? ")" 
                       statement ;
-declarationStmt     → "let" IDENTIFIER ":" objType "=" expression ;
+declarationStmt     → "let" IDENTIFIER ( ":" objType )? "=" expression ;
 // only shown to make clear that exprStmt is a possible statement type
 exprStmt            → expression ;
 printStmt           → "print" expression ;

@@ -127,10 +127,10 @@ export class PrintStmt extends Stmt {
 
 export class DeclarationStmt extends Stmt {
   readonly identifier: Token;
-  readonly type: LangObjectType;
+  readonly type: LangObjectType | null;
   readonly initialValue: Expr;
 
-  constructor(identifier: Token, type: LangObjectType, initialValue: Expr) {
+  constructor(identifier: Token, type: LangObjectType | null, initialValue: Expr) {
     super();
     this.identifier = identifier;
     this.type = type;
