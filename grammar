@@ -5,7 +5,7 @@ program             → statement* EOF ;
 statement           → ifStmt | blockStmt | whileStmt | forStmt |
                     ( ( declarationStmt | printStmt | exprStmt )? ";" ) ;
 
-ifStmt              → "if" "(" expression ")" statement ( "else" statement )? ;
+ifStmt              → "if" expression "then" statement ( "else" statement )? ;
 blockStmt           → "{" statement* "}" ;
 whileStmt           → "while" "(" condition ")" statement
 forStmt             → "for" "(" ( declarationStmt | exprStmt )? ";" |

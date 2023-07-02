@@ -42,6 +42,7 @@ export type TokenType =
 	'OR' |
 	'PRINT' |
 	'RETURN' |
+	'THEN' |
 	'TRUE' |
 	'LET' |
 	'WHILE' |

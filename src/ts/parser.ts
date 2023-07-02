@@ -144,12 +144,11 @@ export default class Parser {
     return statement;
   }
 
-  // ifStmt              → "if" "(" expression ")" statement ("else" statement)? ;
+  // ifStmt              → "if" expression "then" statement ("else" statement)? ;
   private parseIfStatement(): Stmt {
     const ifToken: Token = this.expect('IF', 'Expect \'if\' to start if statement.');
-    this.expect('LEFT_PAREN', 'Expect \'(\' before condition.');
     const condition: Expr = this.parseExpression();
-    this.expect('RIGHT_PAREN', 'Expect \')\' after condition.');
+    this.expect('THEN', 'Expect \'then\' after condition.');
     const thenBranch: Stmt = this.parseStatement();
 
     let elseBranch: Stmt | null = null;
@@ -163,14 +162,14 @@ export default class Parser {
 
   // blockStmt           → "{" statement* "}" ;
   private parseBlockStatement(): Stmt {
-    this.expect('LEFT_BRACE', 'Expect \'{\' for block statement.');
+    this.expect('LEFT_BRACE', 'Expect \'{\' to begin block statement.');
 
     const statements: Stmt[] = [];
     while (!this.match('RIGHT_BRACE', 'EOF')) {
       statements.push(this.parseStatement());
     }
 
-    this.expect('RIGHT_BRACE', 'Expect \'}\' after statement.');
+    this.expect('RIGHT_BRACE', 'Expect \'}\' to end block statement.');
 
     return new BlockStmt(statements);
   }

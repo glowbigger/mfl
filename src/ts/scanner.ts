@@ -5,22 +5,24 @@ import { TokenValueType } from './types';
 const EOF_CHAR: string = '\0';
 
 const KEYWORDS = new Map<string, TokenType>([
-  ["and", "AND"],
-  ["else", "ELSE"],
-  ["false", "FALSE"],
-  ["for", "FOR"],
-  ["fn", "FUNCTION"],
-  ["if", "IF"],
-  ["or", "OR"],
-  ["print", "PRINT"],
-  ["return", "RETURN"],
-  ["true", "TRUE"],
-  ["let", "LET"],
-  ["while", "WHILE"],
+  ['and', 'AND'],
+  ['else', 'ELSE'],
+  ['false', 'FALSE'],
+  ['for', 'FOR'],
+  ['fn', 'FUNCTION'],
+  ['if', 'IF'],
+  ['or', 'OR'],
+  ['print', 'PRINT'],
+  ['return', 'RETURN'],
+  ['then', 'THEN'],
+  ['true', 'TRUE'],
+  ['let', 'LET'],
+  ['while', 'WHILE'],
+
   // primitive object types
-  ["number", "PRIMITIVE"],
-  ["string", "PRIMITIVE"],
-  ["bool", "PRIMITIVE"],
+  ['number', 'PRIMITIVE'],
+  ['string', 'PRIMITIVE'],
+  ['bool', 'PRIMITIVE'],
 ]);
 
 export default class Scanner {
@@ -153,7 +155,7 @@ export default class Scanner {
 			case ' ': 	break;
 			case '\n':  break;
 
-      // strings start with " or '
+      // strings start with ' or '
 			case '"': 
         this.scanString();
         break;
@@ -202,12 +204,12 @@ export default class Scanner {
   }
 
   private scanString(): void {
-    // firstQuote refers to the starting ' or "
+    // firstQuote refers to the starting ' or '
     const firstQuote: string = this.source[this.start];
     const firstQuoteLine: number = this.line;
     const firstQuoteColumn: number = (this.start - this.lineStart) + 1;
 
-    // scan characters until a terminating " is found
+    // scan characters until a terminating ' is found
     let stringLiteral = '';
     while (!this.isAtEnd() && this.peek() !== firstQuote) {
       stringLiteral += this.consume();
@@ -215,11 +217,11 @@ export default class Scanner {
 
     // if the end of the file is reached before the quote, it's an error
     if (this.isAtEnd()) {
-      this.addError("Unterminated string.", firstQuoteLine, firstQuoteColumn);
+      this.addError('Unterminated string.', firstQuoteLine, firstQuoteColumn);
       return;
     }
 
-    // consume the final " or '
+    // consume the final ' or '
     this.consume();
     
     // create and add the token
@@ -253,7 +255,7 @@ export default class Scanner {
     }
 
     const numberString: string = this.getCurrentLexeme();
-    this.addToken("NUMBER", parseFloat(numberString));
+    this.addToken('NUMBER', parseFloat(numberString));
   }
 
   private scanIdentifierOrKeyword(): void {
@@ -265,7 +267,7 @@ export default class Scanner {
 
     // check if the lexeme is a keyword, if it's not, it's an identifier 
     let tokenType: TokenType | undefined = KEYWORDS.get(text);
-    if (tokenType === undefined) tokenType = "IDENTIFIER";
+    if (tokenType === undefined) tokenType = 'IDENTIFIER';
 
     // true and false have true, false and null as literal values
     if (tokenType === 'TRUE') {
