@@ -2,17 +2,20 @@ program             → statement* EOF ;
 
 // statements
 
-statement           → ifStmt | blockStmt | whileStmt |
-                    ((declarationStmt | printStmt | exprStmt) ";") ;
+statement           → ifStmt | blockStmt | whileStmt | forStmt |
+                    ( ( declarationStmt | printStmt | exprStmt )? ";" ) ;
 
-ifStmt              → "if" "(" expression ")" statement ("else" statement)? ;
+ifStmt              → "if" "(" expression ")" statement ( "else" statement )? ;
 blockStmt           → "{" statement* "}" ;
 whileStmt           → "while" "(" condition ")" statement
+forStmt             → "for" "(" ( declarationStmt | exprStmt )? ";" |
+                                expression? ";" |
+                                expression? ")" 
+                      statement ;
 declarationStmt     → "let" IDENTIFIER ":" objType "=" expression ;
 // only shown to make clear that exprStmt is a possible statement type
 exprStmt            → expression ;
 printStmt           → "print" expression ;
-
 objectType          → "number" | "string" | "bool" ;
 
 // expressions

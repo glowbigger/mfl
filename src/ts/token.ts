@@ -54,14 +54,15 @@ export type TokenType =
 
 export class Token {
   type: TokenType; lexeme: string; value: TokenValueType;
-  line: number; column: number;
+  lineString: string; lineIndex: number; column: number;
   
   constructor(type: TokenType, lexeme: string, value: TokenValueType, 
-              line: number, column: number) {
+              lineString: string, lineIndex: number, column: number) {
 		this.type = type;
 		this.lexeme = lexeme;
 		this.value = value;
-		this.line = line;
+		this.lineString = lineString;
+		this.lineIndex = lineIndex;
     this.column = column;
   }
   

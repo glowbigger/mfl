@@ -24,8 +24,9 @@ const KEYWORDS = new Map<string, TokenType>([
 ]);
 
 export default class Scanner {
-  // the source code to scan
+  // the source code to scan, as a string and as an array of its lines
   private readonly source: string;
+  private readonly sourceLines: string[];
 
   // the list of tokens to be returned after scanning
   private tokens: Token[];
@@ -43,7 +44,9 @@ export default class Scanner {
   private errors: CharacterError[];
 
   constructor(source: string) {
-    this.source = source;
+    // replace all tabs and carriage returns with two spaces
+    this.source = source.replaceAll('\t', '  ').replaceAll('\r', ' ');
+    this.sourceLines = source.split('\n');
     this.tokens = [];
     this.start = 0;
     this.current = 0;
@@ -66,7 +69,8 @@ export default class Scanner {
 
     // otherwise, return all of the tokens with the EOF token appended
     const endOfFileToken = 
-      new Token('EOF', '', null, this.line, this.source.length + 1);
+      new Token('EOF', '', null, this.sourceLines[this.line - 1], 
+        this.line, this.source.length + 1);
     this.tokens.push(endOfFileToken);
     return this.tokens;
   }
@@ -145,10 +149,8 @@ export default class Scanner {
 				}
 				break;
 
-      // ignore whitespace
+      // ignore whitespace, tabs and carriage returns were removed earlier
 			case ' ': 	break;
-			case '\r': 	break;
-			case '\t': 	break;
 			case '\n':  break;
 
       // strings start with " or '
@@ -282,8 +284,8 @@ export default class Scanner {
   // Helpers
   //======================================================================
 
-   // checks if the given index is out of the bounds of the source string,
-   // if no index given, it defaults to the position of the current character
+  // checks if the given index is out of the bounds of the source string,
+  // if no index given, it defaults to the position of the current character
   private isAtEnd(index: number = this.current): boolean {
     // >= (as opposed to ==) is neccessary for lookahead values
 		return index >= this.source.length;
@@ -325,7 +327,9 @@ export default class Scanner {
     const column: number = (this.start - this.lineStart) + 1;
 
     // push the token
-    this.tokens.push(new Token(type, text, value, this.line, column));
+    this.tokens.push(new Token(type, text, value,
+                               this.sourceLines[this.line - 1], 
+                               this.line, column));
   }
 
   private isDigit(c: string): boolean {
@@ -335,11 +339,12 @@ export default class Scanner {
   private isAlphaOrUnderscore(c: string): boolean {
     return (c >= 'a' && c <= 'z') ||
            (c >= 'A' && c <= 'Z') ||
-            c == '_';
+            c === '_';
   }
 
   private addError(message: string, line: number, column: number): void {
-    this.errors.push(new CharacterError(message, line, column));
+    const lineString: string = this.sourceLines[line - 1];
+    this.errors.push(new CharacterError(message, lineString, line, column));
   }
 
   private getCurrentLexeme(): string {

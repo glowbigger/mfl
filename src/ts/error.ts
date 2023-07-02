@@ -12,12 +12,25 @@ export abstract class LangError extends Error {
 // an error at a single character
 export class CharacterError extends LangError {
   readonly column: number;
-  readonly line: number;
+  readonly lineString: string;
+  readonly lineIndex: number;
 
-  constructor(message: string, line: number, column: number) {
+  constructor(message: string, lineString: string,
+              lineIndex: number, column: number) {
     super(message);
+    this.lineString = lineString;
+    this.lineIndex = lineIndex;
     this.column = column;
-    this.line = line;
+  }
+
+  toString() {
+    const offset: string = ' '.repeat(this.column - 1);
+    const lineIndex: number = this.lineIndex;
+    const column: number = this.column;
+    const message: string = this.message;
+
+    return `(line ${lineIndex}, column ${column}) ${message}\n` +
+           this.lineString + '\n' + offset + '^';
   }
 }
 
@@ -28,6 +41,21 @@ export class TokenError extends LangError {
   constructor(message: string, token: Token) {
     super(message);
     this.token = token;
+  }
+
+  toString() {
+    if (this.token.type === 'EOF') {
+      return `(at the end of the file) ${this.message}`;
+    } else { 
+      const offset: string = ' '.repeat(this.token.column - 1);
+      const indicator: string = '^'.repeat(this.token.lexeme.length);
+      const lineIndex: number = this.token.lineIndex;
+      const column: number = this.token.column;
+      const message: string = this.message;
+
+      return `(line ${lineIndex}, column ${column}) ${message}\n` +
+             this.token.lineString + '\n' + offset + indicator;
+    }
   }
 }
 
@@ -42,75 +70,33 @@ export class TokenRangeError extends LangError {
     this.tokenStart = tokenStart;
     this.tokenEnd = tokenEnd;
   }
-}
 
-// a class that can print the above errors
-export class LangErrorPrinter {
-  // the source code and the source code lines as a string array
-  private readonly lines: string[];
+  toString() {
+    const tokenStart = this.tokenStart;
+    const tokenEnd = this.tokenEnd;
+    const msg: string = this.message;
 
-  constructor(source: string) {
-    // split the source code into an array of strings
-    this.lines = source.split(/\r?\n/);
-  }
+    const startLineString: string = this.tokenStart.lineString;
+    const startLineIndex: number = this.tokenStart.lineIndex;
+    const startCol: number = this.tokenStart.column;
 
-  print(error: LangError): string {
-    let errorMessage: string;
+    const endLineString: string = this.tokenEnd.lineString;
+    const endLineIndex: number = tokenEnd.lineIndex;
+    const endCol: number = tokenEnd.column;
 
-    // check for each LangError type
-    if (error instanceof CharacterError) {
-      const line: number = error.line;
-      const col: number = error.column;
-      const msg: string = error.message;
-      const char: string = this.lines[line - 1][col - 1];
-      const lineString: string = this.lines[line - 1];
-
-      errorMessage = `Error at '${char}' on ` +
-                      `line ${line}, at column ${col}:\n` +
-                      lineString + `\n${msg}`;
-    } else if (error instanceof TokenError) {
-      const line: number = error.token.line;
-      const col: number = error.token.column;
-      const msg: string = error.message;
-      const lineString: string = this.lines[line - 1];
-
-      if (error.token.type == 'EOF') {
-        errorMessage = `Error at the end of the file:\n` +
-                        lineString + `\n${msg}`;
-      } else { 
-        errorMessage = `Error at '${error.token.lexeme}' on ` +
-                        `line ${line}, at column ${col}:\n` +
-                        lineString + `\n${msg}`;
-      }
-    } else if (error instanceof TokenRangeError) {
-      const tokenStart = error.tokenStart;
-      const tokenEnd = error.tokenEnd;
-      const startLine: number = tokenStart.line;
-      const startCol: number = tokenStart.column;
-      const endLine: number = tokenEnd.line;
-      const endCol: number = tokenEnd.column;
-      const startLineString: string = this.lines[startLine - 1];
-      const endLineString: string = this.lines[endLine - 1];
-      const msg: string = error.message;
-
-      // validate the token ranges
-      if (startLine > endLine || 
-         (startLine == endLine && startCol > endCol) ||
-         tokenStart == tokenEnd ||
-         tokenStart.type == 'EOF') {
-        throw new ImplementationError(`TokenRangeError was created with invalid
-                                       tokens ${tokenStart} and ${tokenEnd}.`);
-      }
-      errorMessage = `Error starting with ${tokenStart.lexeme} on ` +
-                     `line ${startLine}, at column ${startCol} ` +
-                     `and ending with ${tokenEnd.lexeme} on ` +
-                     `line ${endLine}, at column ${endCol}:\n` +
-                     `${startLineString}\n${endLineString}\n${msg}`;
-    } else {
-      throw new ImplementationError('Trying to print unknown LangError.');
+    // validate the token ranges
+    if (startLineIndex > endLineIndex || 
+      (startLineIndex === endLineIndex && startCol > endCol) ||
+      tokenStart === tokenEnd ||
+      tokenStart.type === 'EOF') {
+      throw new ImplementationError(`Bad TokenRangeError creation.`);
     }
-    
-    return errorMessage;
+
+    return `Error starting with ${tokenStart.lexeme} on ` +
+      `line ${startLineIndex}, at column ${startCol} ` +
+      `and ending with ${tokenEnd.lexeme} on ` +
+      `line ${endLineIndex}, at column ${endCol}:\n` +
+      `${startLineString}\n${endLineString}\n${msg}`;
   }
 }
 

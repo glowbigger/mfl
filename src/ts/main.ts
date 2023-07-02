@@ -2,7 +2,7 @@ import { readFileSync } from 'fs';
 import Scanner from './scanner';
 import { Token } from './token';
 import Parser from './parser';
-import { LangErrorPrinter, LangError } from './error';
+import { LangError } from './error';
 import TypeChecker from './typeChecker';
 import Interpreter from './interpreter';
 import { Stmt } from './stmt';
@@ -49,10 +49,9 @@ function run(source: string): void {
     // otherwise, a js error was thrown and something is wrong with the code
     if (Array.isArray(errors)) {
       console.log('Scanning errors exist -');
-      const errorPrinter = new LangErrorPrinter(source);
       for (const error of errors) {
         console.log();
-        console.log(errorPrinter.print(error));
+        console.log(error.toString());
       }
     } else {
       console.log(errors);
@@ -68,11 +67,10 @@ function run(source: string): void {
   } catch(errors: unknown) {
     if (Array.isArray(errors)) {
       console.log('Parsing errors exist -');
-      const errorPrinter = new LangErrorPrinter(source);
 
       for (const error of errors) {
         console.log();
-        console.log(errorPrinter.print(error));
+        console.log(error.toString());
       }
     } else {
       console.log(errors);
@@ -89,11 +87,10 @@ function run(source: string): void {
   } catch(errors: unknown) {
     if (Array.isArray(errors)) {
       console.log('Type checking errors exist -');
-      const errorPrinter = new LangErrorPrinter(source);
 
       for (const error of errors) {
         console.log();
-        console.log(errorPrinter.print(error));
+        console.log(error.toString());
       }
     } else {
       console.log(errors);
@@ -108,11 +105,10 @@ function run(source: string): void {
   } catch(errors: unknown) {
     if (Array.isArray(errors)) {
       console.log('Runtime errors exist -');
-      const errorPrinter = new LangErrorPrinter(source);
 
       for (const error of errors) {
         console.log();
-        console.log(errorPrinter.print(error));
+        console.log(error.toString());
       }
     } else {
       console.log(errors);

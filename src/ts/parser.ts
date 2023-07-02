@@ -84,8 +84,8 @@ export default class Parser {
     return statements;
   }
 
-  // statement           → ifStmt | blockStmt | whileStmt |
-  //                     ((declarationStmt | printStmt | exprStmt) ";") ;
+  // statement           → ifStmt | blockStmt | whileStmt | forStmt |
+  //                     ((declarationStmt | printStmt | exprStmt)? ";") ;
   private parseStatement(): Stmt {
     let statement: Stmt;
 
@@ -186,6 +186,14 @@ export default class Parser {
 
     return new WhileStmt(whileToken, condition, body);
   }
+
+  // forStmt             → "for" "(" ( declarationStmt | exprStmt )? ";" | 
+  //                                 expression? ";" |
+  //                                 expression? ")" 
+  //                       statement ;
+  // private parseForStatement(): Stmt {
+  //   this.expect 
+  // }
 
   // NOTE exprStmt only exists to make clear that expression statements exist
   private parseExpressionStatement(): Stmt {

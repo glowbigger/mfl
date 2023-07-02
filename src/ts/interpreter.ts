@@ -165,11 +165,11 @@ export default class Interpreter
         // left or right shouldn't matter here
         const type: LangObject = typeof(leftValue);
 
-        if (type == 'number') {
+        if (type === 'number') {
           leftValue = leftValue as number;
           rightValue = rightValue as number;
           return leftValue + rightValue;
-        } else if (type == 'string') {
+        } else if (type === 'string') {
           leftValue = leftValue as string;
           rightValue = rightValue as string;
           return leftValue + rightValue;
@@ -191,7 +191,7 @@ export default class Interpreter
       case 'SLASH':
         leftValue = this.evaluate(expr.left) as number;
         rightValue = this.evaluate(expr.right) as number;
-        if (rightValue == 0) {
+        if (rightValue === 0) {
           throw new TokenError('Division by 0.', expr.operator);
         }
         return leftValue / rightValue;

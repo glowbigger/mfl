@@ -213,8 +213,8 @@ export default class TypeChecker
   }
 
   visitLiteralExpr(expr: LiteralExpr): LangObjectType {
-    if (typeof(expr.value) == 'number') return 'NumberLOT';
-    if (typeof(expr.value) == 'string') return 'StringLOT';
+    if (typeof(expr.value) === 'number') return 'NumberLOT';
+    if (typeof(expr.value) === 'string') return 'StringLOT';
     return 'BoolLOT';
   }
 
