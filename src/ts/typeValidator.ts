@@ -170,14 +170,13 @@ export default class TypeValidator
         throw new TokenError('Left operand is not a number or string.',
                               expr.operator);
       }
+
       const rightType = this.validateExpression(expr.right);
       if (rightType != 'NumberLOT' && rightType != 'StringLOT') {
         throw new TokenError('Right operand is not a number or string.',
                               expr.operator);
       }
-      if (rightType != leftType) {
-        throw new TokenError('Operands do not match.', expr.operator);
-      }
+
       // NOTE we could just as easily return leftType
       return rightType;
     }

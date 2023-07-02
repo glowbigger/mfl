@@ -92,11 +92,18 @@ export class TokenRangeError extends LangError {
       throw new ImplementationError(`Bad TokenRangeError creation.`);
     }
 
-    return `Error starting with ${tokenStart.lexeme} on ` +
-      `line ${startLineIndex}, at column ${startCol} ` +
-      `and ending with ${tokenEnd.lexeme} on ` +
-      `line ${endLineIndex}, at column ${endCol}:\n` +
-      `${startLineString}\n${endLineString}\n${msg}`;
+    if (startLineIndex != endLineIndex)
+      return `Error starting with ${tokenStart.lexeme} on ` +
+        `line ${startLineIndex}, at column ${startCol} ` +
+        `and ending with ${tokenEnd.lexeme} on ` +
+        `line ${endLineIndex}, at column ${endCol}:\n` +
+        `${startLineString}\n${endLineString}\n${msg}`;
+    else
+      return `Error starting with ${tokenStart.lexeme} on ` +
+        `line ${startLineIndex}, at column ${startCol} ` +
+        `and ending with ${tokenEnd.lexeme} on ` +
+        `line ${endLineIndex}, at column ${endCol}:\n` +
+        `${startLineString}\n${msg}`;
   }
 }
 

@@ -161,21 +161,13 @@ export default class Interpreter
         // + can add numbers or concatenate strings
         leftValue = this.evaluate(expr.left);
         rightValue = this.evaluate(expr.right);
-        
-        // left or right shouldn't matter here
-        const type: LangObject = typeof(leftValue);
 
-        if (type === 'number') {
-          leftValue = leftValue as number;
-          rightValue = rightValue as number;
-          return leftValue + rightValue;
-        } else if (type === 'string') {
-          leftValue = leftValue as string;
-          rightValue = rightValue as string;
+        if (typeof(leftValue) == 'number' && typeof(rightValue) == 'number') {
+          // number addition
           return leftValue + rightValue;
         } else {
-          const message = 'Plus operator typechecking must have failed.';
-          throw new ImplementationError(message);
+          // at least one of the values is a string, so concatenate them
+          return leftValue.toString() + rightValue.toString();
         }
 
       case 'MINUS':

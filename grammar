@@ -2,7 +2,7 @@ program             → statement* EOF ;
 
 // statements
 
-statement           → ifStmt | blockStmt | whileStmt | forStmt |
+statement           → ifStmt | blockStmt | whileStmt |
                     ( ( declarationStmt | printStmt | exprStmt )? ";" ) ;
 
 ifStmt              → "if" expression "then" statement ( "else" statement )? ;
