@@ -1,11 +1,11 @@
 import { Token, TokenType } from './token';
 import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, ExprVisitor, VariableExpr, AssignExpr, LogicalExpr } from './expr'
 import { TokenError, ImplementationError, LangError } from './error';
-import { LangObjectType, PrimitiveLOT } from './types';
+import { LangObjectType } from './types';
 import { BlankStmt, BlockStmt, DeclarationStmt, ExpressionStmt, IfStmt, PrintStmt, Stmt, StmtVisitor, WhileStmt } from './stmt';
 import { TypeEnvironment } from './environment';
 
-export default class TypeChecker
+export default class TypeValidator
   implements ExprVisitor<LangObjectType>, StmtVisitor<void> {
 
   private program: Stmt[];
@@ -97,9 +97,8 @@ export default class TypeChecker
   }
 
   visitBlockStmt(stmt: BlockStmt): void {
-    for (const statement of stmt.statements) {
-      this.validateStatement(statement);
-    }
+    this.validateBlockStatement(stmt,
+                                new TypeEnvironment(this.currentEnvironment));
   }
 
   visitIfStmt(stmt: IfStmt): void {

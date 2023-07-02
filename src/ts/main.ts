@@ -2,8 +2,7 @@ import { readFileSync } from 'fs';
 import Scanner from './scanner';
 import { Token } from './token';
 import Parser from './parser';
-import { LangError } from './error';
-import TypeChecker from './typeChecker';
+import TypeValidator from './typeValidator';
 import Interpreter from './interpreter';
 import { Stmt } from './stmt';
 
@@ -78,12 +77,12 @@ function run(source: string): void {
     return;
   }
 
-  // resolving (should come before type checking)
+  // resolving (should come before type validation)
 
   // type checking
-  const typeChecker = new TypeChecker(program);
+  const typeValidator = new TypeValidator(program);
   try {
-    typeChecker.validateProgram();
+    typeValidator.validateProgram();
   } catch(errors: unknown) {
     if (Array.isArray(errors)) {
       console.log('Type checking errors exist -');

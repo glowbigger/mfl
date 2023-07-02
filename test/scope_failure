@@ -1,7 +1,5 @@
 let a: number = 5;
 {
   let a: string = "imastring";
-  a = "string";
-  print a;
+  a = 5;
 }
-b = 6;
