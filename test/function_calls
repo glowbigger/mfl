@@ -1,3 +1,7 @@
 let fun = fn(x: str) => void { print x; };
-print fun('hey' + 'hello');
-// fn(x: str) => () => void { print x; }('hey');
+fun('hello functions');
+
+let add = fn(x: num, y: num) => void {
+  print x + y;
+};
+add(2, 2);

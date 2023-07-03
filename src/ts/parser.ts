@@ -409,7 +409,7 @@ export default class Parser {
         if (!this.match('RIGHT_PAREN')) {
           do {
             args.push(this.parseExpression());
-          } while (this.match('COMMA'));
+          } while (this.matchAndConsume('COMMA'));
         }
 
         // rparen kept for error reporting
@@ -536,11 +536,20 @@ export default class Parser {
 
   // returns whether the current token's type matches the given token type
   private match(...types: TokenType[]): boolean {
-    // NOTE better to not have the below line and find implementation errors
-    // if (this.isAtEnd()) return false;
-
     for (const type of types) {
       if (this.peek().type === type) {
+        return true;
+      } 
+    }
+
+    return false;
+  }
+
+  // just like match(), except consumes the token if there was a match
+  private matchAndConsume(...types: TokenType[]): boolean {
+    for (const type of types) {
+      if (this.peek().type === type) {
+        this.consume();
         return true;
       } 
     }
