@@ -273,21 +273,22 @@ export default class Interpreter
   }
 
   visitCallExpr(expr: CallExpr): LangObject {
-    const callee: LangObject = this.evaluate(expr);
+    throw new TokenError('not implemented yet', expr.paren);
+    // const callee: LangObject = this.evaluate(expr);
 
-    let args: LangObject[] = [];
-    for (const arg of expr.args) {
-      args.push(this.evaluate(arg));
-    }
+    // let args: LangObject[] = [];
+    // for (const arg of expr.args) {
+    //   args.push(this.evaluate(arg));
+    // }
 
-    if (!(callee instanceof Callable)) {
-      throw new ImplementationError('A non-callable was called.');
-    }
-    if (args.length != (callee as Callable).arity()) {
-      throw new ImplementationError('Too many arguments.');
-    }
+    // if (!(callee instanceof Callable)) {
+    //   throw new ImplementationError('A non-callable was called.');
+    // }
+    // if (args.length != (callee as Callable).arity()) {
+    //   throw new ImplementationError('Too many arguments.');
+    // }
 
-    return (callee as Callable).call(this, args);
+    // return (callee as Callable).call(this, args);
   }
 
   //======================================================================

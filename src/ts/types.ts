@@ -9,7 +9,8 @@ import { Token } from "./token";
 export type TokenValueType = number | string | boolean | null;
 
 // the type of an object within the language (LOT = Language Object Type)
-export type LangObjectType = PrimitiveLOT | FunctionLOT;
+// nullReturn is only ever used as the output type of a null function return
+export type LangObjectType = PrimitiveLOT | FunctionLOT | 'nullReturn';
 export type PrimitiveLOT = 'NumberLOT' | 'StringLOT' | 'BoolLOT' ;
 
 export class FunctionLOT {
@@ -55,17 +56,23 @@ export class FunctionLOT {
   }
 };
 
+// returns whether two language object types are equal
+export function LOTequal(type1: LangObjectType, type2: LangObjectType): boolean {
+  if (type1 instanceof FunctionLOT && type2 instanceof FunctionLOT) {
+    return type1.equals(type2);
+  }
+  return type1 == type2;
+}
+
 // the representations of the objects within the language
 export type LangObject = number | string | boolean | FunctionLangObject;
 
-// a callable object, could be an interface, but then instanceof wouldn't work
-// and don't want to use typescript type guards
-export abstract class Callable {
-  abstract call(interpreter: Interpreter, args: LangObject[]): LangObject;
-  abstract arity(): number;
+// TODO use an interface
+export interface Callable {
+  call(interpreter: Interpreter, args: LangObject[]): LangObject;
 }
 
-export class FunctionLangObject extends Callable {
+export class FunctionLangObject implements Callable {
   readonly parameterTokens: Token[]; 
   readonly parameterTypes: LangObjectType[];
   readonly returnType: LangObjectType | null;
@@ -76,7 +83,6 @@ export class FunctionLangObject extends Callable {
 
   constructor(parameterTokens: Token[], parameterTypes: LangObjectType[], 
               returnType: LangObjectType | null, statement: Stmt) {
-    super();
     this.parameterTokens = parameterTokens;
     this.parameterTypes = parameterTypes;
     this.returnType = returnType;
@@ -91,9 +97,5 @@ export class FunctionLangObject extends Callable {
 
   call(interpreter: Interpreter, args: LangObject[]): LangObject {
     return 5;
-  }
-
-  arity(): number {
-    return this.parameterTokens.length;
   }
 }

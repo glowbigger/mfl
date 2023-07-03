@@ -1,7 +1,7 @@
 import { Token, TokenType } from './token';
-import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, ExprVisitor, VariableExpr, AssignExpr, LogicalExpr, FunctionObjectExpr } from './expr'
+import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, ExprVisitor, VariableExpr, AssignExpr, LogicalExpr, FunctionObjectExpr, CallExpr } from './expr'
 import { TokenError, ImplementationError, LangError } from './error';
-import { FunctionLOT, FunctionLangObject, LangObjectType } from './types';
+import { Callable, FunctionLOT, FunctionLangObject, LOTequal, LangObject, LangObjectType } from './types';
 import { BlankStmt, BlockStmt, BreakStmt, DeclarationStmt, ExpressionStmt, IfStmt, PrintStmt, Stmt, StmtVisitor, WhileStmt } from './stmt';
 import { TypeEnvironment } from './environment';
 
@@ -225,7 +225,7 @@ export default class TypeValidator
   }
 
   visitVariableExpr(expr: VariableExpr): LangObjectType {
-    const maybeType: LangObjectType | undefined 
+    const maybeType: LangObjectType | undefined
       = this.currentEnvironment.get(expr.identifier.lexeme);
     if (maybeType === undefined) {
       throw new TokenError('Undefined identifier used.', expr.identifier);
@@ -301,8 +301,35 @@ export default class TypeValidator
     return functionObject.type;
   }
 
-  visitCallExpr(): LangObjectType {
-    throw new Error('not yet implemented');
+  visitCallExpr(expr: CallExpr): LangObjectType {
+    const maybeCallable: LangObjectType = this.validateExpression(expr.callee);
+    
+    // check whether the primary is callable
+    if (!(maybeCallable instanceof FunctionLOT))
+      throw new TokenError('Expect callable object.', expr.paren);
+
+    // get the arguments as types
+    const argExprs: Expr[] = expr.args;
+    let args: LangObjectType[] = [];
+    for (const argExpr of argExprs) {
+      args.push(this.validateExpression(argExpr));
+    }
+
+    // check whether the arity matches the number of arguments
+    const params: LangObjectType[] = maybeCallable.parameters;
+    if (params.length != args.length) {
+      const errorMsg = 'Number of arguments does not equal number of parameters';
+      throw new TokenError(errorMsg, expr.paren);
+    }
+
+    // check if the parameter types equal the argument types
+    for (const i in params) {
+      if (!LOTequal(params[i], args[i]))
+        throw new TokenError(`Invalid argument type(s).`, expr.paren);
+    }
+
+    return ((maybeCallable.returnType == null) ? 
+            'nullReturn' : maybeCallable.returnType);
   }
 
   //======================================================================

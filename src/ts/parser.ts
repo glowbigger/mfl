@@ -416,7 +416,7 @@ export default class Parser {
         const paren: Token = this.expect('RIGHT_PAREN',
                                          'Expect \')\' after arguments.');
 
-        return new CallExpr(calleeOrPrimary, paren, args);
+        calleeOrPrimary = new CallExpr(calleeOrPrimary, paren, args);
       } else {
         break;
       }
