@@ -494,7 +494,7 @@ export default class Parser {
     const start: Token = this.peek();
     try {
       const statement: Stmt = this.parseStatement();
-      return new FunctionLangObject(parameterTokens, parameterTypes, 
+      return new FunctionLangObject(parameterTokens, parameterTypes,
                                     returnType, statement);
     } catch (error:unknown) {
       throw new TokenRangeError('Expect statement as body for function.',

@@ -1,0 +1,14 @@
+let x = 0;
+let y = 0;
+let z = 0;
+fn (x: str, y: str) => void { 
+  x = 'imastring'; // fine
+  y = true; // error because y is a str
+  z = 'imastringtoo'; /* error because z is a num, but since the previous line
+                         is an error, this one will not get reported until the
+                         previous line is fixed. */
+};
+
+{
+  x = true; // error because x is a num
+}

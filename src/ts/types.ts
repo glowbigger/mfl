@@ -1,6 +1,7 @@
 // booleans, numbers, and strings tokens have actual values, all other tokens
 
 import { Environment, LOEnvironment, TypeEnvironment } from "./environment";
+import { ImplementationError } from "./error";
 import Interpreter from "./interpreter";
 import { Stmt } from "./stmt";
 import { Token } from "./token";
@@ -64,12 +65,13 @@ export function LOTequal(type1: LangObjectType, type2: LangObjectType): boolean 
   return type1 == type2;
 }
 
-// the representations of the objects within the language
-export type LangObject = number | string | boolean | FunctionLangObject;
+// the objects within the language, null is only for void returns
+export type LangObject = number | string | boolean | FunctionLangObject | null;
 
 // TODO use an interface
 export interface Callable {
-  call(interpreter: Interpreter, args: LangObject[]): LangObject;
+  call(interpreter: Interpreter,
+       args: LangObject[]): LangObject | null;
 }
 
 export class FunctionLangObject implements Callable {
@@ -79,7 +81,10 @@ export class FunctionLangObject implements Callable {
   readonly statement: Stmt;
   // the object can determine its own type
   readonly type: FunctionLOT;
-  // readonly closure: TypeEnvironment | LOEnvironment;
+
+  // the closure will be set by the interpreter, but the object is first made
+  // during the parsing stage, so this can't go in the constructor
+  closure: LOEnvironment | null;
 
   constructor(parameterTokens: Token[], parameterTypes: LangObjectType[], 
               returnType: LangObjectType | null, statement: Stmt) {
@@ -88,14 +93,26 @@ export class FunctionLangObject implements Callable {
     this.returnType = returnType;
     this.statement = statement;
     this.type = new FunctionLOT(parameterTypes, returnType);
-    // this.closure = closure;
+    this.closure = null;
   }
 
   toString() {
     return `anonymous function object`;
   }
 
-  call(interpreter: Interpreter, args: LangObject[]): LangObject {
-    return 5;
+  call(interpreter: Interpreter, args: LangObject[]): LangObject | null {
+    // create the inner environment, make sure it exists
+    if (this.closure == null)
+      throw new ImplementationError('Function called with no closure set.');
+    const innerEnvironment: LOEnvironment = new LOEnvironment(this.closure);
+
+    // define the arguments in the inner environment
+    for (const i in this.parameterTokens) {
+      const id = this.parameterTokens[i].lexeme;
+      innerEnvironment.define(id, args[i]);
+    }
+
+    interpreter.execute(this.statement, innerEnvironment);
+    return null;
   }
 }

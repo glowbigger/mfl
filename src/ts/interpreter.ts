@@ -43,16 +43,29 @@ export default class Interpreter
     return this.printedLines.join('\n');
   }
 
-  private evaluate(expr: Expr): LangObject {
+  evaluate(expr: Expr): LangObject {
     return(expr.accept(this));
   }
 
-  private execute(stmt: Stmt): void {
-    stmt.accept(this);
+  execute(stmt: Stmt, innerEnvironment: LOEnvironment | null = null): void {
+    // save the outer environment to restore it later
+    const outerEnvironment: LOEnvironment = this.currentEnvironment;
+
+    if (innerEnvironment !== null) {
+      this.currentEnvironment = innerEnvironment;
+      try {
+        stmt.accept(this);
+      } finally {
+        // restore the outer environment regardless of any errors
+        this.currentEnvironment = outerEnvironment;
+      }
+    } else {
+      stmt.accept(this);
+    }
   }
 
-  private executeBlockStatement(stmt: BlockStmt, blockEnvironment: LOEnvironment): void {
-    // we save the outer environment to restore it later
+  executeBlockStatement(stmt: BlockStmt, blockEnvironment: LOEnvironment): void {
+    // save the outer environment to restore it later
     const outerEnvironment: LOEnvironment = this.currentEnvironment;
 
     for (const statement of stmt.statements) {
@@ -60,8 +73,7 @@ export default class Interpreter
       try {
         this.execute(statement);
       } finally {
-        // NOTE we only need the finally here to restore the outer environment
-        // regardless of whether there was an error or not
+        // restore the outer environment regardless of any errors
         this.currentEnvironment = outerEnvironment;
       }
     }
@@ -95,6 +107,10 @@ export default class Interpreter
     const id: string = stmt.identifier.lexeme;
 
     try {
+      // functions need closures set when they are declared
+      if (value instanceof FunctionLangObject)
+        value.closure = this.currentEnvironment;
+
       this.currentEnvironment.define(id, value);
     } catch (error: unknown) {
       if (error instanceof Error) {
@@ -171,8 +187,8 @@ export default class Interpreter
 
       case 'PLUS':
         // + can add numbers or concatenate strings
-        leftValue = this.evaluate(expr.left);
-        rightValue = this.evaluate(expr.right);
+        leftValue = this.evaluate(expr.left) as number | string;
+        rightValue = this.evaluate(expr.right) as number | string;
 
         if (typeof(leftValue) == 'number' && typeof(rightValue) == 'number') {
           // number addition
@@ -269,26 +285,18 @@ export default class Interpreter
   }
 
   visitFunctionObjectExpr(expr: FunctionObjectExpr): LangObject {
-    return expr.value as FunctionLangObject;
+    return expr.value;
   }
 
   visitCallExpr(expr: CallExpr): LangObject {
-    throw new TokenError('not implemented yet', expr.paren);
-    // const callee: LangObject = this.evaluate(expr);
+    const callee: Callable = this.evaluate(expr.callee) as Callable;
 
-    // let args: LangObject[] = [];
-    // for (const arg of expr.args) {
-    //   args.push(this.evaluate(arg));
-    // }
+    let args: LangObject[] = [];
+    for (const arg of expr.args) {
+      args.push(this.evaluate(arg));
+    }
 
-    // if (!(callee instanceof Callable)) {
-    //   throw new ImplementationError('A non-callable was called.');
-    // }
-    // if (args.length != (callee as Callable).arity()) {
-    //   throw new ImplementationError('Too many arguments.');
-    // }
-
-    // return (callee as Callable).call(this, args);
+    return callee.call(this, args);
   }
 
   //======================================================================
