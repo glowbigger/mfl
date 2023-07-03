@@ -1,10 +1,11 @@
 import { Token } from './token';
-import { TokenValueType } from './types';
+import { FunctionLangObject, TokenValueType } from './types';
 
 export interface ExprVisitor<R> {
   visitAssignExpr(expr: AssignExpr): R;
   visitBinaryExpr(expr: BinaryExpr): R;
   // visitCallExpr(expr: CallExpr): R;
+  visitFunctionObjectExpr(expr: FunctionObjectExpr): R;
   visitGroupingExpr(expr: GroupingExpr): R;
   visitLiteralExpr(expr: LiteralExpr): R;
   visitLogicalExpr(expr: LogicalExpr): R;
@@ -67,6 +68,19 @@ export class BinaryExpr extends Expr {
 //     return visitor.visitCallExpr(this);
 //   }
 // }
+
+export class FunctionObjectExpr extends Expr {
+  readonly value: FunctionLangObject;
+
+  constructor(value: FunctionLangObject) {
+    super();
+    this.value = value;
+  }
+
+  accept<R>(visitor: ExprVisitor<R>): R {
+    return visitor.visitFunctionObjectExpr(this);
+  }
+}
 
 export class GroupingExpr extends Expr {
   readonly expression: Expr;

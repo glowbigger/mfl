@@ -1,7 +1,7 @@
 import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, 
-          ExprVisitor, VariableExpr, AssignExpr, LogicalExpr } from './expr'
+          ExprVisitor, VariableExpr, AssignExpr, LogicalExpr, FunctionObjectExpr } from './expr'
 import { TokenError, ImplementationError } from './error';
-import { LangObject } from './types';
+import { FunctionLangObject, LangObject } from './types';
 import { Stmt, ExpressionStmt, PrintStmt, BlankStmt, StmtVisitor,
         DeclarationStmt,
         BlockStmt,
@@ -268,23 +268,25 @@ export default class Interpreter
     return rightValue;
   }
 
+  visitFunctionObjectExpr(expr: FunctionObjectExpr): LangObject {
+    return expr.value as FunctionLangObject;
+  }
+
   //======================================================================
   // HELPERS
   //======================================================================
 
   // turns an object into a string
   private stringify(object: LangObject): string {
-    if (object === null) return "null";
+    if (object === null) return 'null';
 
-    if (typeof(object) === "number") {
+    if (typeof(object) === 'number') return object.toString();
+
+    if (typeof(object) === 'boolean') return object ? 'true' : 'false';
+
+    if (object instanceof FunctionLangObject) { 
       return object.toString();
-    } 
-    if (typeof(object) === "boolean") {
-      if (object) {
-        return "true";
-      }
-      return "false";
-    } 
+    }
 
     // if it's a string, just return it
     return object;

@@ -21,7 +21,7 @@ abstract class Environment<R> {
     if (this.enclosing !== null) return this.enclosing.get(id);
 
     // this error is to be transformed into a LangError by the caller
-    throw new Error('Undefined variable.');
+    throw new Error(`Undefined variable \'${id}\'.`);
   }
 
   assign(id: string, value: R): void {
@@ -37,10 +37,6 @@ abstract class Environment<R> {
 
     // this error is to be transformed into a LangError by the caller
     throw Error('Undefined variable.');
-  }
-
-  has(id: string): boolean {
-    return this.idMap.has(id);
   }
 }
 

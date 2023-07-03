@@ -26,6 +26,7 @@ export type TokenType =
 	'GREATER_EQUAL' |
 	'LESS' |
 	'LESS_EQUAL' |
+	'RIGHTARROW' |
 
 	// literals
 	'IDENTIFIER' |
@@ -46,10 +47,13 @@ export type TokenType =
 	'THEN' |
 	'TRUE' |
 	'LET' |
+	'VOID' |
 	'WHILE' |
 
   // primitive type
-  'PRIMITIVE' |
+  'NUMBER_PRIMITIVE_TYPE' |
+  'STRING_PRIMITIVE_TYPE' |
+  'BOOL_PRIMITIVE_TYPE' |
 
   // end of file
 	'EOF';

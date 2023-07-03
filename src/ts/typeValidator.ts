@@ -1,7 +1,7 @@
 import { Token, TokenType } from './token';
-import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, ExprVisitor, VariableExpr, AssignExpr, LogicalExpr } from './expr'
+import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, ExprVisitor, VariableExpr, AssignExpr, LogicalExpr, FunctionObjectExpr } from './expr'
 import { TokenError, ImplementationError, LangError } from './error';
-import { LangObjectType } from './types';
+import { FunctionLOT, FunctionLangObject, LangObjectType } from './types';
 import { BlankStmt, BlockStmt, BreakStmt, DeclarationStmt, ExpressionStmt, IfStmt, PrintStmt, Stmt, StmtVisitor, WhileStmt } from './stmt';
 import { TypeEnvironment } from './environment';
 
@@ -39,33 +39,16 @@ export default class TypeValidator
     if (errors.length > 0) throw errors;
   }
 
+  // checks whether the types of the variables are valid in a given statement
+  // an inner environment can be passed in
   private validateStatement(stmt: Stmt): void {
     stmt.accept(this);
   }
 
-  // checks whether the types are valid in a given expression or statement, adds
-  // an error if they are not, and returns the type if possible
+  // checks whether the types of the variables are valid in a given expression
+  // and if so, returns the type of the expression
   private validateExpression(expr: Expr): LangObjectType {
     return expr.accept(this);
-  }
-
-  private validateBlockStatement(stmt: BlockStmt, 
-                                 blockEnvironment: TypeEnvironment): void {
-    // we save the outer environment to restore it later
-    const outerEnvironment: TypeEnvironment = this.currentEnvironment;
-
-    for (const statement of stmt.statements) {
-      this.currentEnvironment = blockEnvironment;
-      try {
-        // since undefined variable errors should get caught by the resolver,
-        // there is no need to convert the errors to LangErrors
-        this.validateStatement(statement);
-      } finally {
-        // NOTE only need the finally here to restore the outer environment
-        // regardless of whether there was an error or not, catch is elsewhere
-        this.currentEnvironment = outerEnvironment;
-      }
-    }
   }
 
   //======================================================================
@@ -88,17 +71,41 @@ export default class TypeValidator
     const leftType: LangObjectType | null = stmt.type;
     const rightType: LangObjectType = this.validateExpression(stmt.initialValue);
 
-    if (leftType !== null && leftType !== rightType) {
-      throw new TokenError('Types do not match in declaration.',
-                           stmt.identifier);
+    // if the left type has a type hint, check the two types
+    if (leftType !== null) {
+      // function types use their own method
+      if (leftType instanceof FunctionLOT 
+          && rightType instanceof FunctionLOT) {
+        if (!leftType.isEquals(rightType)) 
+          throw new TokenError('Types do not match in declaration.',
+                               stmt.identifier);
+      // primitive types use ===
+      } else if (leftType !== rightType) {
+        throw new TokenError('Types do not match in declaration.',
+                             stmt.identifier);
+      }
     }
 
     this.currentEnvironment.define(stmt.identifier.lexeme, rightType);
   }
 
   visitBlockStmt(stmt: BlockStmt): void {
-    this.validateBlockStatement(stmt,
-                                new TypeEnvironment(this.currentEnvironment));
+    // save the outer environment to restore later
+    const outerEnvironment: TypeEnvironment = this.currentEnvironment;
+
+    // a block statement has its own environment, which is initially empty
+    this.currentEnvironment = new TypeEnvironment(outerEnvironment);
+
+    try {
+      for (const statement of stmt.statements) {
+        // NOTE passing a new environment here would make each individual
+        // statement have its own environment, which is incorrect
+        this.validateStatement(statement);
+      }
+    } finally {
+      // restore the outer environment regardless of any errors
+      this.currentEnvironment = outerEnvironment;
+    }
   }
 
   visitIfStmt(stmt: IfStmt): void {
@@ -117,7 +124,7 @@ export default class TypeValidator
   }
 
   visitBreakStmt(stmt: BreakStmt): void {
-      return;
+    return;
   }
 
   //======================================================================
@@ -258,6 +265,36 @@ export default class TypeValidator
       throw new TokenError('Right operand must be a bool.', expr.operator);
 
     return 'BoolLOT';
+  }
+
+  visitFunctionObjectExpr(expr: FunctionObjectExpr): LangObjectType {
+    const functionObject: FunctionLangObject = expr.value;
+    
+    // save the outer environment
+    const outerEnvironment = this.currentEnvironment;
+
+    // create the inner environment
+    const innerEnvironment = new TypeEnvironment(outerEnvironment);
+
+    // get each parameter name and type and add it to the environment
+    for (const index in functionObject.parameterTokens) {
+      const id: string = functionObject.parameterTokens[index].lexeme;
+      const type: LangObjectType = functionObject.parameterTypes[index];
+      innerEnvironment.define(id, type);
+    }
+
+    // switch environments and evaluate the function statement
+    // NOTE for a block statement, a redundant environment is created instead of
+    // one environment for the block, but it is only slightly inefficient
+    this.currentEnvironment = innerEnvironment;
+    try {
+      this.validateStatement(functionObject.statement);
+    } finally {
+      // restore the outer environment regardless of any errors
+      this.currentEnvironment = outerEnvironment;
+    }
+
+    return functionObject.type;
   }
 
   //======================================================================

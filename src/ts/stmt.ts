@@ -34,8 +34,11 @@ export class BlankStmt extends Stmt {
 }
 
 export class BreakStmt extends Stmt {
-  constructor() {
+  breakToken: Token;
+
+  constructor(breakToken: Token) {
     super();
+    this.breakToken = breakToken;
   }
 
   accept<R>(visitor: StmtVisitor<R>): R {

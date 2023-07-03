@@ -4,7 +4,6 @@ program             → statement* EOF ;
 
 statement           → ifStmt | blockStmt | whileStmt |
                     ( ( declarationStmt | printStmt | exprStmt )? ";" ) ;
-
 ifStmt              → "if" expression "then" statement ( "else" statement )? ;
 blockStmt           → "{" statement* "}" ;
 whileStmt           → "while" "(" condition ")" statement
@@ -12,11 +11,15 @@ forStmt             → "for" "(" ( declarationStmt | exprStmt )? ";" |
                                 expression? ";" |
                                 expression? ")" 
                       statement ;
-declarationStmt     → "let" IDENTIFIER ( ":" objType )? "=" expression ;
-// only shown to make clear that exprStmt is a possible statement type
+declarationStmt     → "let" IDENTIFIER ( ":" objectType )? "=" expression ;
 exprStmt            → expression ;
 printStmt           → "print" expression ;
-objectType          → "number" | "string" | "bool" ;
+
+// types
+
+objectType          → "number" | "string" | "bool" | functionType ;
+functionType        → "(" ( ( objectType "," )* objectType )? ")" "=>"
+                      ( objectType | "void" ) ;
 
 // expressions
 
@@ -31,5 +34,8 @@ term                → factor ( ( "-" | "+" ) factor )* ;
 factor              → unary ( ( "/" | "*" ) unary )* ;
 unary               → ( "!" | "-" ) unary
                     | primary ;
-primary             → NUMBER | STRING | "true" | "false"
+primary             → NUMBER | STRING | "true" | "false" | functionObject |
                     | "(" expression ")" | IDENTIFIER ;
+functionObject      → "fn" "(" ( ( IDENTIFIER ":" objectType "," )* 
+                      ( IDENTIFIER ":" objectType) )? ")" 
+                      "=>" objectType statement

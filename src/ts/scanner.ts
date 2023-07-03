@@ -18,12 +18,13 @@ const KEYWORDS = new Map<string, TokenType>([
   ['then', 'THEN'],
   ['true', 'TRUE'],
   ['let', 'LET'],
+  ['void', 'VOID'],
   ['while', 'WHILE'],
 
   // primitive object types
-  ['number', 'PRIMITIVE'],
-  ['string', 'PRIMITIVE'],
-  ['bool', 'PRIMITIVE'],
+  ['number', 'NUMBER_PRIMITIVE_TYPE'],
+  ['string', 'STRING_PRIMITIVE_TYPE'],
+  ['bool', 'BOOL_PRIMITIVE_TYPE'],
 ]);
 
 export default class Scanner {
@@ -131,7 +132,17 @@ export default class Scanner {
 				this.addToken(this.consumeIfMatching('=') ? 'BANG_EQUAL' : 'BANG');
         break;
 			case '=':
-				this.addToken(this.consumeIfMatching('=') ? 'EQUAL_EQUAL' : 'EQUAL');
+        if (this.peek() == '=') {
+          this.consume();
+          this.addToken('EQUAL_EQUAL');
+          break;
+        }
+        if (this.peek() == '>') {
+          this.consume();
+          this.addToken('RIGHTARROW');
+          break;
+        }
+        this.addToken('EQUAL');
         break;
 			case '<':
 				this.addToken(this.consumeIfMatching('=') ? 'LESS_EQUAL' : 'LESS');
