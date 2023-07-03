@@ -1,6 +1,6 @@
-let x: number = 4;
+let x: num = 4;
 print x;
-let y: number = x; // works
+let y: num = x; // works
 print y;
-let z: string = x; // error 
+let z: str = x; // error 
 print z; // error, since z does not exist

@@ -1,5 +1,0 @@
-let a: number = 5;
-{
-  let a: string = "imastring";
-  a = 5;
-}

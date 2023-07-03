@@ -22,8 +22,8 @@ const KEYWORDS = new Map<string, TokenType>([
   ['while', 'WHILE'],
 
   // primitive object types
-  ['number', 'NUMBER_PRIMITIVE_TYPE'],
-  ['string', 'STRING_PRIMITIVE_TYPE'],
+  ['num', 'NUMBER_PRIMITIVE_TYPE'],
+  ['str', 'STRING_PRIMITIVE_TYPE'],
   ['bool', 'BOOL_PRIMITIVE_TYPE'],
 ]);
 

@@ -1,6 +1,6 @@
-let num: number = 5;
-let str: string = "hey";
+let number: num = 5;
+let string: str = "hey";
 let boolean: bool = true;
-print num;
-print str;
+print number;
+print string;
 print boolean;

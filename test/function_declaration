@@ -1,0 +1,25 @@
+// function type inference
+let func =
+fn(x: num, y: str) => void { print x; };
+
+// valid function type hinting
+let func: (num, str) => void =
+fn(x: num, y: str) => void { print x; };
+let func: (() => void) => void =
+fn(x: () => void) => void { print x; };
+let func: ((str, num) => void, () => str ) => void =
+fn(x: (str, num) => void, y: () => str ) => void { print x; };
+
+// invalid function type hinting
+let func: (str, str) => void =
+fn(x: num, y: str) => void { print x; };
+let func: (num, str, str) => void =
+fn(x: num, y: str) => void { print x; };
+let func: (num, str) => str =
+fn(x: num, y: str) => void { print x; };
+let func: (num, str) => void =
+fn(x: num, y: str) => str { print x; };
+let func: (() => void) => void =
+fn(x: num, y: str) => str { print x; };
+let func: ((str, num) => void) => void =
+fn(x: (str, num) => void, y: str) => void { print x; };

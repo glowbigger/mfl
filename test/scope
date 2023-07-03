@@ -1,11 +1,11 @@
-let a: string = "global a";
-let b: string = "global b";
-let c: string = "global c";
+let a: str = "global a";
+let b: str = "global b";
+let c: str = "global c";
 {
-  let a: string = "outer a";
-  let b: string = "outer b";
+  let a: str = "outer a";
+  let b: str = "outer b";
   {
-    let a: string = "inner a";
+    let a: str = "inner a";
     print a;
     print b;
     print c;
@@ -17,3 +17,10 @@ let c: string = "global c";
 print a;
 print b;
 print c;
+
+// invalid declarations within scopes
+let a: num = 5;
+{
+  let a: str = "imastring";
+  a = 5;
+}

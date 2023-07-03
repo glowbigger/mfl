@@ -1,8 +1,8 @@
-let x: number = 5;
+let x: num = 5;
 print x;
 
-let y: number = 4;
-let z: number = 3;
+let y: num = 4;
+let z: num = 3;
 x = y = z; // the same as x = (y = z);
 
 print x; // y becomes z, which is 3, and x becomes y, which became 3

@@ -1,8 +1,6 @@
-if (true or false) {
+if (true or false) then
   print "hi";
-}
-if (true and false) {
+if (true and false) then
   print "hello";
-}
 
 print false or false and true;
