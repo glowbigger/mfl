@@ -23,3 +23,9 @@ let func: (() => void) => void =
 fn(x: num, y: str) => str { print x; };
 let func: ((str, num) => void) => void =
 fn(x: (str, num) => void, y: str) => void { print x; };
+
+// assignment
+let fun: () => void = fn() => void { print 5; };
+fun = fn() => void { print 5; }; // fine
+fun = fn(x: num) => void { print x; }; // error
+fun = fn() => str { print ''; }; // error

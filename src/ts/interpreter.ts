@@ -1,7 +1,7 @@
 import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, 
-          ExprVisitor, VariableExpr, AssignExpr, LogicalExpr, FunctionObjectExpr } from './expr'
+          ExprVisitor, VariableExpr, AssignExpr, LogicalExpr, FunctionObjectExpr, CallExpr } from './expr'
 import { TokenError, ImplementationError } from './error';
-import { FunctionLangObject, LangObject } from './types';
+import { Callable, FunctionLangObject, LangObject } from './types';
 import { Stmt, ExpressionStmt, PrintStmt, BlankStmt, StmtVisitor,
         DeclarationStmt,
         BlockStmt,
@@ -270,6 +270,24 @@ export default class Interpreter
 
   visitFunctionObjectExpr(expr: FunctionObjectExpr): LangObject {
     return expr.value as FunctionLangObject;
+  }
+
+  visitCallExpr(expr: CallExpr): LangObject {
+    const callee: LangObject = this.evaluate(expr);
+
+    let args: LangObject[] = [];
+    for (const arg of expr.args) {
+      args.push(this.evaluate(arg));
+    }
+
+    if (!(callee instanceof Callable)) {
+      throw new ImplementationError('A non-callable was called.');
+    }
+    if (args.length != (callee as Callable).arity()) {
+      throw new ImplementationError('Too many arguments.');
+    }
+
+    return (callee as Callable).call(this, args);
   }
 
   //======================================================================

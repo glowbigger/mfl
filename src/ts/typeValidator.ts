@@ -76,7 +76,7 @@ export default class TypeValidator
       // function types use their own method
       if (leftType instanceof FunctionLOT 
           && rightType instanceof FunctionLOT) {
-        if (!leftType.isEquals(rightType)) 
+        if (!leftType.equals(rightType)) 
           throw new TokenError('Types do not match in declaration.',
                                stmt.identifier);
       // primitive types use ===
@@ -248,7 +248,11 @@ export default class TypeValidator
     const rightType: LangObjectType = this.validateExpression(expr.value);
     const leftType: LangObjectType = variableType;
 
-    if (leftType != rightType) {
+    // function types are checked using their own method
+    if (leftType instanceof FunctionLOT && rightType instanceof FunctionLOT) {
+      if (!leftType.equals(rightType)) 
+        throw new TokenError('Types do not match in assignment.', variableToken);
+    } else if (leftType !== rightType) {
       throw new TokenError('Types do not match in assignment.', variableToken);
     }
 
@@ -295,6 +299,10 @@ export default class TypeValidator
     }
 
     return functionObject.type;
+  }
+
+  visitCallExpr(): LangObjectType {
+    throw new Error('not yet implemented');
   }
 
   //======================================================================

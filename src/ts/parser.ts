@@ -7,7 +7,8 @@ import { Expr,
          VariableExpr,
          AssignExpr,
          LogicalExpr,
-         FunctionObjectExpr} from './expr'
+         FunctionObjectExpr,
+         CallExpr} from './expr'
 import { ImplementationError,
          LangError,
          TokenError,
@@ -384,16 +385,44 @@ export default class Parser {
                             'SLASH', 'STAR');
   }
 
-  // unary          → ( "!" | "-" ) unary
-  //                | primary ;
+  // unary          → ( "!" | "-" ) unary | call ;
   private parseUnary(): Expr {
     if (this.match('BANG', 'MINUS')) {
       const operator: Token = this.consume();
       const right: Expr = this.parseUnary();
       return new UnaryExpr(operator, right);
     } else {
-      return this.parsePrimary();
+      return this.parseCall();
     }
+  }
+
+  // call           → primary ( "(" ( expression ( "," expression )* )? ")" )* ;
+  private parseCall(): Expr {
+    let calleeOrPrimary: Expr = this.parsePrimary();
+
+    while (true) {
+      if (this.match('LEFT_PAREN')) {
+        this.consume();
+
+        // parse arguments
+        let args: Expr[] = [];
+        if (!this.match('RIGHT_PAREN')) {
+          do {
+            args.push(this.parseExpression());
+          } while (this.match('COMMA'));
+        }
+
+        // rparen kept for error reporting
+        const paren: Token = this.expect('RIGHT_PAREN',
+                                         'Expect \')\' after arguments.');
+
+        return new CallExpr(calleeOrPrimary, paren, args);
+      } else {
+        break;
+      }
+    }
+
+    return calleeOrPrimary;
   }
 
   // primary        → NUMBER | STRING | "true" | "false" | functionObject |

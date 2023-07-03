@@ -2,7 +2,7 @@
 
 import { LangObject, LangObjectType } from "./types";
 
-abstract class Environment<R> {
+export abstract class Environment<R> {
   private idMap: Map<string, R>; 
   private readonly enclosing: Environment<R> | null;
 

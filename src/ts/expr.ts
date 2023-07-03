@@ -4,7 +4,7 @@ import { FunctionLangObject, TokenValueType } from './types';
 export interface ExprVisitor<R> {
   visitAssignExpr(expr: AssignExpr): R;
   visitBinaryExpr(expr: BinaryExpr): R;
-  // visitCallExpr(expr: CallExpr): R;
+  visitCallExpr(expr: CallExpr): R;
   visitFunctionObjectExpr(expr: FunctionObjectExpr): R;
   visitGroupingExpr(expr: GroupingExpr): R;
   visitLiteralExpr(expr: LiteralExpr): R;
@@ -49,25 +49,22 @@ export class BinaryExpr extends Expr {
   }
 }
 
-// export class Call extends Expr {
-//   readonly callee: Expr;
-//   // the right parenthesis is stored for its location, which will be
-//   // returned if there was a runtime error
-//   readonly paren: Token;
-//   // can't use the name "arguments" because that is reserved by js
-//   readonly args: Array<Expr>;
+export class CallExpr extends Expr {
+  readonly callee: Expr;
+  readonly paren: Token;
+  readonly args: Array<Expr>;
 
-//   constructor(callee: Expr, paren: Token, args: Array<Expr>) {
-//     super();
-//     this.callee = callee;
-//     this.paren = paren;
-//     this.args = args;
-//   }
+  constructor(callee: Expr, paren: Token, args: Array<Expr>) {
+    super();
+    this.callee = callee;
+    this.paren = paren;
+    this.args = args;
+  }
 
-//   accept<R>(visitor: ExprVisitor<R>): R {
-//     return visitor.visitCallExpr(this);
-//   }
-// }
+  accept<R>(visitor: ExprVisitor<R>): R {
+    return visitor.visitCallExpr(this);
+  }
+}
 
 export class FunctionObjectExpr extends Expr {
   readonly value: FunctionLangObject;
