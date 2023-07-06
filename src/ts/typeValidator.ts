@@ -12,11 +12,10 @@ export default class TypeValidator
 
   private currentEnvironment: TypeEnvironment;
 
-  // stacks to refer to functions being visited, the expected type is from the
-  // function definition before statements, the return type is from a return
-  // private returnTypeStack: LangObjectType[];
+  // expected type of the function being visited, stack used for nested functions 
   private expectedTypeStack: LangObjectType[];
-  private currentReturnType: LangObjectType | null;
+
+  private currentReturnType: unknown;
 
   // for type checking within control flow, knowing this is important
   private withinIf: boolean;
@@ -25,7 +24,6 @@ export default class TypeValidator
   constructor(program: Stmt[]) {
     this.program = program;
     this.currentEnvironment = new TypeEnvironment(null);
-    // this.returnTypeStack = [];
     this.expectedTypeStack = [];
     this.withinIf = false;
     this.withinWhile = false;
@@ -141,10 +139,12 @@ export default class TypeValidator
   }
 
   visitWhileStmt(stmt: WhileStmt): void {
+    this.withinWhile = true;
     if (this.validateExpression(stmt.condition) !== 'BoolLOT') 
       throw new TokenError('While statement condition must be a bool.', 
                            stmt.whileToken);
     this.validateStatement(stmt.body);
+    this.withinWhile = false;
   }
 
   visitBreakStmt(stmt: BreakStmt): void {
@@ -155,18 +155,17 @@ export default class TypeValidator
     if (this.expectedTypeStack.length === 0)
       throw new TokenError('Cannot return outside of function.', stmt.keyword);
 
-    // the value given by 'statements' in 'fn (type) => type { statements }'
     let returnType: LangObjectType;
-    if (stmt.value === null) returnType= 'nullReturn';
-    else returnType= this.validateExpression(stmt.value);
+    if (stmt.value === null) returnType = 'nullReturn';
+    else returnType = this.validateExpression(stmt.value);
 
     // if not within if or while, set the returnType if it has not been set
-    console.log(this.expectedTypeStack);
     if (this.withinIf || this.withinWhile) return;
+
     if (this.currentReturnType === null) {
       this.currentReturnType = returnType;
-    } else {
-      throw new TokenError('Multiple return statements.', stmt.keyword);
+    }else{
+      throw new TokenError('Unexpected return statement.', stmt.keyword);
     }
   }
 
@@ -321,11 +320,15 @@ export default class TypeValidator
     // save outer properties
     const outerEnvironment = this.currentEnvironment;
     const outerWithinIf = this.withinIf;
-    this.withinIf = false;
     const outerWithinWhile = this.withinWhile;
-    this.withinWhile = false;
+    const outerReturnType = this.currentReturnType;
 
-    // set the expecte type before evaluating the statements
+    // reset properties
+    this.withinIf = false;
+    this.withinWhile = false;
+    this.currentReturnType = null;
+
+    // set the expect type before evaluating the statements
     this.expectedTypeStack.push(expr.value.returnType === null ?
                                 'nullReturn' : expr.value.returnType);
 
@@ -343,30 +346,36 @@ export default class TypeValidator
     // NOTE for a block statement, a redundant environment is created instead of
     // one environment for the block, but it is only slightly inefficient
     this.currentEnvironment = innerEnvironment;
+
     try {
       this.validateStatement(functionObject.statement);
     } finally {
       // restore the outer environment regardless of any errors
       this.currentEnvironment = outerEnvironment;
-      this.withinIf = outerWithinIf;
-      this.withinWhile = outerWithinWhile;
     }
 
     // if the return type has not been set yet, then set it be void
     if (this.currentReturnType === null) {
-      this.currentReturnType === 'nullReturn';
+      this.currentReturnType = 'nullReturn';
     }
 
     // check if the two types are the same
     const expectedType: LangObjectType =
       this.expectedTypeStack.pop() as LangObjectType;
-
     if (!LOTequal(expectedType, this.currentReturnType as LangObjectType)) {
+      // restore the outer properties
+      this.withinIf = outerWithinIf;
+      this.withinWhile = outerWithinWhile;
+      this.currentReturnType = outerReturnType;
+
       const msg = `Invalid return type.`;
-      this.currentReturnType = null;
       throw new TokenError(msg, expr.keyword);
     } else {
-      this.currentReturnType = null;
+      // restore the outer properties
+      this.withinIf = outerWithinIf;
+      this.withinWhile = outerWithinWhile;
+      this.currentReturnType = outerReturnType;
+
       return functionObject.type;
     }
   }

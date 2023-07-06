@@ -1,7 +1,44 @@
-// let fun = fn(x: str) => void { print x; };
-// fun('hello functions');
+// fine
+let fun = fn(x: str) => void { return; };
 
+// fine, identical behavior as the above
+let fun = fn(x: str) => void { };
+
+// error
 let fun = fn () => num {
-  let nested = fn () => str { return 2; };
+  let nested = fn () => num { return 2; return ''; };
+  return 2;
+};
+
+// error
+let fun = fn () => num {
+  let nested = fn () => num { return ''; };
+  return 2;
+};
+
+// fine
+let fun = fn () => num {
+  let nested = fn () => num { return 2; };
+  return 2;
+};
+
+// nested if error
+let fun = fn () => num {
+  let nested = fn () => num { 
+    // gets ignore by the typechecker, so the type is void
+    while (true) return 2; 
+  };
+  return 2;
+};
+
+// nested while, fine
+let fun = fn () => num {
+  let nested = fn () => num { 
+    // gets ignore by the typechecker, so the type is void
+    if true then return 2; 
+
+    // but this return statement returns a num
+    return 3;
+  };
   return 2;
 };
