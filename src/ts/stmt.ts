@@ -10,11 +10,10 @@ export interface StmtVisitor<R> {
   visitBlankStmt(stmt: BlankStmt): R;
   visitBlockStmt(stmt: BlockStmt): R;
   visitExpressionStmt(stmt: ExpressionStmt): R;
-  // visitFunctionStmt(stmt: FunctionStmt): R;
   visitIfStmt(stmt: IfStmt): R;
   visitPrintStmt(stmt: PrintStmt): R;
   visitDeclarationStmt(stmt: DeclarationStmt): R;
-  // visitReturnStmt(stmt: ReturnStmt): R;
+  visitReturnStmt(stmt: ReturnStmt): R;
   visitBreakStmt(stmt: BreakStmt): R;
   visitWhileStmt(stmt: WhileStmt): R;
 }
@@ -72,23 +71,6 @@ export class ExpressionStmt extends Stmt {
   }
 }
 
-// export class FunctionStmt extends Stmt {
-//   readonly name: Token;
-//   readonly params: Array<Token>;
-//   readonly body: Array<Stmt>;
-
-//   constructor(name: Token, params: Array<Token>, body: Array<Stmt>  ) {
-//     super();
-//     this.name = name;
-//     this.params = params;
-//     this.body = body;
-//   }
-
-//   accept<R>(visitor: StmtVisitor<R>): R {
-//     return visitor.visitFunctionStmt(this);
-//   }
-// }
-
 export class IfStmt extends Stmt {
   readonly ifToken: Token;
   readonly condition: Expr;
@@ -112,10 +94,12 @@ export class IfStmt extends Stmt {
 }
 
 export class PrintStmt extends Stmt {
+  readonly keyword: Token;
   readonly expression: Expr;
 
-  constructor(expression: Expr) {
+  constructor(keyword: Token, expression: Expr,) {
     super();
+    this.keyword = keyword;
     this.expression = expression;
   }
 
@@ -124,20 +108,20 @@ export class PrintStmt extends Stmt {
   }
 }
 
-// export class Return extends Stmt {
-//   readonly keyword: Token;
-//   readonly value: Expr | null;
+export class ReturnStmt extends Stmt {
+  readonly keyword: Token;
+  readonly value: Expr | null;
 
-//   constructor(keyword: Token, value: Expr | null) {
-//     super();
-//     this.keyword = keyword;
-//     this.value = value;
-//   }
+  constructor(keyword: Token, value: Expr | null) {
+    super();
+    this.keyword = keyword;
+    this.value = value;
+  }
 
-//   accept<R>(visitor: StmtVisitor<R>) {
-//     return visitor.visitReturnStmt(this);
-//   }
-// }
+  accept<R>(visitor: StmtVisitor<R>) {
+    return visitor.visitReturnStmt(this);
+  }
+}
 
 export class DeclarationStmt extends Stmt {
   readonly identifier: Token;

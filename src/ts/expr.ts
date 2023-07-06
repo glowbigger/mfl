@@ -68,10 +68,12 @@ export class CallExpr extends Expr {
 
 export class FunctionObjectExpr extends Expr {
   readonly value: FunctionLangObject;
+  readonly keyword: Token;
 
-  constructor(value: FunctionLangObject) {
+  constructor(value: FunctionLangObject, keyword: Token) {
     super();
     this.value = value;
+    this.keyword = keyword;
   }
 
   accept<R>(visitor: ExprVisitor<R>): R {

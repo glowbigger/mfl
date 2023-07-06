@@ -29,7 +29,7 @@ export class CharacterError extends LangError {
     const column: number = this.column;
     const message: string = this.message;
 
-    return `(line ${lineIndex}, column ${column}) ${message}\n` +
+    return `[line ${lineIndex}, column ${column}] ${message}\n` +
            this.lineString + '\n' + offset + '^';
   }
 }
@@ -53,12 +53,11 @@ export class TokenError extends LangError {
       const column: number = this.token.column;
       const message: string = this.message;
 
-      return `(line ${lineIndex}, column ${column}) ${message}\n` +
+      return `[line ${lineIndex}, column ${column}] ${message}\n` +
              this.token.lineString + '\n' + offset + indicator;
     }
   }
 }
-
 
 // an error at a token
 export class TokenRangeError extends LangError {

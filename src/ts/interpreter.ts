@@ -7,7 +7,8 @@ import { Stmt, ExpressionStmt, PrintStmt, BlankStmt, StmtVisitor,
         BlockStmt,
         IfStmt,
         WhileStmt,
-        BreakStmt} from './stmt';
+        BreakStmt,
+        ReturnStmt} from './stmt';
 import { LOEnvironment } from './environment';
 
 // indicates a break has been called inside a loop 
@@ -147,6 +148,10 @@ export default class Interpreter
     throw new BreakIndicator();
   }
 
+  visitReturnStmt(stmt: ReturnStmt): void {
+    throw new ImplementationError('Not implemented yet');
+  }
+
   //======================================================================
   // Expression Visitor Methods
   //======================================================================
@@ -249,6 +254,8 @@ export default class Interpreter
   visitVariableExpr(expr: VariableExpr): LangObject {
     const value: LangObject | undefined
       = this.currentEnvironment.get(expr.identifier.lexeme);
+
+    // this should never happen
     if (value === undefined) {
       throw new TokenError('Undefined variable.', expr.identifier);
     }

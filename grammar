@@ -2,40 +2,39 @@ program             → statement* EOF ;
 
 // statements
 
-statement           → ifStmt | blockStmt | whileStmt |
-                    ( ( declarationStmt | printStmt | exprStmt )? ";" ) ;
-ifStmt              → "if" expression "then" statement ( "else" statement )? ;
-blockStmt           → "{" statement* "}" ;
-whileStmt           → "while" "(" condition ")" statement
-forStmt             → "for" "(" ( declarationStmt | exprStmt )? ";" |
-                                expression? ";" |
-                                expression? ")" 
-                      statement ;
-declarationStmt     → "let" IDENTIFIER ( ":" objectType )? "=" expression ;
-exprStmt            → expression ;
-printStmt           → "print" expression ;
+statement         → ifStmt | blockStmt | whileStmt |
+                  ( ( declarationStmt | printStmt | exprStmt | returnStmt )? ";" ) ;
+ifStmt            → "if" expression "then" statement ( "else" statement )? ;
+blockStmt         → "{" statement* "}" ;
+whileStmt         → "while" "(" condition ")" statement
+forStmt           → "for" "(" ( declarationStmt | exprStmt )? ";" |
+                    expression? ";" | expression? ")" statement ;
+declarationStmt   → "let" IDENTIFIER ( ":" objectType )? "=" expression ;
+exprStmt          → expression ;
+printStmt         → "print" expression ;
+returnStmt        → "return" expression ;
 
 // types
 
-objectType          → "number" | "string" | "bool" | functionType ;
-functionType        → "(" ( ( objectType "," )* objectType )? ")" "=>"
-                      ( objectType | "void" ) ;
+objectType        → "number" | "string" | "bool" | functionType ;
+functionType      → "(" ( ( objectType "," )* objectType )? ")" "=>"
+                    ( objectType | "void" ) ;
 
 // expressions
 
-expression          → assignment ;
-assignment          → IDENTIFIER "=" assignment
-                    | logic_or ;
-logic_or            → logic_and ( "or" expression )* ;
-logic_and           → equality ( "and" expression )* ;
-equality            → comparison ( ( "!=" | "==" ) comparison )* ;
-comparison          → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
-term                → factor ( ( "-" | "+" ) factor )* ;
-factor              → unary ( ( "/" | "*" ) unary )* ;
-unary               → ( "!" | "-" ) unary | call ;
-call                → primary ( "(" ( expression ( "," expression)* )? ")" )* ;
-primary             → NUMBER | STRING | "true" | "false" | functionObject |
-                    | "(" expression ")" | IDENTIFIER ;
-functionObject      → "fn" "(" ( ( IDENTIFIER ":" objectType "," )* 
-                      ( IDENTIFIER ":" objectType) )? ")" 
-                      "=>" objectType statement
+expression        → assignment ;
+assignment        → IDENTIFIER "=" assignment
+                  | logic_or ;
+logic_or          → logic_and ( "or" expression )* ;
+logic_and         → equality ( "and" expression )* ;
+equality          → comparison ( ( "!=" | "==" ) comparison )* ;
+comparison        → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
+term              → factor ( ( "-" | "+" ) factor )* ;
+factor            → unary ( ( "/" | "*" ) unary )* ;
+unary             → ( "!" | "-" ) unary | call ;
+call              → primary ( "(" ( expression ( "," expression)* )? ")" )* ;
+primary           → NUMBER | STRING | "true" | "false" | functionObject |
+                  | "(" expression ")" | IDENTIFIER ;
+functionObject    → "fn" "(" ( ( IDENTIFIER ":" objectType "," )* 
+                    ( IDENTIFIER ":" objectType) )? ")" 
+                    "=>" objectType statement

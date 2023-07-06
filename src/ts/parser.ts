@@ -21,7 +21,8 @@ import { Stmt,
          BlockStmt,
          IfStmt,
          WhileStmt,
-         BreakStmt } from './stmt';
+         BreakStmt, 
+         ReturnStmt} from './stmt';
 import { FunctionLOT, FunctionLangObject, LangObjectType } from './types';
 
 export default class Parser {
@@ -108,6 +109,7 @@ export default class Parser {
         this.consume();
         return new BlankStmt();
 
+      // a break statement is a single token
       case 'BREAK':
         return new BreakStmt(this.consume());
 
@@ -119,40 +121,18 @@ export default class Parser {
       case 'WHILE':
         return(this.parseWhileStatement());
 
+      // let, print, return have their own functions
       case 'LET':
         statement = this.parseDeclarationStatement();
         break;
-
       case 'PRINT':
         statement = this.parsePrintStatement();
         break;
+      case 'RETURN':
+        statement = this.parseReturnStatement();
+        break;
 
       default:
-        /*
-        * if no statement can be found, then report an error over a range of
-        * tokens, starting from the current token and up until the token right 
-        * BEFORE where the next statement is presumed to start
-        * NOTE the commented code will eat your error messages
-        */
-        // try {
-        //   statement = this.parseExpressionStatement();
-        // } catch(error: unknown) {
-        //   const start: Token = this.peek();
-        //   let end: Token = this.peek();
-
-        //   // NOTE unlike synchronize(), the semicolon should not get consumed,
-        //   // because it will get consumed by synchronize()
-        //   while (!this.isAtEnd() && !this.match('SEMICOLON', 'FUNCTION', 
-        //                                        'LET', 'FOR', 'IF', 'WHILE',
-        //                                        'PRINT', 'RETURN', 'BREAK')) {
-        //     end = this.consume();
-        //   }
-        //   if (start !== end) {
-        //     throw new TokenRangeError('Expect statement.', start, end);
-        //   } else {
-        //     throw new TokenError('Expect statement.', start);
-        //   }
-        // }
         statement = this.parseExpressionStatement();
 
         break;
@@ -220,12 +200,11 @@ export default class Parser {
   
   // printStmt      → "print" expression ;
   private parsePrintStatement(): Stmt {
-    if (this.match('PRINT')) {
+    const keyword: Token =
       this.expect('PRINT', 'Expect initial \'print\' for print statement.');
-    }
 
     const expression: Expr = this.parseExpression();
-    return new PrintStmt(expression);
+    return new PrintStmt(keyword, expression);
   }
 
   // declarationStmt     → "let" IDENTIFIER ( ":" objectType )? "=" expression ;
@@ -244,6 +223,20 @@ export default class Parser {
     const initialValue: Expr = this.parseExpression();
     
     return new DeclarationStmt(identifier, type, initialValue);
+  }
+
+  // returnStmt        → "return" expression ;
+  private parseReturnStatement(): Stmt {
+    const keyword: Token =
+      this.expect('RETURN', 'Expect initial \'return\' for return statement.');
+
+    let expression: Expr | null;
+    if (this.peek().type === 'SEMICOLON') {
+      expression = null;
+    } else {
+      expression = this.parseExpression();
+    }
+    return new ReturnStmt(keyword, expression);
   }
 
   // objectType     → "number" | "string" | "bool" | functionType ;
@@ -445,7 +438,7 @@ export default class Parser {
     }
 
     if (this.match('FUNCTION')) {
-      return new FunctionObjectExpr(this.parseFunctionObject());
+      return this.parseFunctionObject();
     }
 
     // if nothing can be parsed in primary, then the expression rule failed
@@ -456,8 +449,9 @@ export default class Parser {
   //                  ( IDENTIFIER ":" objectType) )? ")" 
   //                  "=>" ( objectType | "void" )statement
   // NOTE this is not a function call, it's an anonymous/unnamed function
-  private parseFunctionObject(): FunctionLangObject {
-    this.expect('FUNCTION', 'Expect \'fn\' for function object.');
+  private parseFunctionObject(): FunctionObjectExpr {
+    const keyword: Token =
+      this.expect('FUNCTION', 'Expect \'fn\' for function object.');
     this.expect('LEFT_PAREN', 'Expect \'(\' after \'fn\'.');
 
     let parameterTokens: Token[] = [];
@@ -494,8 +488,9 @@ export default class Parser {
     const start: Token = this.peek();
     try {
       const statement: Stmt = this.parseStatement();
-      return new FunctionLangObject(parameterTokens, parameterTypes,
-                                    returnType, statement);
+      const obj = new FunctionLangObject(parameterTokens, parameterTypes,
+                                         returnType, statement);
+      return new FunctionObjectExpr(obj, keyword);
     } catch (error:unknown) {
       throw new TokenRangeError('Expect statement as body for function.',
                                 start, this.peek());

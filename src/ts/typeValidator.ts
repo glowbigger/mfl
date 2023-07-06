@@ -2,7 +2,7 @@ import { Token, TokenType } from './token';
 import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, ExprVisitor, VariableExpr, AssignExpr, LogicalExpr, FunctionObjectExpr, CallExpr } from './expr'
 import { TokenError, ImplementationError, LangError } from './error';
 import { Callable, FunctionLOT, FunctionLangObject, LOTequal, LangObject, LangObjectType } from './types';
-import { BlankStmt, BlockStmt, BreakStmt, DeclarationStmt, ExpressionStmt, IfStmt, PrintStmt, Stmt, StmtVisitor, WhileStmt } from './stmt';
+import { BlankStmt, BlockStmt, BreakStmt, DeclarationStmt, ExpressionStmt, IfStmt, PrintStmt, ReturnStmt, Stmt, StmtVisitor, WhileStmt } from './stmt';
 import { TypeEnvironment } from './environment';
 
 export default class TypeValidator
@@ -12,9 +12,24 @@ export default class TypeValidator
 
   private currentEnvironment: TypeEnvironment;
 
+  // stacks to refer to functions being visited, the expected type is from the
+  // function definition before statements, the return type is from a return
+  // private returnTypeStack: LangObjectType[];
+  private expectedTypeStack: LangObjectType[];
+  private currentReturnType: LangObjectType | null;
+
+  // for type checking within control flow, knowing this is important
+  private withinIf: boolean;
+  private withinWhile: boolean;
+
   constructor(program: Stmt[]) {
     this.program = program;
     this.currentEnvironment = new TypeEnvironment(null);
+    // this.returnTypeStack = [];
+    this.expectedTypeStack = [];
+    this.withinIf = false;
+    this.withinWhile = false;
+    this.currentReturnType = null;
   }
 
   //======================================================================
@@ -109,11 +124,20 @@ export default class TypeValidator
   }
 
   visitIfStmt(stmt: IfStmt): void {
-    if (this.validateExpression(stmt.condition) !== 'BoolLOT') 
+    // if branch
+    this.withinIf = true;
+    const condition: LangObjectType = this.validateExpression(stmt.condition);
+    if (condition !== 'BoolLOT')
       throw new TokenError('If statement condition must be a bool.',
                            stmt.ifToken);
+
+    // then branch
     this.validateStatement(stmt.thenBranch);
     if (stmt.elseBranch !== null) this.validateStatement(stmt.elseBranch);
+
+    // NOTE can't put this after the if statement proper, because both branches
+    // might not have return statements
+    this.withinIf = false;
   }
 
   visitWhileStmt(stmt: WhileStmt): void {
@@ -125,6 +149,25 @@ export default class TypeValidator
 
   visitBreakStmt(stmt: BreakStmt): void {
     return;
+  }
+
+  visitReturnStmt(stmt: ReturnStmt): void {
+    if (this.expectedTypeStack.length === 0)
+      throw new TokenError('Cannot return outside of function.', stmt.keyword);
+
+    // the value given by 'statements' in 'fn (type) => type { statements }'
+    let returnType: LangObjectType;
+    if (stmt.value === null) returnType= 'nullReturn';
+    else returnType= this.validateExpression(stmt.value);
+
+    // if not within if or while, set the returnType if it has not been set
+    console.log(this.expectedTypeStack);
+    if (this.withinIf || this.withinWhile) return;
+    if (this.currentReturnType === null) {
+      this.currentReturnType = returnType;
+    } else {
+      throw new TokenError('Multiple return statements.', stmt.keyword);
+    }
   }
 
   //======================================================================
@@ -227,8 +270,10 @@ export default class TypeValidator
   visitVariableExpr(expr: VariableExpr): LangObjectType {
     const maybeType: LangObjectType | undefined
       = this.currentEnvironment.get(expr.identifier.lexeme);
+    
+    // NOTE must still check for undefined in case a validation error existed
     if (maybeType === undefined) {
-      throw new TokenError('Undefined identifier used.', expr.identifier);
+      throw new TokenError('Undefined variable.', expr.identifier);
     }
     return maybeType;
   }
@@ -239,8 +284,7 @@ export default class TypeValidator
     const variableType: LangObjectType | undefined 
       = this.currentEnvironment.get(variableName);
 
-    // TODO delete this after making the resolver, and assert variableType as
-    // LangObjectType
+    // NOTE must still check for undefined in case a validation error existed
     if (variableType === undefined){
       throw new TokenError('Undefined variable.', variableToken);
     }
@@ -273,9 +317,17 @@ export default class TypeValidator
 
   visitFunctionObjectExpr(expr: FunctionObjectExpr): LangObjectType {
     const functionObject: FunctionLangObject = expr.value;
-    
-    // save the outer environment
+
+    // save outer properties
     const outerEnvironment = this.currentEnvironment;
+    const outerWithinIf = this.withinIf;
+    this.withinIf = false;
+    const outerWithinWhile = this.withinWhile;
+    this.withinWhile = false;
+
+    // set the expecte type before evaluating the statements
+    this.expectedTypeStack.push(expr.value.returnType === null ?
+                                'nullReturn' : expr.value.returnType);
 
     // create the inner environment
     const innerEnvironment = new TypeEnvironment(outerEnvironment);
@@ -296,9 +348,27 @@ export default class TypeValidator
     } finally {
       // restore the outer environment regardless of any errors
       this.currentEnvironment = outerEnvironment;
+      this.withinIf = outerWithinIf;
+      this.withinWhile = outerWithinWhile;
     }
 
-    return functionObject.type;
+    // if the return type has not been set yet, then set it be void
+    if (this.currentReturnType === null) {
+      this.currentReturnType === 'nullReturn';
+    }
+
+    // check if the two types are the same
+    const expectedType: LangObjectType =
+      this.expectedTypeStack.pop() as LangObjectType;
+
+    if (!LOTequal(expectedType, this.currentReturnType as LangObjectType)) {
+      const msg = `Invalid return type.`;
+      this.currentReturnType = null;
+      throw new TokenError(msg, expr.keyword);
+    } else {
+      this.currentReturnType = null;
+      return functionObject.type;
+    }
   }
 
   visitCallExpr(expr: CallExpr): LangObjectType {

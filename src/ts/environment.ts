@@ -15,13 +15,14 @@ export abstract class Environment<R> {
     this.idMap.set(id, value);
   }
 
-  get(id: string): R {
+  get(id: string): R | undefined {
     const maybeValue: R | undefined = this.idMap.get(id);
     if (maybeValue !== undefined) return maybeValue;
     if (this.enclosing !== null) return this.enclosing.get(id);
 
     // this error is to be transformed into a LangError by the caller
-    throw new Error(`Undefined variable \'${id}\'.`);
+    // throw new Error(`Undefined variable \'${id}\'.`);
+    return undefined;
   }
 
   assign(id: string, value: R): void {
