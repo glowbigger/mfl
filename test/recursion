@@ -18,3 +18,15 @@ while (i < 20) {
   print fib(i);
   i = i + 1;
 }
+
+// a recursive function returned by a function
+let returnRec = fn () => (num) => num {
+  let rec = fn (n: num) => num {
+    print n;
+    if n == 1 then return 1;
+    return rec(n - 1);  
+  };
+  return rec;
+};
+
+returnRec()(5);

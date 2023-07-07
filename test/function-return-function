@@ -6,17 +6,22 @@ let returnAdder = fn () => () => num {
   };
 };
 
-let adder = returnAdder();
-print adder(); // 1
+// this adder has its own counter variable
+let adder1 = returnAdder();
+print adder1(); // 1
+print adder1(); // 2
+print adder1(); // 3
 
-let adder = returnAdder();
-print adder(); // 1
-print adder(); // 2
-
+// this adder has its own counter variable
 let adder2 = returnAdder();
-
 print adder2(); // 1
 print adder2(); // 2
-print adder2(); // 3
 
-print adder(); // 3
+// modifying adder2's counter won't affect adder1's counter
+print adder1(); // 3
+
+// this adder has its own counter variable that is not bound to a variable
+print returnAdder()(); // 1
+
+// so the counter is not permanent
+print returnAdder()(); // 1

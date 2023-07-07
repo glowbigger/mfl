@@ -1,10 +1,11 @@
 // a wrapper for a map to look up values associated with variable ids
 
+import { ImplementationError } from "./error";
 import { LangObject, LangObjectType } from "./types";
 
 export abstract class Environment<R> {
   private idMap: Map<string, R>; 
-  private readonly enclosing: Environment<R> | null;
+  readonly enclosing: Environment<R> | null;
 
   constructor(enclosing: Environment<R> | null) {
     this.enclosing = enclosing;
@@ -38,6 +39,39 @@ export abstract class Environment<R> {
 
     // this error is to be transformed into a LangError by the caller
     throw Error('Undefined variable.');
+  }
+
+  // NOTE the following three methods are only used in LOEnvironment, but 
+  // typescript thinks LOEnvironment and Environment<LangObject> are different
+
+  // get the variable at the environment the given distance away
+  getAt(distance: number, identifier: string): R {
+    const maybeValue: R | undefined
+      = this.ancestor(distance).idMap.get(identifier);
+    if (maybeValue === undefined) {
+      throw new ImplementationError(
+        `Incorrect distance given for ${identifier}.`);
+    }
+    return maybeValue;
+  }
+
+  // assign the variable at the environment the given distance away
+  assignAt(distance: number, identifier: string, value: R): void {
+    this.ancestor(distance).idMap.set(identifier, value);
+  }
+
+  // get the environment the given distance away
+  ancestor(distance: number): Environment<R> {
+    let environment: Environment<R> = this;
+    
+    for (let i = 0; i < distance; i++) {
+      if (environment.enclosing === null)
+        throw new ImplementationError(
+          'Given distance to interpreter ancestor function is too high.');
+      environment = environment.enclosing;
+    }
+
+    return environment;
   }
 }
 

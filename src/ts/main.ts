@@ -5,6 +5,7 @@ import Parser from './parser';
 import TypeValidator from './typeValidator';
 import Interpreter from './interpreter';
 import { Stmt } from './stmt';
+import Resolver from './resolver';
 
 /**
  * the main method, runs a given file or, if no arguments are given,
@@ -77,7 +78,10 @@ function run(source: string): void {
     return;
   }
 
-  // resolving (should come before type validation)
+  // resolving
+  const interpreter = new Interpreter(program);
+  const resolver = new Resolver(interpreter);
+  resolver.resolveProgram(program);
 
   // type checking
   const typeValidator = new TypeValidator(program);
@@ -98,7 +102,6 @@ function run(source: string): void {
   }
   
   // interpreting
-  const interpreter = new Interpreter(program);
   try {
     console.log(interpreter.interpret());
   } catch(errors: unknown) {

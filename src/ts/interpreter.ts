@@ -26,16 +26,22 @@ export default class Interpreter
   // environment as a parameter which is the environment for that statement
   private currentEnvironment: LOEnvironment;
 
+  private globalEnvironment: LOEnvironment;
+
   // a function call might set its arguments to be a new environment, 
   // if this variable is not null, then a function call was just made
   // NOTE this is only set by FunctionLangObject
   functionEnvironment: LOEnvironment | null;
+
+  private localVariableDistances: Map<Expr, number>;
   
   constructor(program: Stmt[]) {
     this.program = program;
     this.printedLines = [];
-    this.currentEnvironment = new LOEnvironment(null);
+    this.globalEnvironment = new LOEnvironment(null);
+    this.currentEnvironment = this.globalEnvironment;
     this.functionEnvironment = null;
+    this.localVariableDistances = new Map<Expr, number>();
   }
 
   // interprets the program and returns the possible printed output
@@ -266,28 +272,43 @@ export default class Interpreter
   }
 
   visitVariableExpr(expr: VariableExpr): LangObject {
-    const value: LangObject | undefined
-      = this.currentEnvironment.get(expr.identifier.lexeme);
+    // NOTE OLD
+    // const value: LangObject | undefined
+    //   = this.currentEnvironment.get(expr.identifier.lexeme);
 
-    // this should never happen
-    if (value === undefined) {
-      throw new TokenError('Undefined variable.', expr.identifier);
-    }
-    return value;
+    // // this should never happen
+    // if (value === undefined) {
+    //   throw new TokenError('Undefined variable.', expr.identifier);
+    // }
+    //
+    // return value;
+
+    return this.lookupVariable(expr.identifier.lexeme, expr);
   }
 
   visitAssignExpr(expr: AssignExpr): LangObject {
-    const variable: string = expr.variableIdentifier.lexeme;
+    const identifier: string = expr.variableIdentifier.lexeme;
     const value: LangObject = this.evaluate(expr.value);
-    try {
-      this.currentEnvironment.assign(variable, value);
-      return value;
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        throw new TokenError(error.message, expr.variableIdentifier);
-      }
-      throw new ImplementationError('Unable to assign to environment.');
+
+    const distance: number | undefined = this.localVariableDistances.get(expr);
+    if (distance !== undefined) {
+      this.currentEnvironment.assignAt(distance, identifier, value);    
+    } else {
+      this.globalEnvironment.assign(identifier, value);
     }
+
+    return value;
+
+    // NOTE old
+    // try {
+    //   this.currentEnvironment.assign(variable, value);
+    //   return value;
+    // } catch (error: unknown) {
+    //   if (error instanceof Error) {
+    //     throw new TokenError(error.message, expr.variableIdentifier);
+    //   }
+    //   throw new ImplementationError('Unable to assign to environment.');
+    // }
   }
 
   visitLogicalExpr(expr: LogicalExpr): LangObject {
@@ -342,4 +363,30 @@ export default class Interpreter
     // if it's a string, just return it
     return object;
   }
+
+  private lookupVariable(identifier: string, expr: Expr): LangObject {
+    const distance: number | undefined = this.localVariableDistances.get(expr);
+
+    if (distance !== undefined) {
+      // local variables
+      return this.currentEnvironment.getAt(distance, identifier);
+    } else {
+      // global variables
+      const maybeValue: LangObject | undefined
+        = this.globalEnvironment.get(identifier);
+      if (maybeValue === undefined)
+        throw new ImplementationError(
+          `Couldn\'t find distance for ${identifier}.`);
+      return maybeValue;
+    }
+  }
+
+  //======================================================================
+  // PUBLIC
+  //======================================================================
+
+  resolve(expr: Expr, depth: number): void {
+    this.localVariableDistances.set(expr, depth);
+  }
+
 }
