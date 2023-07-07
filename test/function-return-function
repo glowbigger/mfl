@@ -7,12 +7,16 @@ let returnAdder = fn () => () => num {
 };
 
 let adder = returnAdder();
-print adder();
-print adder();
-// doesn't work, ends up modifying adder's counter
-let adder2 = returnAdder();
-print adder();
+print adder(); // 1
 
-print adder2();
-print adder2();
-print adder2();
+let adder = returnAdder();
+print adder(); // 1
+print adder(); // 2
+
+let adder2 = returnAdder();
+
+print adder2(); // 1
+print adder2(); // 2
+print adder2(); // 3
+
+print adder(); // 3

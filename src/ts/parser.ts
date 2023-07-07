@@ -9,8 +9,7 @@ import { Expr,
          LogicalExpr,
          FunctionObjectExpr,
          CallExpr} from './expr'
-import { ImplementationError,
-         LangError,
+import { LangError,
          TokenError,
          TokenRangeError } from './error';
 import { Stmt,
@@ -283,9 +282,8 @@ export default class Parser {
     // return type
     if (this.match('VOID')) {
       this.consume();
-      returnType = null;
-    }
-    else {
+      returnType = 'nullReturn';
+    } else {
       returnType = this.parseObjectType();
     }
 
@@ -480,7 +478,7 @@ export default class Parser {
 
     // return type and statement
     this.expect('RIGHTARROW', 'Expect \'=>\' after parameters.');
-    let returnType: LangObjectType | null = null;
+    let returnType: LangObjectType = 'nullReturn';
     if (this.match('VOID')) this.consume();
     else returnType = this.parseObjectType();
 
@@ -488,9 +486,8 @@ export default class Parser {
     const start: Token = this.peek();
     try {
       const statement: Stmt = this.parseStatement();
-      const obj = new FunctionLangObject(parameterTokens, parameterTypes,
-                                         returnType, statement);
-      return new FunctionObjectExpr(obj, keyword);
+      return new FunctionObjectExpr(parameterTokens, parameterTypes,
+                                    returnType, statement, keyword);
     } catch (error:unknown) {
       throw new TokenRangeError('Expect statement as body for function.',
                                 start, this.peek());

@@ -25,11 +25,17 @@ export default class Interpreter
   // NOTE the alternative is to have each visit statement method take an
   // environment as a parameter which is the environment for that statement
   private currentEnvironment: LOEnvironment;
+
+  // a function call might set its arguments to be a new environment, 
+  // if this variable is not null, then a function call was just made
+  // NOTE this is only set by FunctionLangObject
+  functionEnvironment: LOEnvironment | null;
   
   constructor(program: Stmt[]) {
     this.program = program;
     this.printedLines = [];
     this.currentEnvironment = new LOEnvironment(null);
+    this.functionEnvironment = null;
   }
 
   // interprets the program and returns the possible printed output
@@ -46,36 +52,25 @@ export default class Interpreter
     return(expr.accept(this));
   }
 
-  execute(stmt: Stmt, innerEnvironment: LOEnvironment | null = null): void {
+  execute(stmt: Stmt): void {
     // if an environment is provided, then execute the statement using it
-    if (innerEnvironment !== null) {
+    if (this.functionEnvironment !== null) {
       // save the outer environment to restore it later
       const outerEnvironment: LOEnvironment = this.currentEnvironment;
 
-      this.currentEnvironment = innerEnvironment;
+      // switch environments and reset the function environment to be null
+      this.currentEnvironment = this.functionEnvironment;
+      this.functionEnvironment = null;
+
+      // NOTE try doesn't matter here, only the finally is used to restore the
+      // outer environment regardless of any errors
       try {
         stmt.accept(this);
       } finally {
-        // restore the outer environment regardless of any errors
         this.currentEnvironment = outerEnvironment;
       }
     } else {
       stmt.accept(this);
-    }
-  }
-
-  executeBlockStatement(stmt: BlockStmt, blockEnvironment: LOEnvironment): void {
-    // save the outer environment to restore it later
-    const outerEnvironment: LOEnvironment = this.currentEnvironment;
-
-    for (const statement of stmt.statements) {
-      this.currentEnvironment = blockEnvironment;
-      try {
-        this.execute(statement);
-      } finally {
-        // restore the outer environment regardless of any errors
-        this.currentEnvironment = outerEnvironment;
-      }
     }
   }
 
@@ -119,9 +114,29 @@ export default class Interpreter
   }
 
   visitBlockStmt(stmt: BlockStmt): void {
-    // send a copy of the current environment to be the inner environment of the
-    // block; the inner block might get different variables declared inside
-    this.executeBlockStatement(stmt, new LOEnvironment(this.currentEnvironment));
+    // save the outer environment to restore it later
+    const outerEnvironment: LOEnvironment = this.currentEnvironment;
+
+    // create the inner blank environment that has the outer one as its parent
+    let innerEnvironment: LOEnvironment;
+
+    // if the block follows a function call, then the environment for the block
+    // was already created with the function parameters
+    if (this.functionEnvironment !== null) {
+      innerEnvironment = this.functionEnvironment;
+      this.functionEnvironment = null;
+    } else innerEnvironment = new LOEnvironment(outerEnvironment);
+
+    // switch environments and execute the statements with it
+    this.currentEnvironment = new LOEnvironment(innerEnvironment);
+    try {
+      for (const statement of stmt.statements) {
+        this.execute(statement);
+      }
+    } finally {
+      // restore the outer environment regardless of any errors
+      this.currentEnvironment = outerEnvironment;
+    }
   }
 
   visitIfStmt(stmt: IfStmt): void {
@@ -291,21 +306,12 @@ export default class Interpreter
   }
 
   visitFunctionObjectExpr(expr: FunctionObjectExpr): LangObject {
-    // set the closure (surrounding environment) of the function exactly once
-    // if (expr.value.closure === null)
-    expr.value.closure = this.currentEnvironment;
-    // console.log('new closure set for');
-    // console.log(expr.value);
-    // console.log('closure is');
-    // console.log(this.currentEnvironment);
-
-    return expr.value;
+    return new FunctionLangObject(expr.parameterTokens, expr.parameterTypes,
+                                  expr.returnType, expr.statement,
+                                  this.currentEnvironment);
   }
 
   visitCallExpr(expr: CallExpr): LangObject {
-    // console.log('visiting call expression');
-    // console.log(expr.callee);
-
     const callee: Callable = this.evaluate(expr.callee) as Callable;
 
     let args: LangObject[] = [];

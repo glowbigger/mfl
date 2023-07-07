@@ -1,7 +1,7 @@
 import { Token, TokenType } from './token';
 import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, ExprVisitor, VariableExpr, AssignExpr, LogicalExpr, FunctionObjectExpr, CallExpr } from './expr'
 import { TokenError, ImplementationError, LangError } from './error';
-import { FunctionLOT, FunctionLangObject, LOTequal, LangObjectType } from './types';
+import { FunctionLOT, LOTequal, LangObjectType } from './types';
 import { BlankStmt, BlockStmt, BreakStmt, DeclarationStmt, ExpressionStmt, IfStmt, PrintStmt, ReturnStmt, Stmt, StmtVisitor, WhileStmt } from './stmt';
 import { TypeEnvironment } from './environment';
 
@@ -93,7 +93,8 @@ export default class TypeValidator
     // check if the initial value is a function
     if (initialValue instanceof FunctionObjectExpr) {
       this.currentEnvironment.define(stmt.identifier.lexeme,
-                                     initialValue.value.type);
+                                     new FunctionLOT(initialValue.parameterTypes,
+                                                     initialValue.returnType));
     }
 
     // the left type is the hinted type, the right type is the declared one
@@ -165,6 +166,9 @@ export default class TypeValidator
   }
 
   visitBreakStmt(stmt: BreakStmt): void {
+    if (!this.withinIf || !this.withinWhile)
+      throw new TokenError('Cannot break outside of an if or while statement.',
+                           stmt.breakToken);
     return;
   }
 
@@ -332,8 +336,6 @@ export default class TypeValidator
   }
 
   visitFunctionObjectExpr(expr: FunctionObjectExpr): LangObjectType {
-    const functionObject: FunctionLangObject = expr.value;
-
     // save outer properties
     const outerEnvironment = this.currentEnvironment;
     const outerWithinIf = this.withinIf;
@@ -346,16 +348,16 @@ export default class TypeValidator
     this.currentReturnType = null;
 
     // set the expect type before evaluating the statements
-    this.expectedTypeStack.push(expr.value.returnType === null ?
-                                'nullReturn' : expr.value.returnType);
+    this.expectedTypeStack.push(expr.returnType === null ?
+                                'nullReturn' : expr.returnType);
 
     // create the inner environment
     const innerEnvironment = new TypeEnvironment(outerEnvironment);
 
     // get each parameter name and type and add it to the environment
-    for (const index in functionObject.parameterTokens) {
-      const id: string = functionObject.parameterTokens[index].lexeme;
-      const type: LangObjectType = functionObject.parameterTypes[index];
+    for (const index in expr.parameterTokens) {
+      const id: string = expr.parameterTokens[index].lexeme;
+      const type: LangObjectType = expr.parameterTypes[index];
       innerEnvironment.define(id, type);
     }
 
@@ -365,7 +367,7 @@ export default class TypeValidator
     this.currentEnvironment = innerEnvironment;
 
     try {
-      this.validateStatement(functionObject.statement);
+      this.validateStatement(expr.statement);
     } finally {
       // restore the outer environment regardless of any errors
       this.currentEnvironment = outerEnvironment;
@@ -393,7 +395,7 @@ export default class TypeValidator
       this.withinWhile = outerWithinWhile;
       this.currentReturnType = outerReturnType;
 
-      return functionObject.type;
+      return new FunctionLOT(expr.parameterTypes, expr.returnType);
     }
   }
 

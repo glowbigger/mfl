@@ -1,5 +1,6 @@
+import { Stmt } from './stmt';
 import { Token } from './token';
-import { FunctionLangObject, TokenValueType } from './types';
+import { LangObjectType, TokenValueType } from './types';
 
 export interface ExprVisitor<R> {
   visitAssignExpr(expr: AssignExpr): R;
@@ -67,12 +68,19 @@ export class CallExpr extends Expr {
 }
 
 export class FunctionObjectExpr extends Expr {
-  readonly value: FunctionLangObject;
+  readonly parameterTokens: Token[]; 
+  readonly parameterTypes: LangObjectType[];
+  readonly returnType: LangObjectType;
+  readonly statement: Stmt;
   readonly keyword: Token;
 
-  constructor(value: FunctionLangObject, keyword: Token) {
+  constructor(parameterTokens: Token[], parameterTypes: LangObjectType[],
+              returnType: LangObjectType, statement: Stmt, keyword: Token) {
     super();
-    this.value = value;
+    this.parameterTokens = parameterTokens;
+    this.parameterTypes = parameterTypes;
+    this.returnType = returnType;
+    this.statement = statement;
     this.keyword = keyword;
   }
 

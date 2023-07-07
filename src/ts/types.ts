@@ -3,7 +3,7 @@
 import { Environment, LOEnvironment, TypeEnvironment } from "./environment";
 import { ImplementationError } from "./error";
 import Interpreter from "./interpreter";
-import { Stmt } from "./stmt";
+import { BlockStmt, Stmt } from "./stmt";
 import { Token } from "./token";
 import { ReturnIndicator } from "./indicator";
 
@@ -78,23 +78,24 @@ export interface Callable {
 export class FunctionLangObject implements Callable {
   readonly parameterTokens: Token[]; 
   readonly parameterTypes: LangObjectType[];
-  readonly returnType: LangObjectType | null;
+  readonly returnType: LangObjectType;
   readonly statement: Stmt;
-  // the object can determine its own type
-  readonly type: FunctionLOT;
 
-  // the closure will be set by the interpreter, but the object is first made
-  // during the parsing stage, so this can't go in the constructor
-  closure: LOEnvironment | null;
+  // the type of the object, not passed to the constructor
+  readonly type: FunctionLOT;
+  readonly closure: LOEnvironment;
 
   constructor(parameterTokens: Token[], parameterTypes: LangObjectType[], 
-              returnType: LangObjectType | null, statement: Stmt) {
+              returnType: LangObjectType, statement: Stmt,
+              closure: LOEnvironment) {
     this.parameterTokens = parameterTokens;
     this.parameterTypes = parameterTypes;
     this.returnType = returnType;
     this.statement = statement;
+    this.closure = closure;
+
+    // create and set the type
     this.type = new FunctionLOT(parameterTypes, returnType);
-    this.closure = null;
   }
 
   toString() {
@@ -104,8 +105,8 @@ export class FunctionLangObject implements Callable {
   call(interpreter: Interpreter, args: LangObject[]): LangObject | null {
     // create the inner environment, make sure it exists
     if (this.closure == null)
-      // FIXME if a function is returned from a function it has no closure
       throw new ImplementationError('Function called with no closure set.');
+
     const innerEnvironment: LOEnvironment = new LOEnvironment(this.closure);
 
     // define the arguments in the inner environment
@@ -114,8 +115,16 @@ export class FunctionLangObject implements Callable {
       innerEnvironment.define(id, args[i]);
     }
 
+    // provide the environment with the function parameter
+    interpreter.functionEnvironment = innerEnvironment;
+
     try {
-      interpreter.execute(this.statement, innerEnvironment);
+      // check if the next statement is a block statement or a normal one to
+      // avoid a redundant empty environment around a block statment
+      if (this.statement instanceof BlockStmt)
+        interpreter.visitBlockStmt(this.statement);
+      else
+        interpreter.execute(this.statement);
     } catch (returnOrError: unknown) {
       // return was thrown
       if (returnOrError instanceof ReturnIndicator) return returnOrError.value;

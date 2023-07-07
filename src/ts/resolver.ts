@@ -2,8 +2,6 @@
  * the resolver checks that:
  * each variable resolves to the same one, no matter where and
  * when it is called
- * undefined variables are not called
- * return and break statements are called properly
  * variables are used
  * variables are not defined to be their own value
  */
@@ -22,6 +20,7 @@ import { StmtVisitor } from "./stmt";
 //  //======================================================================
 //  // Resolving methods
 //  //======================================================================
+
 
 
 //}
