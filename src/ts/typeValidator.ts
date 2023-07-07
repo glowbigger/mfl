@@ -1,7 +1,7 @@
 import { Token, TokenType } from './token';
 import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, ExprVisitor, VariableExpr, AssignExpr, LogicalExpr, FunctionObjectExpr, CallExpr } from './expr'
 import { TokenError, ImplementationError, LangError } from './error';
-import { Callable, FunctionLOT, FunctionLangObject, LOTequal, LangObject, LangObjectType } from './types';
+import { FunctionLOT, FunctionLangObject, LOTequal, LangObjectType } from './types';
 import { BlankStmt, BlockStmt, BreakStmt, DeclarationStmt, ExpressionStmt, IfStmt, PrintStmt, ReturnStmt, Stmt, StmtVisitor, WhileStmt } from './stmt';
 import { TypeEnvironment } from './environment';
 
@@ -81,10 +81,26 @@ export default class TypeValidator
   }
 
   visitDeclarationStmt(stmt: DeclarationStmt): void {
-    const leftType: LangObjectType | null = stmt.type;
-    const rightType: LangObjectType = this.validateExpression(stmt.initialValue);
+    let initialValue: Expr = stmt.initialValue;
 
-    // if the left type has a type hint, check the two types
+    // strip any unnecessary parentheses
+    while (initialValue instanceof GroupingExpr) {
+      // NOTE have to work around typescript assertion system
+      const value: GroupingExpr = initialValue;
+      initialValue = value.expression;
+    }
+
+    // check if the initial value is a function
+    if (initialValue instanceof FunctionObjectExpr) {
+      this.currentEnvironment.define(stmt.identifier.lexeme,
+                                     initialValue.value.type);
+    }
+
+    // the left type is the hinted type, the right type is the declared one
+    const leftType: LangObjectType | null = stmt.type;
+    const rightType: LangObjectType = this.validateExpression(initialValue);
+
+    // if a type hint exists, check the two types
     if (leftType !== null) {
       // function types use their own method
       if (leftType instanceof FunctionLOT 
@@ -99,6 +115,7 @@ export default class TypeValidator
       }
     }
 
+    // NOTE functions are just redefined
     this.currentEnvironment.define(stmt.identifier.lexeme, rightType);
   }
 

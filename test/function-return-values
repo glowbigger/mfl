@@ -1,0 +1,12 @@
+let return3 = fn () => num {
+  let nested = fn () => num { return 2; };
+  return 3;
+};
+
+let add = fn (x: num, y: num) => num {
+  return x + y;
+};
+
+print return3();
+print add(1, 2);
+print add;

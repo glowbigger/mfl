@@ -5,8 +5,9 @@ import { ImplementationError } from "./error";
 import Interpreter from "./interpreter";
 import { Stmt } from "./stmt";
 import { Token } from "./token";
+import { ReturnIndicator } from "./indicator";
 
-// have no value, indicated by null
+// no value returns, indicated by null
 export type TokenValueType = number | string | boolean | null;
 
 // the type of an object within the language (LOT = Language Object Type)
@@ -103,6 +104,7 @@ export class FunctionLangObject implements Callable {
   call(interpreter: Interpreter, args: LangObject[]): LangObject | null {
     // create the inner environment, make sure it exists
     if (this.closure == null)
+      // FIXME if a function is returned from a function it has no closure
       throw new ImplementationError('Function called with no closure set.');
     const innerEnvironment: LOEnvironment = new LOEnvironment(this.closure);
 
@@ -112,7 +114,17 @@ export class FunctionLangObject implements Callable {
       innerEnvironment.define(id, args[i]);
     }
 
-    interpreter.execute(this.statement, innerEnvironment);
+    try {
+      interpreter.execute(this.statement, innerEnvironment);
+    } catch (returnOrError: unknown) {
+      // return was thrown
+      if (returnOrError instanceof ReturnIndicator) return returnOrError.value;
+
+      // error
+      throw returnOrError;
+    }
+
+    // if no value was returned with no errors, then the function was a void
     return null;
   }
 }

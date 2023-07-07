@@ -10,9 +10,7 @@ import { Stmt, ExpressionStmt, PrintStmt, BlankStmt, StmtVisitor,
         BreakStmt,
         ReturnStmt} from './stmt';
 import { LOEnvironment } from './environment';
-
-// indicates a break has been called inside a loop 
-class BreakIndicator { }
+import { BreakIndicator, ReturnIndicator } from "./indicator";
 
 export default class Interpreter 
   implements ExprVisitor<LangObject>, StmtVisitor<void> {
@@ -49,10 +47,11 @@ export default class Interpreter
   }
 
   execute(stmt: Stmt, innerEnvironment: LOEnvironment | null = null): void {
-    // save the outer environment to restore it later
-    const outerEnvironment: LOEnvironment = this.currentEnvironment;
-
+    // if an environment is provided, then execute the statement using it
     if (innerEnvironment !== null) {
+      // save the outer environment to restore it later
+      const outerEnvironment: LOEnvironment = this.currentEnvironment;
+
       this.currentEnvironment = innerEnvironment;
       try {
         stmt.accept(this);
@@ -108,10 +107,8 @@ export default class Interpreter
     const id: string = stmt.identifier.lexeme;
 
     try {
-      // functions need closures set when they are declared
-      if (value instanceof FunctionLangObject)
-        value.closure = this.currentEnvironment;
-
+      // NOTE functions shouldn't have their closures set here, because the
+      // environment might be wrong and return statements can return functions
       this.currentEnvironment.define(id, value);
     } catch (error: unknown) {
       if (error instanceof Error) {
@@ -149,7 +146,9 @@ export default class Interpreter
   }
 
   visitReturnStmt(stmt: ReturnStmt): void {
-    throw new ImplementationError('Not implemented yet');
+    let returnValue: LangObject | null = null;
+    if (stmt.value !== null) returnValue = this.evaluate(stmt.value);
+    throw new ReturnIndicator(returnValue);
   }
 
   //======================================================================
@@ -292,10 +291,21 @@ export default class Interpreter
   }
 
   visitFunctionObjectExpr(expr: FunctionObjectExpr): LangObject {
+    // set the closure (surrounding environment) of the function exactly once
+    // if (expr.value.closure === null)
+    expr.value.closure = this.currentEnvironment;
+    // console.log('new closure set for');
+    // console.log(expr.value);
+    // console.log('closure is');
+    // console.log(this.currentEnvironment);
+
     return expr.value;
   }
 
   visitCallExpr(expr: CallExpr): LangObject {
+    // console.log('visiting call expression');
+    // console.log(expr.callee);
+
     const callee: Callable = this.evaluate(expr.callee) as Callable;
 
     let args: LangObject[] = [];
@@ -303,7 +313,8 @@ export default class Interpreter
       args.push(this.evaluate(arg));
     }
 
-    return callee.call(this, args);
+    const returnValue = callee.call(this, args);
+    return returnValue;
   }
 
   //======================================================================

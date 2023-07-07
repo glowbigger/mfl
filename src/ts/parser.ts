@@ -138,7 +138,7 @@ export default class Parser {
         break;
     }
 
-    this.expect('SEMICOLON', 'Semicolon expected at the end of a statement.');
+    this.expect('SEMICOLON', 'Semicolon expected before a new statement.');
     return statement;
   }
 

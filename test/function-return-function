@@ -1,0 +1,18 @@
+let returnAdder = fn () => () => num {
+  let counter = 0;
+  return fn () => num { 
+    counter = counter + 1;
+    return counter;
+  };
+};
+
+let adder = returnAdder();
+print adder();
+print adder();
+// doesn't work, ends up modifying adder's counter
+let adder2 = returnAdder();
+print adder();
+
+print adder2();
+print adder2();
+print adder2();
