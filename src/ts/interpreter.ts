@@ -1,6 +1,6 @@
 import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, 
-          ExprVisitor, VariableExpr, AssignExpr, LogicalExpr, FunctionObjectExpr, CallExpr, ArrayObjectExpr } from './expr'
-import { TokenError, ImplementationError } from './error';
+          ExprVisitor, VariableExpr, AssignExpr, LogicalExpr, FunctionObjectExpr, CallExpr, ArrayObjectExpr, ArrayAccessExpr } from './expr'
+import { TokenError, ImplementationError, TokenRangeError } from './error';
 import { ArrayLangObject, Callable, FunctionLangObject, LangObject } from './types';
 import { Stmt, ExpressionStmt, PrintStmt, BlankStmt, StmtVisitor,
         DeclarationStmt,
@@ -356,6 +356,25 @@ export default class Interpreter
     }
 
     return new ArrayLangObject(capacity, initialElements);
+  }
+
+  visitArrayAccessExpr(expr: ArrayAccessExpr): LangObject {
+    const index: number = this.evaluate(expr.index) as number;
+    const array: ArrayLangObject
+      = this.evaluate(expr.arrayExpr) as ArrayLangObject;
+
+    if (index < 0 || index > array.capacity - 1) {
+      throw new TokenRangeError('Index is out of range.',
+                                expr.leftBracket, expr.rightBracket);
+    }
+
+    // check if the object at the index is nonexistent / not set / null
+    const accessed: LangObject = array.elements[index];
+    if (accessed === null) 
+      throw new TokenRangeError('The specified position in the array is empty.',
+                                expr.leftBracket, expr.rightBracket);
+
+    return accessed;
   }
 
   //======================================================================

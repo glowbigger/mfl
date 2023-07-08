@@ -1,0 +1,16 @@
+// basic array of bools
+let array = [ true, true, false ];
+print array;
+
+// empty array
+let array = [ 0 str ];
+print array;
+
+// array of arrays
+let array: [ str ] = [ 'str' ];
+print array;
+
+// array of array of functions
+let fun = fn () => void print 'hi'; ;
+let array: [[ () => void ]] = [[ fun, fun ], [fun]];
+print array;

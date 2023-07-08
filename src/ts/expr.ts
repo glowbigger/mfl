@@ -3,6 +3,7 @@ import { Token } from './token';
 import { LangObjectType, TokenValue } from './types';
 
 export interface ExprVisitor<R> {
+  visitArrayAccessExpr(expr: ArrayAccessExpr): R;
   visitArrayObjectExpr(expr: ArrayObjectExpr): R;
   visitAssignExpr(expr: AssignExpr): R;
   visitBinaryExpr(expr: BinaryExpr): R;
@@ -17,6 +18,26 @@ export interface ExprVisitor<R> {
 
 export abstract class Expr {
   abstract accept<R>(visitor: ExprVisitor<R>): R;
+}
+
+export class ArrayAccessExpr extends Expr {
+  readonly arrayExpr: Expr;
+  readonly index: Expr;
+  readonly leftBracket: Token;
+  readonly rightBracket: Token;
+
+  constructor(arrayExpr: Expr, index: Expr, 
+              leftBracket: Token, rightBracket: Token) {
+    super();
+    this.arrayExpr = arrayExpr;
+    this.index = index;
+    this.leftBracket = leftBracket;
+    this.rightBracket = rightBracket;
+  }
+
+  accept<R>(visitor: ExprVisitor<R>): R {
+    return visitor.visitArrayAccessExpr(this);
+  }
 }
 
 export class ArrayObjectExpr extends Expr {

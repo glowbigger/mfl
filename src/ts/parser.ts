@@ -9,7 +9,8 @@ import { Expr,
          LogicalExpr,
          FunctionObjectExpr,
          CallExpr,
-         ArrayObjectExpr} from './expr'
+         ArrayObjectExpr,
+         ArrayAccessExpr} from './expr'
 import { LangError,
          TokenError,
          TokenRangeError } from './error';
@@ -386,37 +387,59 @@ export default class Parser {
       const right: Expr = this.parseUnary();
       return new UnaryExpr(operator, right);
     } else {
-      return this.parseCall();
+      return this.parseCallOrAccess();
     }
   }
 
-  // call           → primary ( "(" ( expression ( "," expression )* )? ")" )* ;
-  private parseCall(): Expr {
-    let calleeOrPrimary: Expr = this.parsePrimary();
+  // callOrAccess      → primary ( arrayAccess | call )* ;
+  private parseCallOrAccess(): Expr {
+    // the base, which can be built on, ie base -> base() -> base()[5] -> ...
+    let base: Expr = this.parsePrimary();
 
-    while (true) {
-      if (this.match('LEFT_PAREN')) {
-        this.consume();
-
-        // parse arguments
-        let args: Expr[] = [];
-        if (!this.match('RIGHT_PAREN')) {
-          do {
-            args.push(this.parseExpression());
-          } while (this.matchAndConsume('COMMA'));
-        }
-
-        // rparen kept for error reporting
-        const paren: Token = this.expect('RIGHT_PAREN',
-                                         'Expect \')\' after arguments.');
-
-        calleeOrPrimary = new CallExpr(calleeOrPrimary, paren, args);
-      } else {
-        break;
-      }
+    while (this.match('LEFT_PAREN', 'LEFT_BRACKET')) {
+      if (this.match('LEFT_PAREN'))
+        base = this.parseCall(base);
+      
+      if (this.match('LEFT_BRACKET'))
+        base = this.parseArrayAccess(base);
     }
 
-    return calleeOrPrimary;
+    return base;
+  }
+  
+  // old:
+  // call              → primary ( "(" ( expression ( "," expression )* )? ")" )* ;
+  // new: 
+  // call              → "(" ( expression ( "," expression)* )? ")" ;
+  private parseCall(base: Expr): CallExpr {
+    this.expect('LEFT_PAREN', 'Expect \'(\' for call.');
+
+    // parse arguments
+    let args: Expr[] = [];
+    if (!this.match('RIGHT_PAREN')) {
+      do {
+        args.push(this.parseExpression());
+      } while (this.matchAndConsume('COMMA'));
+    }
+
+    // rparen kept for error reporting
+    const paren: Token = this.expect('RIGHT_PAREN',
+                                     'Expect \')\' after arguments.');
+
+    return new CallExpr(base, paren, args);
+  }
+
+  // arrayAccess       → "[" expression "]" ;
+  private parseArrayAccess(base: Expr): ArrayAccessExpr {
+    const leftBracket: Token = 
+      this.expect('LEFT_BRACKET', 'Expect \'[\' for array access.');
+    
+    const index: Expr = this.parseExpression();
+
+    const rightBracket: Token = 
+      this.expect('RIGHT_BRACKET', 'Expect \']\' for array access.');
+
+    return new ArrayAccessExpr(base, index, leftBracket, rightBracket);
   }
 
   // primary           → NUMBER | STRING | "true" | "false" | functionObject |

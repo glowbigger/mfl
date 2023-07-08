@@ -1,5 +1,5 @@
 import { Token, TokenType } from './token';
-import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, ExprVisitor, VariableExpr, AssignExpr, LogicalExpr, FunctionObjectExpr, CallExpr, ArrayObjectExpr } from './expr'
+import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, ExprVisitor, VariableExpr, AssignExpr, LogicalExpr, FunctionObjectExpr, CallExpr, ArrayObjectExpr, ArrayAccessExpr } from './expr'
 import { TokenError, ImplementationError, LangError, TokenRangeError } from './error';
 import { ArrayLOT, ArrayLangObject, FunctionLOT, LOTequal, LangObjectType } from './types';
 import { BlankStmt, BlockStmt, BreakStmt, DeclarationStmt, ExpressionStmt, IfStmt, PrintStmt, ReturnStmt, Stmt, StmtVisitor, WhileStmt } from './stmt';
@@ -446,6 +446,20 @@ export default class TypeValidator
     }
 
     return new ArrayLOT(firstElementType);
+  }
+
+  visitArrayAccessExpr(expr: ArrayAccessExpr): LangObjectType {
+    const indexType: LangObjectType = this.validateExpression(expr.index);
+    if (indexType !== 'NumberLOT')
+      throw new TokenRangeError('Expect index number.',
+                                expr.leftBracket, expr.rightBracket);
+
+    const arrayType: LangObjectType = this.validateExpression(expr.arrayExpr);
+    if (!(arrayType instanceof ArrayLOT))
+      throw new TokenRangeError('Only arrays can be accessed via [].',
+                                expr.leftBracket, expr.rightBracket);
+
+    return arrayType.innerType;
   }
 
   //======================================================================

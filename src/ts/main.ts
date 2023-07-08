@@ -6,6 +6,7 @@ import TypeValidator from './typeValidator';
 import Interpreter from './interpreter';
 import { Stmt } from './stmt';
 import Resolver from './resolver';
+import { LangError } from './error';
 
 /**
  * the main method, runs a given file or, if no arguments are given,
@@ -101,19 +102,16 @@ function run(source: string): void {
     return;
   }
   
-  // interpreting
+  // interpreting, only one error stops the program
   try {
     console.log(interpreter.interpret());
-  } catch(errors: unknown) {
-    if (Array.isArray(errors)) {
-      console.log('Runtime errors exist -');
-
-      for (const error of errors) {
-        console.log();
-        console.log(error.toString());
-      }
+  } catch(error: unknown) {
+    if (error instanceof LangError) {
+      console.log('Runtime error -');
+      console.log();
+      console.log(error.toString());
     } else {
-      console.log(errors);
+      console.log(error);
     }
     return;
   }

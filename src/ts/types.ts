@@ -45,7 +45,7 @@ export class FunctionLOT {
       if (!this.returnType.equals(other.returnType)) 
         return false;
     }
-    else if (other.returnType !== this.returnType) return false;
+    else if (!LOTequal(other.returnType, this.returnType)) return false;
 
     // check parameter types
     const thisNumParameters = this.parameters.length;
@@ -61,8 +61,8 @@ export class FunctionLOT {
           if (!(this.parameters[i] as FunctionLOT)
               .equals(other.parameters[i] as FunctionLOT))
             return false;
-        } else if (this.parameters[i] !== other.parameters[i]) return false;
-
+        } else if (!LOTequal(this.parameters[i], other.parameters[i]))
+          return false;
       }
     }
 
@@ -94,7 +94,7 @@ export class FunctionLangObject implements Callable {
   }
 
   toString() {
-    return `anonymous function object`;
+    return 'anonymous function object';
   }
 
   call(interpreter: Interpreter, args: LangObject[]): LangObject | null {
@@ -182,7 +182,8 @@ export interface Callable {
 }
 
 // returns whether two language object types are equal
-export function LOTequal(type1: LangObjectType, type2: LangObjectType): boolean {
+export function LOTequal(type1: LangObjectType | null,
+                         type2: LangObjectType | null): boolean {
   if (type1 instanceof ArrayLOT && type2 instanceof ArrayLOT) {
     return type1.equals(type2);
   }

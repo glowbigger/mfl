@@ -1,0 +1,28 @@
+// simple
+let primes = [2, 3, 5, 7, 11]; // 3
+print primes[1];
+
+// accessing an element in a multi-dimensional array
+let identity_matrix: [[ num ]] = [[ 1, 0 ], 
+                                  [ 0, 1 ]];
+print identity_matrix[1][1]; // 1
+
+// accessing an element in an array returned from a function
+let fun: () => [[ num ]] = fn () => [[ num ]] {
+  return [[ 0 ]];
+};
+print fun()[0];
+
+let get_3x3_identity_matrix: () => [[ num ]] =
+fn () => [[ num ]] {
+  let identity_matrix: [[ num ]] = [[ 1, 0, 0 ], 
+                                    [ 0, 1, 0 ],
+                                    [ 0, 0, 1 ]];
+  return identity_matrix;
+};
+print get_3x3_identity_matrix()[0][0]; // 1
+
+// calling a function in an array
+let arr: [ () => void ] = [ fn () => void { print 'hi0'; },
+                            fn () => void { print 'hi1'; } ];
+arr[1](); // hi1

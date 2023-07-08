@@ -33,8 +33,9 @@ comparison        → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term              → factor ( ( "-" | "+" ) factor )* ;
 factor            → unary ( ( "/" | "*" ) unary )* ;
 unary             → ( "!" | "-" ) unary | call ;
-call              → primary ( "(" ( expression ( "," expression)* )? ")" )* ;
-arrayCall         → primary "[" number "]" ;
+callOrAccess      → primary ( arrayAccess | call )* ;
+arrayAccess       → "[" expression "]" ;
+call              → "(" ( expression ( "," expression)* )? ")" ;
 primary           → NUMBER | STRING | "true" | "false" | functionObject |
                     arrayObject | IDENTIFIER | "(" expression ")" ;
 functionObject    → "fn" "(" ( ( IDENTIFIER ":" objectType "," )* 
@@ -43,3 +44,4 @@ functionObject    → "fn" "(" ( ( IDENTIFIER ":" objectType "," )*
 arrayObject       → filledArray | lengthArray ;
 filledArray       → "[" ( expression (( "," expression )* )? )? "]"
 lengthArray       → "[" expression objectType "]" ;
+

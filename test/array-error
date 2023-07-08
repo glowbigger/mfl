@@ -1,0 +1,8 @@
+let arr = [0, 1, 2, 3];
+
+// runtime errors
+//arr[-1];
+//arr[4];
+
+// type errors
+let arr: [ str ] = [0, 1, 2, 3];
