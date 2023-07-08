@@ -24,8 +24,9 @@ arrayType         → "[" objectType "]"
 // expressions
 
 expression        → assignment ;
-assignment        → IDENTIFIER "=" assignment
-                    | logic_or ;
+assignment        → IDENTIFIER "=" assignment |
+                    callOrAccess "=" assignment |
+                    logic_or ;
 logic_or          → logic_and ( "or" expression )* ;
 logic_and         → equality ( "and" expression )* ;
 equality          → comparison ( ( "!=" | "==" ) comparison )* ;
@@ -43,5 +44,4 @@ functionObject    → "fn" "(" ( ( IDENTIFIER ":" objectType "," )*
                     "=>" objectType statement
 arrayObject       → filledArray | lengthArray ;
 filledArray       → "[" ( expression (( "," expression )* )? )? "]"
-lengthArray       → "[" expression objectType "]" ;
-
+lengthArray       → "[" expression expression "]" ;

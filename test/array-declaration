@@ -2,8 +2,8 @@
 let array = [ true, true, false ];
 print array;
 
-// empty array
-let array = [ 0 str ];
+// empty array of string array type
+let array: [ str ] = [ 0 '' ];
 print array;
 
 // array of arrays

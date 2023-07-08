@@ -6,7 +6,7 @@
  */
 
 import { TokenError } from "./error";
-import { ArrayAccessExpr, ArrayObjectExpr, AssignExpr, BinaryExpr, CallExpr, Expr, ExprVisitor, FunctionObjectExpr, GroupingExpr, LiteralExpr, LogicalExpr, UnaryExpr, VariableExpr } from "./expr";
+import { ArrayAccessExpr, ArrayAssignExpr, ArrayObjectExpr, AssignExpr, BinaryExpr, CallExpr, Expr, ExprVisitor, FunctionObjectExpr, GroupingExpr, LiteralExpr, LogicalExpr, UnaryExpr, VariableExpr } from "./expr";
 import Interpreter from "./interpreter";
 import { BlankStmt, BlockStmt, BreakStmt, DeclarationStmt, ExpressionStmt, IfStmt, PrintStmt, ReturnStmt, Stmt, StmtVisitor, WhileStmt } from "./stmt";
 import { Token } from "./token";
@@ -144,10 +144,19 @@ export default class Resolver implements StmtVisitor<void>, ExprVisitor<void> {
     this.resolveExpression(expr.index);    
   }
 
+  visitArrayAssignExpr(expr: ArrayAssignExpr): void {
+    this.resolveExpression(expr.arrayAccessExpr);
+    this.resolveExpression(expr.assignmentValue);
+  }
+
   visitArrayObjectExpr(expr: ArrayObjectExpr): void {
     this.resolveExpression(expr.capacity);
-    for (const element of expr.initialElements)
-      this.resolveExpression(element);
+    if (Array.isArray(expr.elements)) {
+      for (const element of expr.elements)
+        this.resolveExpression(element);
+    } else {
+      this.resolveExpression(expr.elements);
+    }
   }
   
   visitBinaryExpr(expr: BinaryExpr): void {

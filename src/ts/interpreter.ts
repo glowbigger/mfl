@@ -1,5 +1,5 @@
 import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, 
-          ExprVisitor, VariableExpr, AssignExpr, LogicalExpr, FunctionObjectExpr, CallExpr, ArrayObjectExpr, ArrayAccessExpr } from './expr'
+          ExprVisitor, VariableExpr, AssignExpr, LogicalExpr, FunctionObjectExpr, CallExpr, ArrayObjectExpr, ArrayAccessExpr, ArrayAssignExpr } from './expr'
 import { TokenError, ImplementationError, TokenRangeError } from './error';
 import { ArrayLangObject, Callable, FunctionLangObject, LangObject } from './types';
 import { Stmt, ExpressionStmt, PrintStmt, BlankStmt, StmtVisitor,
@@ -348,14 +348,24 @@ export default class Interpreter
     // evaluate the capacity
     const capacity: number = this.evaluate(expr.capacity) as number;
 
-    // evaluate the initial elements
-    let initialElements: LangObject[] = [];
-    for (const initialElementExpression of expr.initialElements) {
-      const initialElement: LangObject = this.evaluate(initialElementExpression);
-      initialElements.push(initialElement);
+    let elements: LangObject[] = [];
+
+    if (Array.isArray(expr.elements)) {
+      // if the elements are all provided, then insert them all
+      elements = []
+      for (const elementExpression of expr.elements) {
+        const currentElement: LangObject = this.evaluate(elementExpression);
+        elements.push(currentElement);
+      }
+    } else {
+      // otherwise, insert the given element to fill the array
+      const givenElement = this.evaluate(expr.elements);
+      for (let i = 0; i < capacity; i++) {
+        elements.push(givenElement);
+      }
     }
 
-    return new ArrayLangObject(capacity, initialElements);
+    return new ArrayLangObject(capacity, elements);
   }
 
   visitArrayAccessExpr(expr: ArrayAccessExpr): LangObject {
@@ -375,6 +385,27 @@ export default class Interpreter
                                 expr.leftBracket, expr.rightBracket);
 
     return accessed;
+  }
+
+  visitArrayAssignExpr(expr: ArrayAssignExpr): LangObject {
+    const arrayExpr = expr.arrayAccessExpr.arrayExpr;
+    
+    // this part is idential to ArrayAccessExpr, except the value is not queried
+    const index: number = this.evaluate(expr.arrayAccessExpr.index) as number;
+    const arrayObject: ArrayLangObject
+      = this.evaluate(arrayExpr) as ArrayLangObject;
+
+    if (index < 0 || index > arrayObject.capacity - 1) {
+      throw new TokenRangeError('Index is out of range.',
+                                expr.arrayAccessExpr.leftBracket,
+                                expr.arrayAccessExpr.rightBracket);
+    }
+
+    // insert the value into the array
+    const value: LangObject = this.evaluate(expr.assignmentValue);
+    arrayObject.elements[index] = value;
+
+    return value;
   }
 
   //======================================================================

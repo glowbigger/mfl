@@ -1,0 +1,2 @@
+let fun = fn (x: str, x: num) => str return x; ; // invalid return type
+print fun('bye', 3); // 

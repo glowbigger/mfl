@@ -10,7 +10,8 @@ import { Expr,
          FunctionObjectExpr,
          CallExpr,
          ArrayObjectExpr,
-         ArrayAccessExpr} from './expr'
+         ArrayAccessExpr,
+         ArrayAssignExpr} from './expr'
 import { LangError,
          TokenError,
          TokenRangeError } from './error';
@@ -299,8 +300,9 @@ export default class Parser {
     return this.parseAssignment();
   }
 
-  // assignment          → IDENTIFIER "=" assignment
-  //                     | logic_or ;
+  // assignment          → callOrAccess "=" assignment
+  //                       IDENTIFIER "=" assignment
+  //                       | logic_or ;
   // NOTE the code does not follow the grammar exactly
   // NOTE as a reminder, an assignment is not a statement: a = (b = c), but it
   // almost always gets called as apart of an expression statement
@@ -314,10 +316,13 @@ export default class Parser {
       const equalsSign: Token = this.consume();
 
       if (expr instanceof VariableExpr) {
-        // NOTE the parseAssignemnt() can go outside the if too, error reporting
-        // will differ slightly, consider a statement like a + b = c;
         const value: Expr = this.parseAssignment();
         return new AssignExpr(expr.identifier, value);
+      }
+
+      if (expr instanceof ArrayAccessExpr) {
+        const value: Expr = this.parseAssignment();
+        return new ArrayAssignExpr(expr, value, equalsSign);
       }
 
       throw new TokenError('Trying to assign to invalid target.', equalsSign);
@@ -557,9 +562,7 @@ export default class Parser {
       const rightBracket = this.consume();
       const capacity: LiteralExpr = new LiteralExpr(1);
       const expressions: Expr[] = [ lengthOrFirstElement];
-      // the type cannot be determined at this point
-      const type = null;
-      return new ArrayObjectExpr(capacity, type, expressions, 
+      return new ArrayObjectExpr(capacity, expressions, 
                                  leftBracket, rightBracket);
     }
 
@@ -589,21 +592,18 @@ export default class Parser {
                                             'Expect right bracket.');
 
     const capacity = new LiteralExpr(elements.length);
-    // the type cannot be determined yet
-    const type = null;
-
-    return new ArrayObjectExpr(capacity, type, elements,
+    return new ArrayObjectExpr(capacity, elements,
                                leftBracket, rightBracket,);
   }
 
-  // lengthArray       → "[" expression objectType "]" ;
+  // lengthArray       → "[" expression expression "]" ;
   // NOTE this parses the rest of a length array after the first expression
   private parseLengthArray(leftBracket: Token,
                            expression: Expr): ArrayObjectExpr {
-    const objectType: LangObjectType = this.parseObjectType();
+    const object: Expr = this.parseExpression();
     const rightBracket: Token = this.expect('RIGHT_BRACKET',
                                             'Expect right bracket.');
-    return new ArrayObjectExpr(expression, new ArrayLOT(objectType), [],
+    return new ArrayObjectExpr(expression, object,
                                leftBracket, rightBracket);
   }
 

@@ -4,6 +4,7 @@ import { LangObjectType, TokenValue } from './types';
 
 export interface ExprVisitor<R> {
   visitArrayAccessExpr(expr: ArrayAccessExpr): R;
+  visitArrayAssignExpr(expr: ArrayAssignExpr): R;
   visitArrayObjectExpr(expr: ArrayObjectExpr): R;
   visitAssignExpr(expr: AssignExpr): R;
   visitBinaryExpr(expr: BinaryExpr): R;
@@ -40,19 +41,35 @@ export class ArrayAccessExpr extends Expr {
   }
 }
 
+export class ArrayAssignExpr extends Expr {
+  readonly arrayAccessExpr: ArrayAccessExpr;
+  readonly assignmentValue: Expr;
+  readonly equalityToken: Token;
+
+  constructor(arrayAccessExpr: ArrayAccessExpr, assignmentValue: Expr,
+              equalityToken: Token) {
+    super();
+    this.arrayAccessExpr = arrayAccessExpr;
+    this.assignmentValue = assignmentValue;
+    this.equalityToken = equalityToken;
+  }
+
+  accept<R>(visitor: ExprVisitor<R>): R {
+    return visitor.visitArrayAssignExpr(this);
+  }
+}
+
 export class ArrayObjectExpr extends Expr {
   readonly capacity: Expr;
-  readonly type: LangObjectType | null;
-  readonly initialElements: Expr[];
+  readonly elements: Expr[] | Expr;
   readonly leftBracket: Token;
   readonly rightBracket: Token;
 
-  constructor(capacity: Expr, type: LangObjectType | null, 
-              initialElements: Expr[], leftBracket: Token, rightBracket: Token) {
+  constructor(capacity: Expr, elements: Expr[] | Expr,
+              leftBracket: Token, rightBracket: Token) {
     super();
     this.capacity = capacity;
-    this.type = type;
-    this.initialElements = initialElements;
+    this.elements = elements;
     this.leftBracket = leftBracket;
     this.rightBracket = rightBracket;
   }

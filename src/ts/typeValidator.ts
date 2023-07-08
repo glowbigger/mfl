@@ -1,5 +1,5 @@
 import { Token, TokenType } from './token';
-import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, ExprVisitor, VariableExpr, AssignExpr, LogicalExpr, FunctionObjectExpr, CallExpr, ArrayObjectExpr, ArrayAccessExpr } from './expr'
+import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, ExprVisitor, VariableExpr, AssignExpr, LogicalExpr, FunctionObjectExpr, CallExpr, ArrayObjectExpr, ArrayAccessExpr, ArrayAssignExpr } from './expr'
 import { TokenError, ImplementationError, LangError, TokenRangeError } from './error';
 import { ArrayLOT, ArrayLangObject, FunctionLOT, LOTequal, LangObjectType } from './types';
 import { BlankStmt, BlockStmt, BreakStmt, DeclarationStmt, ExpressionStmt, IfStmt, PrintStmt, ReturnStmt, Stmt, StmtVisitor, WhileStmt } from './stmt';
@@ -426,26 +426,28 @@ export default class TypeValidator
     if (capacityType !== 'NumberLOT')
       throw new TokenRangeError('Given capacity must be a number.',
                                 expr.leftBracket, expr.rightBracket);
-
-    // if the array is of the form [ num type ], then the type is given
-    // TODO this is wrong, the type must be an array type with the
-    if (expr.type !== null) return expr.type;
+    
+    let type: LangObjectType;
 
     // if the array is filled with expressions, ie [5, 6], deduce the type and
     // make sure all elements of the array have the same type
-    let firstElementType: LangObjectType = 
-      this.validateExpression(expr.initialElements[0]);
+    if (Array.isArray(expr.elements)) {
+      type = this.validateExpression(expr.elements[0]);
 
-    // NOTE in this case the initial elements will fill up the whole array
-    for (const element of expr.initialElements) {
-      const currentElementType: LangObjectType
-        = this.validateExpression(element);
-      if (!LOTequal(firstElementType, currentElementType))
-        throw new TokenRangeError('Types must all be the same in an array',
-                                  expr.leftBracket, expr.rightBracket);
+      for (const element of expr.elements) {
+        const currentElementType: LangObjectType
+          = this.validateExpression(element);
+
+        if (!LOTequal(type, currentElementType))
+          throw new TokenRangeError('Types must all be the same in an array',
+            expr.leftBracket, expr.rightBracket);
+      }
+    } else {
+      // otherwise elements refers to only element, so validate and return it
+      type = this.validateExpression(expr.elements);
     }
 
-    return new ArrayLOT(firstElementType);
+    return new ArrayLOT(type);
   }
 
   visitArrayAccessExpr(expr: ArrayAccessExpr): LangObjectType {
@@ -460,6 +462,19 @@ export default class TypeValidator
                                 expr.leftBracket, expr.rightBracket);
 
     return arrayType.innerType;
+  }
+
+  visitArrayAssignExpr(expr: ArrayAssignExpr): LangObjectType {
+    const arrayType: LangObjectType
+      = this.validateExpression(expr.arrayAccessExpr);
+    const valueType: LangObjectType
+      = this.validateExpression(expr.assignmentValue);
+
+    if (!LOTequal(arrayType, valueType)) {
+      throw new TokenError('Types around = do not match', expr.equalityToken);
+    }
+
+    return valueType;
   }
 
   //======================================================================
