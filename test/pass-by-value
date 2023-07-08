@@ -1,0 +1,17 @@
+// all values are passed by value
+let x = 2;
+print x;
+let changer = fn (n: num) => void {
+  n = 1;
+  return;
+};
+changer(x);
+print x; // x is still 2
+
+let array = [1, 1];
+let changer = fn (arr: [ num ]) => void {
+  arr = [0, 0];
+  return;
+};
+changer(array);
+print array; // the array did not change

@@ -130,8 +130,11 @@ export default class TypeValidator
   }
 
   visitIfStmt(stmt: IfStmt): void {
-    // if branch
+    // remember whether the outer scope was within an if statement
+    const outerWithinIf = this.withinIf;
     this.withinIf = true;
+
+    // if branch
     const condition: LangObjectType = this.validateExpression(stmt.condition);
     if (condition !== 'BoolLOT')
       throw new TokenError('If statement condition must be a bool.',
@@ -141,18 +144,24 @@ export default class TypeValidator
     this.validateStatement(stmt.thenBranch);
     if (stmt.elseBranch !== null) this.validateStatement(stmt.elseBranch);
 
-    // NOTE can't put this after the if statement proper, because both branches
+    // revert the current within if state to what was remembered
+    // NOTE can't put this after the if branch proper, because both branches
     // might not have return statements
-    this.withinIf = false;
+    this.withinIf = outerWithinIf;
   }
 
   visitWhileStmt(stmt: WhileStmt): void {
+    // remember whether the outer scope was within a while statement
+    const outerWithinWhile = this.withinWhile;
     this.withinWhile = true;
+
     if (this.validateExpression(stmt.condition) !== 'BoolLOT') 
       throw new TokenError('While statement condition must be a bool.', 
                            stmt.whileToken);
     this.validateStatement(stmt.body);
-    this.withinWhile = false;
+
+    // revert the current within while state to what was remembered
+    this.withinWhile = outerWithinWhile;
   }
 
   visitBreakStmt(stmt: BreakStmt): void {
@@ -302,11 +311,7 @@ export default class TypeValidator
     const rightType: LangObjectType = this.validateExpression(expr.value);
     const leftType: LangObjectType = variableType;
 
-    // function types are checked using their own method
-    if (leftType instanceof FunctionLOT && rightType instanceof FunctionLOT) {
-      if (!leftType.equals(rightType)) 
-        throw new TokenError('Types do not match in assignment.', variableToken);
-    } else if (leftType !== rightType) {
+    if (!LOTequal(leftType, rightType)) {
       throw new TokenError('Types do not match in assignment.', variableToken);
     }
 
@@ -471,7 +476,8 @@ export default class TypeValidator
       = this.validateExpression(expr.assignmentValue);
 
     if (!LOTequal(arrayType, valueType)) {
-      throw new TokenError('Types around = do not match', expr.equalityToken);
+      throw new TokenError('Types do not match in assignment',
+                           expr.equalityToken);
     }
 
     return valueType;
