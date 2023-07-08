@@ -1,8 +1,9 @@
 import { Stmt } from './stmt';
 import { Token } from './token';
-import { LangObjectType, TokenValueType } from './types';
+import { LangObjectType, TokenValue } from './types';
 
 export interface ExprVisitor<R> {
+  visitArrayObjectExpr(expr: ArrayObjectExpr): R;
   visitAssignExpr(expr: AssignExpr): R;
   visitBinaryExpr(expr: BinaryExpr): R;
   visitCallExpr(expr: CallExpr): R;
@@ -16,6 +17,28 @@ export interface ExprVisitor<R> {
 
 export abstract class Expr {
   abstract accept<R>(visitor: ExprVisitor<R>): R;
+}
+
+export class ArrayObjectExpr extends Expr {
+  readonly capacity: Expr;
+  readonly type: LangObjectType | null;
+  readonly initialElements: Expr[];
+  readonly leftBracket: Token;
+  readonly rightBracket: Token;
+
+  constructor(capacity: Expr, type: LangObjectType | null, 
+              initialElements: Expr[], leftBracket: Token, rightBracket: Token) {
+    super();
+    this.capacity = capacity;
+    this.type = type;
+    this.initialElements = initialElements;
+    this.leftBracket = leftBracket;
+    this.rightBracket = rightBracket;
+  }
+
+  accept<R>(visitor: ExprVisitor<R>): R {
+    return visitor.visitArrayObjectExpr(this);
+  }
 }
 
 export class AssignExpr extends Expr {
@@ -120,9 +143,9 @@ export class LogicalExpr extends Expr {
 }
 
 export class LiteralExpr extends Expr {
-  readonly value: TokenValueType;
+  readonly value: TokenValue;
 
-  constructor(value: TokenValueType) {
+  constructor(value: TokenValue) {
     super();
     this.value = value;
   }

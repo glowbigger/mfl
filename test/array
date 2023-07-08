@@ -1,0 +1,3 @@
+let fun = fn () => void print 'hi'; ;
+let array: [[ () => void ]] = [[ fun, fun ], [fun]];
+print array;

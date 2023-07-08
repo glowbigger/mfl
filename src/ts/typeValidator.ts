@@ -1,7 +1,7 @@
 import { Token, TokenType } from './token';
-import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, ExprVisitor, VariableExpr, AssignExpr, LogicalExpr, FunctionObjectExpr, CallExpr } from './expr'
-import { TokenError, ImplementationError, LangError } from './error';
-import { FunctionLOT, LOTequal, LangObjectType } from './types';
+import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, ExprVisitor, VariableExpr, AssignExpr, LogicalExpr, FunctionObjectExpr, CallExpr, ArrayObjectExpr } from './expr'
+import { TokenError, ImplementationError, LangError, TokenRangeError } from './error';
+import { ArrayLOT, ArrayLangObject, FunctionLOT, LOTequal, LangObjectType } from './types';
 import { BlankStmt, BlockStmt, BreakStmt, DeclarationStmt, ExpressionStmt, IfStmt, PrintStmt, ReturnStmt, Stmt, StmtVisitor, WhileStmt } from './stmt';
 import { TypeEnvironment } from './environment';
 
@@ -102,19 +102,9 @@ export default class TypeValidator
     const rightType: LangObjectType = this.validateExpression(initialValue);
 
     // if a type hint exists, check the two types
-    if (leftType !== null) {
-      // function types use their own method
-      if (leftType instanceof FunctionLOT 
-          && rightType instanceof FunctionLOT) {
-        if (!leftType.equals(rightType)) 
-          throw new TokenError('Types do not match in declaration.',
-                               stmt.identifier);
-      // primitive types use ===
-      } else if (leftType !== rightType) {
+    if (leftType !== null && !LOTequal(leftType, rightType))
         throw new TokenError('Types do not match in declaration.',
                              stmt.identifier);
-      }
-    }
 
     // NOTE functions are just redefined
     this.currentEnvironment.define(stmt.identifier.lexeme, rightType);
@@ -428,6 +418,34 @@ export default class TypeValidator
 
     return ((maybeCallable.returnType == null) ? 
             'nullReturn' : maybeCallable.returnType);
+  }
+
+  visitArrayObjectExpr(expr: ArrayObjectExpr): LangObjectType {
+    // make sure that the given capacity is a number
+    const capacityType: LangObjectType = this.validateExpression(expr.capacity);
+    if (capacityType !== 'NumberLOT')
+      throw new TokenRangeError('Given capacity must be a number.',
+                                expr.leftBracket, expr.rightBracket);
+
+    // if the array is of the form [ num type ], then the type is given
+    // TODO this is wrong, the type must be an array type with the
+    if (expr.type !== null) return expr.type;
+
+    // if the array is filled with expressions, ie [5, 6], deduce the type and
+    // make sure all elements of the array have the same type
+    let firstElementType: LangObjectType = 
+      this.validateExpression(expr.initialElements[0]);
+
+    // NOTE in this case the initial elements will fill up the whole array
+    for (const element of expr.initialElements) {
+      const currentElementType: LangObjectType
+        = this.validateExpression(element);
+      if (!LOTequal(firstElementType, currentElementType))
+        throw new TokenRangeError('Types must all be the same in an array',
+                                  expr.leftBracket, expr.rightBracket);
+    }
+
+    return new ArrayLOT(firstElementType);
   }
 
   //======================================================================

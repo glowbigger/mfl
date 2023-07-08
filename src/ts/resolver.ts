@@ -6,7 +6,7 @@
  */
 
 import { TokenError } from "./error";
-import { AssignExpr, BinaryExpr, CallExpr, Expr, ExprVisitor, FunctionObjectExpr, GroupingExpr, LiteralExpr, LogicalExpr, UnaryExpr, VariableExpr } from "./expr";
+import { ArrayObjectExpr, AssignExpr, BinaryExpr, CallExpr, Expr, ExprVisitor, FunctionObjectExpr, GroupingExpr, LiteralExpr, LogicalExpr, UnaryExpr, VariableExpr } from "./expr";
 import Interpreter from "./interpreter";
 import { BlankStmt, BlockStmt, BreakStmt, DeclarationStmt, ExpressionStmt, IfStmt, PrintStmt, ReturnStmt, Stmt, StmtVisitor, WhileStmt } from "./stmt";
 import { Token } from "./token";
@@ -165,6 +165,12 @@ export default class Resolver implements StmtVisitor<void>, ExprVisitor<void> {
 
   visitUnaryExpr(expr: UnaryExpr): void {
     this.resolveExpression(expr.right);
+  }
+
+  visitArrayObjectExpr(expr: ArrayObjectExpr): void {
+    this.resolveExpression(expr.capacity);
+    for (const element of expr.initialElements)
+      this.resolveExpression(element);
   }
 
   //======================================================================

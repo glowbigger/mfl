@@ -1,7 +1,7 @@
 import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, 
-          ExprVisitor, VariableExpr, AssignExpr, LogicalExpr, FunctionObjectExpr, CallExpr } from './expr'
+          ExprVisitor, VariableExpr, AssignExpr, LogicalExpr, FunctionObjectExpr, CallExpr, ArrayObjectExpr } from './expr'
 import { TokenError, ImplementationError } from './error';
-import { Callable, FunctionLangObject, LangObject } from './types';
+import { ArrayLangObject, Callable, FunctionLangObject, LangObject } from './types';
 import { Stmt, ExpressionStmt, PrintStmt, BlankStmt, StmtVisitor,
         DeclarationStmt,
         BlockStmt,
@@ -344,19 +344,34 @@ export default class Interpreter
     return returnValue;
   }
 
+  visitArrayObjectExpr(expr: ArrayObjectExpr): LangObject {
+    // evaluate the capacity
+    const capacity: number = this.evaluate(expr.capacity) as number;
+
+    // evaluate the initial elements
+    let initialElements: LangObject[] = [];
+    for (const initialElementExpression of expr.initialElements) {
+      const initialElement: LangObject = this.evaluate(initialElementExpression);
+      initialElements.push(initialElement);
+    }
+
+    return new ArrayLangObject(capacity, initialElements);
+  }
+
   //======================================================================
   // HELPERS
   //======================================================================
 
   // turns an object into a string
   private stringify(object: LangObject): string {
-    if (object === null) return 'null';
+    if (object === null) return 'void function return';
 
     if (typeof(object) === 'number') return object.toString();
 
     if (typeof(object) === 'boolean') return object ? 'true' : 'false';
 
-    if (object instanceof FunctionLangObject) { 
+    if (object instanceof FunctionLangObject ||
+        object instanceof ArrayLangObject) { 
       return object.toString();
     }
 
@@ -388,5 +403,4 @@ export default class Interpreter
   resolve(expr: Expr, depth: number): void {
     this.localVariableDistances.set(expr, depth);
   }
-
 }

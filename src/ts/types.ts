@@ -7,13 +7,25 @@ import { BlockStmt, Stmt } from "./stmt";
 import { Token } from "./token";
 import { ReturnIndicator } from "./indicator";
 
-// no value returns, indicated by null
-export type TokenValueType = number | string | boolean | null;
+// token literals have values, ie the token for "string" has the value "string"
+// NOTE no value returns are indicated by null
+export type TokenValue = number | string | boolean | null;
 
 // the type of an object within the language (LOT = Language Object Type)
 // nullReturn is only ever used as the output type of a null function return
-export type LangObjectType = PrimitiveLOT | FunctionLOT | 'nullReturn';
+export type LangObjectType = PrimitiveLOT | FunctionLOT | 
+                             ArrayLOT | 'nullReturn';
 export type PrimitiveLOT = 'NumberLOT' | 'StringLOT' | 'BoolLOT' ;
+
+// the objects within the language
+// NOTE null is only for void returns and empty array cells
+// NOTE there are no null values or types in the language
+export type LangObject = number | string | boolean | 
+                         FunctionLangObject | ArrayLangObject | null;
+
+//======================================================================
+// Functions
+//======================================================================
 
 export class FunctionLOT {
   parameters: LangObjectType[];
@@ -57,23 +69,6 @@ export class FunctionLOT {
     return true;
   }
 };
-
-// returns whether two language object types are equal
-export function LOTequal(type1: LangObjectType, type2: LangObjectType): boolean {
-  if (type1 instanceof FunctionLOT && type2 instanceof FunctionLOT) {
-    return type1.equals(type2);
-  }
-  return type1 == type2;
-}
-
-// the objects within the language, null is only for void returns
-export type LangObject = number | string | boolean | FunctionLangObject | null;
-
-// TODO use an interface
-export interface Callable {
-  call(interpreter: Interpreter,
-       args: LangObject[]): LangObject | null;
-}
 
 export class FunctionLangObject implements Callable {
   readonly parameterTokens: Token[]; 
@@ -136,4 +131,63 @@ export class FunctionLangObject implements Callable {
     // if no value was returned with no errors, then the function was a void
     return null;
   }
+}
+
+//======================================================================
+// Arrays
+//======================================================================
+
+export class ArrayLOT {
+  readonly innerType: LangObjectType;
+
+  constructor(innerType: LangObjectType) {
+    this.innerType = innerType;
+  }
+
+  equals(other: ArrayLOT): boolean {
+    return LOTequal(this.innerType, other.innerType);
+  }
+}
+
+export class ArrayLangObject {
+  // NOTE we don't care about the array's type at runtime, the type validator
+  // will make sure that all elements have the same type
+  readonly capacity: number;
+  readonly elements: LangObject[];
+
+  constructor(capacity: number, initialElements: LangObject[]) {
+    this.capacity = capacity;
+    this.elements = [];
+
+    // fill the initial elements array with empty values until it is max capacity
+    while (initialElements.length < this.capacity) {
+      initialElements.push(null);
+    }
+
+    this.elements = initialElements;
+  }
+
+  toString() { 
+    return '[' + this.elements.toString() + ']';
+  }
+}
+
+//======================================================================
+// Other
+//======================================================================
+
+export interface Callable {
+  call(interpreter: Interpreter,
+       args: LangObject[]): LangObject | null;
+}
+
+// returns whether two language object types are equal
+export function LOTequal(type1: LangObjectType, type2: LangObjectType): boolean {
+  if (type1 instanceof ArrayLOT && type2 instanceof ArrayLOT) {
+    return type1.equals(type2);
+  }
+  if (type1 instanceof FunctionLOT && type2 instanceof FunctionLOT) {
+    return type1.equals(type2);
+  }
+  return type1 === type2;
 }

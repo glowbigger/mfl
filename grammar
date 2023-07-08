@@ -16,15 +16,16 @@ returnStmt        → "return" expression ;
 
 // types
 
-objectType        → "number" | "string" | "bool" | functionType ;
+objectType        → "number" | "string" | "bool" | functionType | arrayType ;
 functionType      → "(" ( ( objectType "," )* objectType )? ")" "=>"
                     ( objectType | "void" ) ;
+arrayType         → "[" objectType "]"
 
 // expressions
 
 expression        → assignment ;
 assignment        → IDENTIFIER "=" assignment
-                  | logic_or ;
+                    | logic_or ;
 logic_or          → logic_and ( "or" expression )* ;
 logic_and         → equality ( "and" expression )* ;
 equality          → comparison ( ( "!=" | "==" ) comparison )* ;
@@ -33,8 +34,12 @@ term              → factor ( ( "-" | "+" ) factor )* ;
 factor            → unary ( ( "/" | "*" ) unary )* ;
 unary             → ( "!" | "-" ) unary | call ;
 call              → primary ( "(" ( expression ( "," expression)* )? ")" )* ;
+arrayCall         → primary "[" number "]" ;
 primary           → NUMBER | STRING | "true" | "false" | functionObject |
-                  | "(" expression ")" | IDENTIFIER ;
+                    arrayObject | IDENTIFIER | "(" expression ")" ;
 functionObject    → "fn" "(" ( ( IDENTIFIER ":" objectType "," )* 
                     ( IDENTIFIER ":" objectType) )? ")" 
                     "=>" objectType statement
+arrayObject       → filledArray | lengthArray ;
+filledArray       → "[" ( expression (( "," expression )* )? )? "]"
+lengthArray       → "[" expression objectType "]" ;

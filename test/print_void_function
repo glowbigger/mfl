@@ -1,0 +1,3 @@
+let void_fn = fn () => void ; ;
+
+print void_fn();

@@ -1,6 +1,6 @@
 import { CharacterError } from './error';
 import { Token, TokenType } from './token';
-import { TokenValueType } from './types';
+import { TokenValue } from './types';
 
 const EOF_CHAR: string = '\0';
 
@@ -335,7 +335,7 @@ export default class Scanner {
 		return true;
   }
 
-  private addToken(type: TokenType, value: TokenValueType = null): void {
+  private addToken(type: TokenType, value: TokenValue = null): void {
     // get the corresponding text for the token
     const text: string = this.getCurrentLexeme();
     const column: number = (this.start - this.lineStart) + 1;

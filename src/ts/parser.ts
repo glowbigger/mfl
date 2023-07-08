@@ -8,7 +8,8 @@ import { Expr,
          AssignExpr,
          LogicalExpr,
          FunctionObjectExpr,
-         CallExpr} from './expr'
+         CallExpr,
+         ArrayObjectExpr} from './expr'
 import { LangError,
          TokenError,
          TokenRangeError } from './error';
@@ -22,7 +23,7 @@ import { Stmt,
          WhileStmt,
          BreakStmt, 
          ReturnStmt} from './stmt';
-import { FunctionLOT, FunctionLangObject, LangObjectType } from './types';
+import { ArrayLOT, FunctionLOT, FunctionLangObject, LangObjectType } from './types';
 
 export default class Parser {
   // the tokens to be parsed
@@ -238,7 +239,7 @@ export default class Parser {
     return new ReturnStmt(keyword, expression);
   }
 
-  // objectType     → "number" | "string" | "bool" | functionType ;
+  // objectType     → "number" | "string" | "bool" | functionType | arrayType ;
   private parseObjectType(): LangObjectType {
     switch(this.peek().type) {
       case 'NUMBER_PRIMITIVE_TYPE':
@@ -250,6 +251,8 @@ export default class Parser {
       case 'BOOL_PRIMITIVE_TYPE':
         this.consume();
         return 'BoolLOT';
+      case 'LEFT_BRACKET':
+        return this.parseArrayObjectType();
     }
     return this.parseFunctionObjectType();
   }
@@ -416,11 +419,23 @@ export default class Parser {
     return calleeOrPrimary;
   }
 
-  // primary        → NUMBER | STRING | "true" | "false" | functionObject |
-  //                | "(" expression ")" | IDENTIFIER ;
+  // primary           → NUMBER | STRING | "true" | "false" | functionObject |
+  //                     arrayObject | IDENTIFIER | "(" expression ")" ;
   private parsePrimary(): Expr {
     if (this.match('NUMBER', 'STRING', 'TRUE', 'FALSE')) {
       return new LiteralExpr(this.consume().value);
+    }
+
+    if (this.match('FUNCTION')) {
+      return this.parseFunctionObject();
+    }
+
+    if (this.match('LEFT_BRACKET')) {
+      return this.parseArrayObject();
+    }
+
+    if (this.match('IDENTIFIER')) {
+      return new VariableExpr(this.consume());
     }
     
     if (this.match('LEFT_PAREN')) {
@@ -429,14 +444,6 @@ export default class Parser {
       const primaryExpr = this.parseExpression();
       this.expect('RIGHT_PAREN', 'Expect \')\' after expression.');
       return new GroupingExpr(primaryExpr);
-    }
-
-    if (this.match('IDENTIFIER')) {
-      return new VariableExpr(this.consume());
-    }
-
-    if (this.match('FUNCTION')) {
-      return this.parseFunctionObject();
     }
 
     // if nothing can be parsed in primary, then the expression rule failed
@@ -504,6 +511,86 @@ export default class Parser {
       expr = new BinaryExpr(left, operator, right);
     }
     return expr;
+  }
+
+  // arrayObject       → filledArray | lengthArray ;
+  private parseArrayObject(): ArrayObjectExpr {
+    const leftBracket = this.expect('LEFT_BRACKET', 
+                                    'Expect left bracket for array start.');
+    if (this.match('RIGHT_BRACKET')) {
+      // an empty array is not allowed because its type can't be inferred
+      // NOTE they must be made like so [ 0 int ]
+      const rightBracket = this.consume();
+      const msg = 'An empty array cannot be made in this way.';
+      throw new TokenRangeError(msg, leftBracket, rightBracket);
+    }
+
+    // parse the first expression, it is unknown at this point whether the array
+    // is a list of expressions or an array with a given type and length
+    const lengthOrFirstElement: Expr = this.parseExpression();
+
+    // if the next token is ], the array has one expression, ie [ 5 ] or [ "hi" ]
+    if (this.match('RIGHT_BRACKET')) {
+      const rightBracket = this.consume();
+      const capacity: LiteralExpr = new LiteralExpr(1);
+      const expressions: Expr[] = [ lengthOrFirstElement];
+      // the type cannot be determined at this point
+      const type = null;
+      return new ArrayObjectExpr(capacity, type, expressions, 
+                                 leftBracket, rightBracket);
+    }
+
+    // if the next token is a comma, then the array has multiple expression
+    // NOTE the comma must not be consumed here
+    if (this.match('COMMA')) 
+      return this.parseFilledArray(leftBracket, lengthOrFirstElement);
+
+    // otherwise try to parse an array with a given length, ie [ 4 int ]
+    return this.parseLengthArray(leftBracket, lengthOrFirstElement);
+  }
+
+  // filledArray       → "[" expression (( "," expression )* )? "]"
+  // NOTE this parses the rest of a filled array after the first expression
+  private parseFilledArray(leftBracket: Token, 
+                           firstExpression: Expr): ArrayObjectExpr {
+    const elements: Expr[] = [ firstExpression ];
+
+    while (!this.isAtEnd() && !this.match('RIGHT_BRACKET')) {
+      this.expect('COMMA', 'Expect comma.');
+      const currentElement = this.parseExpression();
+      elements.push(currentElement);
+    }
+
+    // if the end of the file is reached, throw an error, otherwise consume the ]
+    const rightBracket: Token = this.expect('RIGHT_BRACKET',
+                                            'Expect right bracket.');
+
+    const capacity = new LiteralExpr(elements.length);
+    // the type cannot be determined yet
+    const type = null;
+
+    return new ArrayObjectExpr(capacity, type, elements,
+                               leftBracket, rightBracket,);
+  }
+
+  // lengthArray       → "[" expression objectType "]" ;
+  // NOTE this parses the rest of a length array after the first expression
+  private parseLengthArray(leftBracket: Token,
+                           expression: Expr): ArrayObjectExpr {
+    const objectType: LangObjectType = this.parseObjectType();
+    const rightBracket: Token = this.expect('RIGHT_BRACKET',
+                                            'Expect right bracket.');
+    return new ArrayObjectExpr(expression, new ArrayLOT(objectType), [],
+                               leftBracket, rightBracket);
+  }
+
+  // arrayType         → "[" objectType "]"
+  private parseArrayObjectType(): ArrayLOT {
+    this.expect('LEFT_BRACKET', 'Expect \'[\' for array type.');
+    const innerType: LangObjectType = this.parseObjectType();
+    this.expect('RIGHT_BRACKET', 'Expect \']\' for array type.');
+
+    return new ArrayLOT(innerType);
   }
 
   //======================================================================

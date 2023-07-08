@@ -1,4 +1,4 @@
-import { TokenValueType } from './types';
+import { TokenValue } from './types';
 
 export type TokenType = 
   // single character tokens
@@ -59,10 +59,10 @@ export type TokenType =
 	'EOF';
 
 export class Token {
-  type: TokenType; lexeme: string; value: TokenValueType;
+  type: TokenType; lexeme: string; value: TokenValue;
   lineString: string; lineIndex: number; column: number;
   
-  constructor(type: TokenType, lexeme: string, value: TokenValueType, 
+  constructor(type: TokenType, lexeme: string, value: TokenValue, 
               lineString: string, lineIndex: number, column: number) {
 		this.type = type;
 		this.lexeme = lexeme;
