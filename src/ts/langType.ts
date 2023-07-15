@@ -1,8 +1,10 @@
 // the type of an object within the language (LangType = Language Object Type)
 // nullReturn is only ever used as the output type of a null function return
-export type LangType = PrimitiveLangType | FunctionLangType | 
-                             ArrayLangType | 'nullReturn' ;
+export type LangType = PrimitiveLangType | ComplexLangType | 'nullReturn' ;
 export type PrimitiveLangType = 'Num' | 'Str' | 'Bool' ;
+export abstract class ComplexLangType {
+  abstract equals(other: LangType): boolean;
+}
 
 // returns whether two language object types are equal
 export function LangTypeEqual(type1: LangType | null,
@@ -20,57 +22,49 @@ export function LangTypeEqual(type1: LangType | null,
 // Complex Types
 //======================================================================
 
-export class FunctionLangType {
+export class FunctionLangType extends ComplexLangType {
   parameters: LangType[];
   returnType: LangType | null;
 
   constructor(parameters: LangType[], returnType: LangType | null) {
+    super();
     this.parameters = parameters;
     this.returnType = returnType;
   }
 
   toString() { return 'FunctionLangType' }
 
-  equals(other: FunctionLangType): boolean { 
-    // check return types
-    if (this.returnType instanceof FunctionLangType &&
-        other.returnType instanceof FunctionLangType) {
-      if (!this.returnType.equals(other.returnType)) 
-        return false;
-    }
-    else if (!LangTypeEqual(other.returnType, this.returnType)) return false;
+  equals(other: LangType): boolean { 
+    if (!(other instanceof FunctionLangType)) return false;
 
-    // check parameter types
+    // check return types
+    if (!LangTypeEqual(other.returnType, this.returnType)) return false;
+
+    // check parameter lengths
     const thisNumParameters = this.parameters.length;
     const otherNumParameters = other.parameters.length;
-
     if (thisNumParameters != otherNumParameters) return false;
-    else {
-      for (const i in this.parameters) {
 
-        // check type of each parameter
-        if (this.parameters[i] instanceof FunctionLangType &&
-            other.parameters[i] instanceof FunctionLangType) {
-          if (!(this.parameters[i] as FunctionLangType)
-              .equals(other.parameters[i] as FunctionLangType))
-            return false;
-        } else if (!LangTypeEqual(this.parameters[i], other.parameters[i]))
-          return false;
-      }
+    // check parameter types
+    for (const i in this.parameters) {
+      if (!LangTypeEqual(this.parameters[i], other.parameters[i])) return false;
     }
 
     return true;
   }
 };
 
-export class ArrayLangType {
+export class ArrayLangType extends ComplexLangType {
   readonly innerType: LangType;
 
   constructor(innerType: LangType) {
+    super();
     this.innerType = innerType;
   }
 
-  equals(other: ArrayLangType): boolean {
-    return LangTypeEqual(this.innerType, other.innerType);
+  equals(other: LangType): boolean {
+    if (other instanceof ArrayLangType)
+      return LangTypeEqual(this.innerType, other.innerType);
+    return false;
   }
 }
