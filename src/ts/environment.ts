@@ -1,9 +1,8 @@
 // a wrapper for a map to look up values associated with variable ids
 
 import { ImplementationError } from "./error";
-import { LangObject, LangObjectType } from "./types";
 
-export abstract class Environment<R> {
+export default class Environment<R> {
   private idMap: Map<string, R>; 
   readonly enclosing: Environment<R> | null;
 
@@ -73,10 +72,4 @@ export abstract class Environment<R> {
 
     return environment;
   }
-}
-
-export class LOEnvironment extends Environment<LangObject> {
-}
-
-export class TypeEnvironment extends Environment<LangObjectType> {
 }

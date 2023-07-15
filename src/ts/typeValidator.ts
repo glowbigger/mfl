@@ -3,14 +3,14 @@ import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, ExprVisitor, Va
 import { TokenError, ImplementationError, LangError, TokenRangeError } from './error';
 import { ArrayLOT, ArrayLangObject, FunctionLOT, LOTequal, LangObjectType } from './types';
 import { BlankStmt, BlockStmt, BreakStmt, DeclarationStmt, ExpressionStmt, IfStmt, PrintStmt, ReturnStmt, Stmt, StmtVisitor, WhileStmt } from './stmt';
-import { TypeEnvironment } from './environment';
+import Environment from './environment';
 
 export default class TypeValidator
   implements ExprVisitor<LangObjectType>, StmtVisitor<void> {
 
   private program: Stmt[];
 
-  private currentEnvironment: TypeEnvironment;
+  private currentEnvironment: Environment<LangObjectType>;
 
   // expected type of the function being visited, stack used for nested functions 
   private expectedTypeStack: LangObjectType[];
@@ -23,7 +23,7 @@ export default class TypeValidator
 
   constructor(program: Stmt[]) {
     this.program = program;
-    this.currentEnvironment = new TypeEnvironment(null);
+    this.currentEnvironment = new Environment<LangObjectType>(null);
     this.expectedTypeStack = [];
     this.withinIf = false;
     this.withinWhile = false;
@@ -112,10 +112,10 @@ export default class TypeValidator
 
   visitBlockStmt(stmt: BlockStmt): void {
     // save the outer environment to restore later
-    const outerEnvironment: TypeEnvironment = this.currentEnvironment;
+    const outerEnvironment: Environment<LangObjectType> = this.currentEnvironment;
 
     // a block statement has its own environment, which is initially empty
-    this.currentEnvironment = new TypeEnvironment(outerEnvironment);
+    this.currentEnvironment = new Environment<LangObjectType>(outerEnvironment);
 
     try {
       for (const statement of stmt.statements) {
@@ -347,7 +347,7 @@ export default class TypeValidator
                                 'nullReturn' : expr.returnType);
 
     // create the inner environment
-    const innerEnvironment = new TypeEnvironment(outerEnvironment);
+    const innerEnvironment = new Environment<LangObjectType>(outerEnvironment);
 
     // get each parameter name and type and add it to the environment
     for (const index in expr.parameterTokens) {

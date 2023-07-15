@@ -9,7 +9,7 @@ import { Stmt, ExpressionStmt, PrintStmt, BlankStmt, StmtVisitor,
         WhileStmt,
         BreakStmt,
         ReturnStmt} from './stmt';
-import { LOEnvironment } from './environment';
+import Environment from './environment';
 import { BreakIndicator, ReturnIndicator } from "./indicator";
 
 export default class Interpreter 
@@ -24,21 +24,21 @@ export default class Interpreter
   // the environment of current scope / block statement being interpreted
   // NOTE the alternative is to have each visit statement method take an
   // environment as a parameter which is the environment for that statement
-  private currentEnvironment: LOEnvironment;
+  private currentEnvironment: Environment<LangObject>;
 
-  private globalEnvironment: LOEnvironment;
+  private globalEnvironment: Environment<LangObject>;
 
   // a function call might set its arguments to be a new environment, 
   // if this variable is not null, then a function call was just made
   // NOTE this is only set by FunctionLangObject
-  functionEnvironment: LOEnvironment | null;
+  functionEnvironment: Environment<LangObject> | null;
 
   private localVariableDistances: Map<Expr, number>;
   
   constructor(program: Stmt[]) {
     this.program = program;
     this.printedLines = [];
-    this.globalEnvironment = new LOEnvironment(null);
+    this.globalEnvironment = new Environment<LangObject>(null);
     this.currentEnvironment = this.globalEnvironment;
     this.functionEnvironment = null;
     this.localVariableDistances = new Map<Expr, number>();
@@ -62,7 +62,7 @@ export default class Interpreter
     // if an environment is provided, then execute the statement using it
     if (this.functionEnvironment !== null) {
       // save the outer environment to restore it later
-      const outerEnvironment: LOEnvironment = this.currentEnvironment;
+      const outerEnvironment: Environment<LangObject> = this.currentEnvironment;
 
       // switch environments and reset the function environment to be null
       this.currentEnvironment = this.functionEnvironment;
@@ -121,17 +121,17 @@ export default class Interpreter
 
   visitBlockStmt(stmt: BlockStmt): void {
     // save the outer environment to restore it later
-    const outerEnvironment: LOEnvironment = this.currentEnvironment;
+    const outerEnvironment: Environment<LangObject> = this.currentEnvironment;
 
     // create the inner blank environment that has the outer one as its parent
-    let innerEnvironment: LOEnvironment;
+    let innerEnvironment: Environment<LangObject>;
 
     // if the block follows a function call, then the environment for the block
     // was already created with the function parameters
     if (this.functionEnvironment !== null) {
-      innerEnvironment = new LOEnvironment(this.functionEnvironment);
+      innerEnvironment = new Environment<LangObject>(this.functionEnvironment);
       this.functionEnvironment = null;
-    } else innerEnvironment = new LOEnvironment(outerEnvironment);
+    } else innerEnvironment = new Environment<LangObject>(outerEnvironment);
 
     // switch environments and execute the statements with it
     this.currentEnvironment = innerEnvironment;

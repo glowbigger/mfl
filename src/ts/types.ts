@@ -1,6 +1,6 @@
 // booleans, numbers, and strings tokens have actual values, all other tokens
 
-import { Environment, LOEnvironment, TypeEnvironment } from "./environment";
+import Environment from "./environment";
 import { ImplementationError } from "./error";
 import Interpreter from "./interpreter";
 import { BlockStmt, Stmt } from "./stmt";
@@ -78,11 +78,11 @@ export class FunctionLangObject implements Callable {
 
   // the type of the object, not passed to the constructor
   readonly type: FunctionLOT;
-  readonly closure: LOEnvironment;
+  readonly closure: Environment<LangObject>;
 
   constructor(parameterTokens: Token[], parameterTypes: LangObjectType[], 
               returnType: LangObjectType, statement: Stmt,
-              closure: LOEnvironment) {
+              closure: Environment<LangObject>) {
     this.parameterTokens = parameterTokens;
     this.parameterTypes = parameterTypes;
     this.returnType = returnType;
@@ -102,7 +102,7 @@ export class FunctionLangObject implements Callable {
     if (this.closure == null)
       throw new ImplementationError('Function called with no closure set.');
 
-    const innerEnvironment: LOEnvironment = new LOEnvironment(this.closure);
+    const innerEnvironment: Environment<LangObject> = new Environment<LangObject>(this.closure);
 
     // define the arguments in the inner environment
     for (const i in this.parameterTokens) {
