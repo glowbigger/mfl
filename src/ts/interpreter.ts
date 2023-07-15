@@ -1,7 +1,7 @@
 import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, 
           ExprVisitor, VariableExpr, AssignExpr, LogicalExpr, FunctionObjectExpr, CallExpr, ArrayObjectExpr, ArrayAccessExpr, ArrayAssignExpr } from './expr'
 import { TokenError, ImplementationError, TokenRangeError } from './error';
-import { ArrayLangObject, Callable, FunctionLangObject, LangObject } from './langObject';
+import { ArrayLangObject, FunctionLangObject, LangObject } from './langObject';
 import { Stmt, ExpressionStmt, PrintStmt, BlankStmt, StmtVisitor,
         DeclarationStmt,
         BlockStmt,
@@ -333,7 +333,8 @@ export default class Interpreter
   }
 
   visitCallExpr(expr: CallExpr): LangObject {
-    const callee: Callable = this.evaluate(expr.callee) as Callable;
+    const callee: FunctionLangObject
+      = this.evaluate(expr.callee) as FunctionLangObject;
 
     let args: LangObject[] = [];
     for (const arg of expr.args) {

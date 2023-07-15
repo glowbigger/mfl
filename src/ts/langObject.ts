@@ -11,16 +11,11 @@ import { ReturnIndicator } from "./indicator";
 export type LangObject = number | string | boolean | 
                          FunctionLangObject | ArrayLangObject | null;
 
-export interface Callable {
-  call(interpreter: Interpreter,
-       args: LangObject[]): LangObject | null;
-}
-
 //======================================================================
 // Complex Objects
 //======================================================================
 
-export class FunctionLangObject implements Callable {
+export class FunctionLangObject {
   readonly parameterTokens: Token[]; 
   readonly statement: Stmt;
 
