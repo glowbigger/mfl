@@ -1,6 +1,6 @@
 import { Expr } from './expr';
 import { Token } from './token';
-import { LangObjectType } from './types';
+import { LangType } from './types';
 
 /*
 * see expr.ts for detailed notes on this class
@@ -125,10 +125,10 @@ export class ReturnStmt extends Stmt {
 
 export class DeclarationStmt extends Stmt {
   readonly identifier: Token;
-  readonly type: LangObjectType | null;
+  readonly type: LangType | null;
   readonly initialValue: Expr;
 
-  constructor(identifier: Token, type: LangObjectType | null, initialValue: Expr) {
+  constructor(identifier: Token, type: LangType | null, initialValue: Expr) {
     super();
     this.identifier = identifier;
     this.type = type;

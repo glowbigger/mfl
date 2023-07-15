@@ -25,7 +25,7 @@ import { Stmt,
          WhileStmt,
          BreakStmt, 
          ReturnStmt} from './stmt';
-import { ArrayLOT, FunctionLOT, FunctionLangObject, LangObjectType } from './types';
+import { ArrayLangType, FunctionLangType, LangType } from './types';
 
 export default class Parser {
   // the tokens to be parsed
@@ -215,7 +215,7 @@ export default class Parser {
     const identifier: Token = 
       this.expect('IDENTIFIER', 'Expect identifier name in declaration.');
 
-    let type: LangObjectType | null = null;
+    let type: LangType | null = null;
     if (this.match('COLON')) {
       this.consume();
       type = this.parseObjectType();
@@ -242,17 +242,17 @@ export default class Parser {
   }
 
   // objectType     → "number" | "string" | "bool" | functionType | arrayType ;
-  private parseObjectType(): LangObjectType {
+  private parseObjectType(): LangType {
     switch(this.peek().type) {
       case 'NUMBER_PRIMITIVE_TYPE':
         this.consume();
-        return 'NumberLOT';
+        return 'NumberLangType';
       case 'STRING_PRIMITIVE_TYPE':
         this.consume();
-        return 'StringLOT';
+        return 'StringLangType';
       case 'BOOL_PRIMITIVE_TYPE':
         this.consume();
-        return 'BoolLOT';
+        return 'BoolLangType';
       case 'LEFT_BRACKET':
         return this.parseArrayObjectType();
     }
@@ -261,11 +261,11 @@ export default class Parser {
 
   // functionType        → "(" ( ( objectType "," )* objectType )? ")" "=>"
   //                       ( objectType | "void" ) ;
-  private parseFunctionObjectType(): FunctionLOT {
+  private parseFunctionObjectType(): FunctionLangType {
     this.expect('LEFT_PAREN', 'Expect \'(\' for function type.');
 
-    let parameters: LangObjectType[] = [];
-    let returnType: LangObjectType | null;
+    let parameters: LangType[] = [];
+    let returnType: LangType | null;
 
     // parameters
     let commaNeeded: boolean = false;
@@ -292,7 +292,7 @@ export default class Parser {
       returnType = this.parseObjectType();
     }
 
-    return new FunctionLOT(parameters, returnType);
+    return new FunctionLangType(parameters, returnType);
   }
 
   // expression     → assignment ;
@@ -488,7 +488,7 @@ export default class Parser {
     this.expect('LEFT_PAREN', 'Expect \'(\' after \'fn\'.');
 
     let parameterTokens: Token[] = [];
-    let parameterTypes: LangObjectType[] = [];
+    let parameterTypes: LangType[] = [];
 
     // parameters
     let commaNeeded: boolean = false;
@@ -500,7 +500,7 @@ export default class Parser {
       // parse one parameter
       const id: Token = this.expect('IDENTIFIER', 'Expect identifier.');
       this.expect('COLON', 'Expect colon after identifier.');
-      const type: LangObjectType = this.parseObjectType();
+      const type: LangType = this.parseObjectType();
       parameterTokens.push(id);
       parameterTypes.push(type);
 
@@ -513,7 +513,7 @@ export default class Parser {
 
     // return type and statement
     this.expect('RIGHTARROW', 'Expect \'=>\' after parameters.');
-    let returnType: LangObjectType = 'nullReturn';
+    let returnType: LangType = 'nullReturn';
     if (this.match('VOID')) this.consume();
     else returnType = this.parseObjectType();
 
@@ -608,12 +608,12 @@ export default class Parser {
   }
 
   // arrayType         → "[" objectType "]"
-  private parseArrayObjectType(): ArrayLOT {
+  private parseArrayObjectType(): ArrayLangType {
     this.expect('LEFT_BRACKET', 'Expect \'[\' for array type.');
-    const innerType: LangObjectType = this.parseObjectType();
+    const innerType: LangType = this.parseObjectType();
     this.expect('RIGHT_BRACKET', 'Expect \']\' for array type.');
 
-    return new ArrayLOT(innerType);
+    return new ArrayLangType(innerType);
   }
 
   //======================================================================

@@ -11,11 +11,11 @@ import { ReturnIndicator } from "./indicator";
 // NOTE no value returns are indicated by null
 export type TokenValue = number | string | boolean | null;
 
-// the type of an object within the language (LOT = Language Object Type)
+// the type of an object within the language (LangType = Language Object Type)
 // nullReturn is only ever used as the output type of a null function return
-export type LangObjectType = PrimitiveLOT | FunctionLOT | 
-                             ArrayLOT | 'nullReturn';
-export type PrimitiveLOT = 'NumberLOT' | 'StringLOT' | 'BoolLOT' ;
+export type LangType = PrimitiveLangType | FunctionLangType | 
+                             ArrayLangType | 'nullReturn' ;
+export type PrimitiveLangType = 'NumberLangType' | 'StringLangType' | 'BoolLangType' ;
 
 // the objects within the language
 // NOTE null is only for void returns and empty array cells
@@ -27,25 +27,25 @@ export type LangObject = number | string | boolean |
 // Functions
 //======================================================================
 
-export class FunctionLOT {
-  parameters: LangObjectType[];
-  returnType: LangObjectType | null;
+export class FunctionLangType {
+  parameters: LangType[];
+  returnType: LangType | null;
 
-  constructor(parameters: LangObjectType[], returnType: LangObjectType | null) {
+  constructor(parameters: LangType[], returnType: LangType | null) {
     this.parameters = parameters;
     this.returnType = returnType;
   }
 
-  toString() { return 'FunctionLOT' }
+  toString() { return 'FunctionLangType' }
 
-  equals(other: FunctionLOT): boolean { 
+  equals(other: FunctionLangType): boolean { 
     // check return types
-    if (this.returnType instanceof FunctionLOT &&
-        other.returnType instanceof FunctionLOT) {
+    if (this.returnType instanceof FunctionLangType &&
+        other.returnType instanceof FunctionLangType) {
       if (!this.returnType.equals(other.returnType)) 
         return false;
     }
-    else if (!LOTequal(other.returnType, this.returnType)) return false;
+    else if (!LangTypeEqual(other.returnType, this.returnType)) return false;
 
     // check parameter types
     const thisNumParameters = this.parameters.length;
@@ -56,12 +56,12 @@ export class FunctionLOT {
       for (const i in this.parameters) {
 
         // check type of each parameter
-        if (this.parameters[i] instanceof FunctionLOT &&
-            other.parameters[i] instanceof FunctionLOT) {
-          if (!(this.parameters[i] as FunctionLOT)
-              .equals(other.parameters[i] as FunctionLOT))
+        if (this.parameters[i] instanceof FunctionLangType &&
+            other.parameters[i] instanceof FunctionLangType) {
+          if (!(this.parameters[i] as FunctionLangType)
+              .equals(other.parameters[i] as FunctionLangType))
             return false;
-        } else if (!LOTequal(this.parameters[i], other.parameters[i]))
+        } else if (!LangTypeEqual(this.parameters[i], other.parameters[i]))
           return false;
       }
     }
@@ -72,16 +72,16 @@ export class FunctionLOT {
 
 export class FunctionLangObject implements Callable {
   readonly parameterTokens: Token[]; 
-  readonly parameterTypes: LangObjectType[];
-  readonly returnType: LangObjectType;
+  readonly parameterTypes: LangType[];
+  readonly returnType: LangType;
   readonly statement: Stmt;
 
   // the type of the object, not passed to the constructor
-  readonly type: FunctionLOT;
+  readonly type: FunctionLangType;
   readonly closure: Environment<LangObject>;
 
-  constructor(parameterTokens: Token[], parameterTypes: LangObjectType[], 
-              returnType: LangObjectType, statement: Stmt,
+  constructor(parameterTokens: Token[], parameterTypes: LangType[], 
+              returnType: LangType, statement: Stmt,
               closure: Environment<LangObject>) {
     this.parameterTokens = parameterTokens;
     this.parameterTypes = parameterTypes;
@@ -90,7 +90,7 @@ export class FunctionLangObject implements Callable {
     this.closure = closure;
 
     // create and set the type
-    this.type = new FunctionLOT(parameterTypes, returnType);
+    this.type = new FunctionLangType(parameterTypes, returnType);
   }
 
   toString() {
@@ -137,15 +137,15 @@ export class FunctionLangObject implements Callable {
 // Arrays
 //======================================================================
 
-export class ArrayLOT {
-  readonly innerType: LangObjectType;
+export class ArrayLangType {
+  readonly innerType: LangType;
 
-  constructor(innerType: LangObjectType) {
+  constructor(innerType: LangType) {
     this.innerType = innerType;
   }
 
-  equals(other: ArrayLOT): boolean {
-    return LOTequal(this.innerType, other.innerType);
+  equals(other: ArrayLangType): boolean {
+    return LangTypeEqual(this.innerType, other.innerType);
   }
 }
 
@@ -195,12 +195,12 @@ export interface Callable {
 }
 
 // returns whether two language object types are equal
-export function LOTequal(type1: LangObjectType | null,
-                         type2: LangObjectType | null): boolean {
-  if (type1 instanceof ArrayLOT && type2 instanceof ArrayLOT) {
+export function LangTypeEqual(type1: LangType | null,
+                         type2: LangType | null): boolean {
+  if (type1 instanceof ArrayLangType && type2 instanceof ArrayLangType) {
     return type1.equals(type2);
   }
-  if (type1 instanceof FunctionLOT && type2 instanceof FunctionLOT) {
+  if (type1 instanceof FunctionLangType && type2 instanceof FunctionLangType) {
     return type1.equals(type2);
   }
   return type1 === type2;
