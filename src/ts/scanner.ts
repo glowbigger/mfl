@@ -1,6 +1,5 @@
 import { CharacterError } from './error';
-import { Token, TokenType } from './token';
-import { TokenValue } from './types';
+import { Token, TokenType, TokenValue } from './token';
 
 const EOF_CHAR: string = '\0';
 

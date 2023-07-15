@@ -25,7 +25,7 @@ import { Stmt,
          WhileStmt,
          BreakStmt, 
          ReturnStmt} from './stmt';
-import { ArrayLangType, FunctionLangType, LangType } from './types';
+import { ArrayLangType, FunctionLangType, LangType } from './langType';
 
 export default class Parser {
   // the tokens to be parsed
@@ -412,8 +412,6 @@ export default class Parser {
     return base;
   }
   
-  // old:
-  // call              → primary ( "(" ( expression ( "," expression )* )? ")" )* ;
   // new: 
   // call              → "(" ( expression ( "," expression)* )? ")" ;
   private parseCall(base: Expr): CallExpr {

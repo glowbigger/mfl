@@ -1,4 +1,4 @@
-import { LangObject } from "./types";
+import { LangObject } from "./langObject";
 
 // indicates a break to be thrown in a loop
 export class BreakIndicator { }

@@ -1,6 +1,6 @@
 import { Stmt } from './stmt';
-import { Token } from './token';
-import { LangType, TokenValue } from './types';
+import { Token, TokenValue } from './token';
+import { LangType } from './langType';
 
 export interface ExprVisitor<R> {
   visitArrayAccessExpr(expr: ArrayAccessExpr): R;

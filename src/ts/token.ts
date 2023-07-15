@@ -1,4 +1,22 @@
-import { TokenValue } from './types';
+export class Token {
+  type: TokenType; lexeme: string; value: TokenValue;
+  lineString: string; lineIndex: number; column: number;
+  
+  constructor(type: TokenType, lexeme: string, value: TokenValue, 
+              lineString: string, lineIndex: number, column: number) {
+		this.type = type;
+		this.lexeme = lexeme;
+		this.value = value;
+		this.lineString = lineString;
+		this.lineIndex = lineIndex;
+    this.column = column;
+  }
+  
+  toString() {
+    const tokenTypeString: string = this.type;
+    return tokenTypeString + ' ' + this.lexeme + ' ' + this.value;
+  }
+}
 
 export type TokenType = 
   // single character tokens
@@ -58,22 +76,6 @@ export type TokenType =
   // end of file
 	'EOF';
 
-export class Token {
-  type: TokenType; lexeme: string; value: TokenValue;
-  lineString: string; lineIndex: number; column: number;
-  
-  constructor(type: TokenType, lexeme: string, value: TokenValue, 
-              lineString: string, lineIndex: number, column: number) {
-		this.type = type;
-		this.lexeme = lexeme;
-		this.value = value;
-		this.lineString = lineString;
-		this.lineIndex = lineIndex;
-    this.column = column;
-  }
-  
-  toString() {
-    const tokenTypeString: string = this.type;
-    return tokenTypeString + ' ' + this.lexeme + ' ' + this.value;
-  }
-}
+// token literals have values, ie the token for "string" has the value "string"
+// NOTE null indicates that a token has no value / is not a literal
+export type TokenValue = number | string | boolean | null;

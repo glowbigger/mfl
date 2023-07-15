@@ -1,7 +1,7 @@
 import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, 
           ExprVisitor, VariableExpr, AssignExpr, LogicalExpr, FunctionObjectExpr, CallExpr, ArrayObjectExpr, ArrayAccessExpr, ArrayAssignExpr } from './expr'
 import { TokenError, ImplementationError, TokenRangeError } from './error';
-import { ArrayLangObject, Callable, FunctionLangObject, LangObject } from './types';
+import { ArrayLangObject, Callable, FunctionLangObject, LangObject } from './langObject';
 import { Stmt, ExpressionStmt, PrintStmt, BlankStmt, StmtVisitor,
         DeclarationStmt,
         BlockStmt,
@@ -327,8 +327,8 @@ export default class Interpreter
   }
 
   visitFunctionObjectExpr(expr: FunctionObjectExpr): LangObject {
-    return new FunctionLangObject(expr.parameterTokens, expr.parameterTypes,
-                                  expr.returnType, expr.statement,
+    return new FunctionLangObject(expr.parameterTokens,
+                                  expr.statement,
                                   this.currentEnvironment);
   }
 

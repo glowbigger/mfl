@@ -1,7 +1,7 @@
 import { Token, TokenType } from './token';
 import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, ExprVisitor, VariableExpr, AssignExpr, LogicalExpr, FunctionObjectExpr, CallExpr, ArrayObjectExpr, ArrayAccessExpr, ArrayAssignExpr } from './expr'
 import { TokenError, ImplementationError, LangError, TokenRangeError } from './error';
-import { ArrayLangType, ArrayLangObject, FunctionLangType, LangTypeEqual, LangType } from './types';
+import { ArrayLangType, FunctionLangType, LangTypeEqual, LangType } from './langType';
 import { BlankStmt, BlockStmt, BreakStmt, DeclarationStmt, ExpressionStmt, IfStmt, PrintStmt, ReturnStmt, Stmt, StmtVisitor, WhileStmt } from './stmt';
 import Environment from './environment';
 

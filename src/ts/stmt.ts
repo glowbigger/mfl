@@ -1,6 +1,6 @@
 import { Expr } from './expr';
 import { Token } from './token';
-import { LangType } from './types';
+import { LangType } from './langType';
 
 /*
 * see expr.ts for detailed notes on this class
