@@ -246,13 +246,13 @@ export default class Parser {
     switch(this.peek().type) {
       case 'NUMBER_PRIMITIVE_TYPE':
         this.consume();
-        return 'NumberLangType';
+        return 'Num';
       case 'STRING_PRIMITIVE_TYPE':
         this.consume();
-        return 'StringLangType';
+        return 'Str';
       case 'BOOL_PRIMITIVE_TYPE':
         this.consume();
-        return 'BoolLangType';
+        return 'Bool';
       case 'LEFT_BRACKET':
         return this.parseArrayObjectType();
     }

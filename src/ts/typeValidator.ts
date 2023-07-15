@@ -136,7 +136,7 @@ export default class TypeValidator
 
     // if branch
     const condition: LangType = this.validateExpression(stmt.condition);
-    if (condition !== 'BoolLangType')
+    if (condition !== 'Bool')
       throw new TokenError('If statement condition must be a bool.',
                            stmt.ifToken);
 
@@ -155,7 +155,7 @@ export default class TypeValidator
     const outerWithinWhile = this.withinWhile;
     this.withinWhile = true;
 
-    if (this.validateExpression(stmt.condition) !== 'BoolLangType') 
+    if (this.validateExpression(stmt.condition) !== 'Bool') 
       throw new TokenError('While statement condition must be a bool.', 
                            stmt.whileToken);
     this.validateStatement(stmt.body);
@@ -203,46 +203,46 @@ export default class TypeValidator
       const rightType: LangType = this.validateExpression(expr.right);
       if (leftType != rightType)
         throw new TokenError('Types do not match.', expr.operator);
-      return 'BoolLangType';
+      return 'Bool';
     }
 
     // number relations: <, <=, >, >=
     if (this.tokenTypeMatch(opType, 'LESS', 'LESS_EQUAL', 
                                     'GREATER', 'GREATER_EQUAL')) {
       const leftType: LangType = this.validateExpression(expr.left);
-      if (leftType != 'NumberLangType') {
+      if (leftType != 'Num') {
         throw new TokenError('Left operand is not a number.', expr.operator);
       }
       const rightType = this.validateExpression(expr.right);
-      if (rightType != 'NumberLangType') {
+      if (rightType != 'Num') {
         throw new TokenError('Right operand is not a number.', expr.operator);
       }
-      return 'BoolLangType';
+      return 'Bool';
     }
 
     // number operations: -, *, /
     if (this.tokenTypeMatch(opType, 'MINUS', 'STAR', 'SLASH')) {
       const leftType: LangType = this.validateExpression(expr.left);
-      if (leftType != 'NumberLangType') {
+      if (leftType != 'Num') {
         throw new TokenError('Left operand is not a number.', expr.operator);
       }
       const rightType = this.validateExpression(expr.right);
-      if (rightType != 'NumberLangType') {
+      if (rightType != 'Num') {
         throw new TokenError('Right operand is not a number.', expr.operator);
       }
-      return 'NumberLangType';
+      return 'Num';
     }
 
     // + is defined for both strings and numbers
     if (this.tokenTypeMatch(opType, 'PLUS')) {
       const leftType: LangType = this.validateExpression(expr.left);
-      if (leftType != 'NumberLangType' && leftType != 'StringLangType') {
+      if (leftType != 'Num' && leftType != 'Str') {
         throw new TokenError('Left operand is not a number or string.',
                               expr.operator);
       }
 
       const rightType = this.validateExpression(expr.right);
-      if (rightType != 'NumberLangType' && rightType != 'StringLangType') {
+      if (rightType != 'Num' && rightType != 'Str') {
         throw new TokenError('Right operand is not a number or string.',
                               expr.operator);
       }
@@ -259,18 +259,18 @@ export default class TypeValidator
 
     if (this.tokenTypeMatch(opType, 'MINUS')) {
       const rightType: LangType = this.validateExpression(expr.right);
-      if (rightType != 'NumberLangType') {
+      if (rightType != 'Num') {
         throw new TokenError('Operand is not a number.', expr.operator);
       }
-      return 'NumberLangType';
+      return 'Num';
     }
 
     if (this.tokenTypeMatch(opType, 'BANG')) {
       const rightType: LangType = this.validateExpression(expr.right);
-      if (rightType != 'BoolLangType') {
+      if (rightType != 'Bool') {
         throw new TokenError('Operand is not a number.', expr.operator);
       }
-      return 'BoolLangType';
+      return 'Bool';
     }
 
     throw new ImplementationError('Unknown operator in unary expression.');
@@ -281,9 +281,9 @@ export default class TypeValidator
   }
 
   visitLiteralExpr(expr: LiteralExpr): LangType {
-    if (typeof(expr.value) === 'number') return 'NumberLangType';
-    if (typeof(expr.value) === 'string') return 'StringLangType';
-    return 'BoolLangType';
+    if (typeof(expr.value) === 'number') return 'Num';
+    if (typeof(expr.value) === 'string') return 'Str';
+    return 'Bool';
   }
 
   visitVariableExpr(expr: VariableExpr): LangType {
@@ -320,14 +320,14 @@ export default class TypeValidator
 
   visitLogicalExpr(expr: LogicalExpr): LangType {
     const leftType: LangType = this.validateExpression(expr.left);
-    if (leftType != 'BoolLangType')
+    if (leftType != 'Bool')
       throw new TokenError('Left operand must be a bool.', expr.operator);
 
     const rightType: LangType = this.validateExpression(expr.right);
-    if (rightType != 'BoolLangType')
+    if (rightType != 'Bool')
       throw new TokenError('Right operand must be a bool.', expr.operator);
 
-    return 'BoolLangType';
+    return 'Bool';
   }
 
   visitFunctionObjectExpr(expr: FunctionObjectExpr): LangType {
@@ -428,7 +428,7 @@ export default class TypeValidator
   visitArrayObjectExpr(expr: ArrayObjectExpr): LangType {
     // make sure that the given capacity is a number
     const capacityType: LangType = this.validateExpression(expr.capacity);
-    if (capacityType !== 'NumberLangType')
+    if (capacityType !== 'Num')
       throw new TokenRangeError('Given capacity must be a number.',
                                 expr.leftBracket, expr.rightBracket);
     
@@ -457,7 +457,7 @@ export default class TypeValidator
 
   visitArrayAccessExpr(expr: ArrayAccessExpr): LangType {
     const indexType: LangType = this.validateExpression(expr.index);
-    if (indexType !== 'NumberLangType')
+    if (indexType !== 'Num')
       throw new TokenRangeError('Expect index number.',
                                 expr.leftBracket, expr.rightBracket);
 

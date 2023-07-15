@@ -15,7 +15,7 @@ export type TokenValue = number | string | boolean | null;
 // nullReturn is only ever used as the output type of a null function return
 export type LangType = PrimitiveLangType | FunctionLangType | 
                              ArrayLangType | 'nullReturn' ;
-export type PrimitiveLangType = 'NumberLangType' | 'StringLangType' | 'BoolLangType' ;
+export type PrimitiveLangType = 'Num' | 'Str' | 'Bool' ;
 
 // the objects within the language
 // NOTE null is only for void returns and empty array cells
