@@ -129,12 +129,12 @@ export default class Interpreter
     // if the block follows a function call, then the environment for the block
     // was already created with the function parameters
     if (this.functionEnvironment !== null) {
-      innerEnvironment = this.functionEnvironment;
+      innerEnvironment = new LOEnvironment(this.functionEnvironment);
       this.functionEnvironment = null;
     } else innerEnvironment = new LOEnvironment(outerEnvironment);
 
     // switch environments and execute the statements with it
-    this.currentEnvironment = new LOEnvironment(innerEnvironment);
+    this.currentEnvironment = innerEnvironment;
     try {
       for (const statement of stmt.statements) {
         this.execute(statement);

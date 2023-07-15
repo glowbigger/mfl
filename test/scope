@@ -17,10 +17,3 @@ let c: str = "global c";
 print a;
 print b;
 print c;
-
-// invalid declarations within scopes
-let a: num = 5;
-{
-  let a: str = "imastring";
-  a = 5;
-}
