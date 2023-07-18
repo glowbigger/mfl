@@ -30,11 +30,8 @@ export class BlankStmt extends Stmt {
 }
 
 export class BreakStmt extends Stmt {
-  breakToken: Token;
-
   constructor(breakToken: Token) {
     super(breakToken, breakToken);
-    this.breakToken = breakToken;
   }
 
   accept<R>(visitor: StmtVisitor<R>): R {
@@ -45,10 +42,8 @@ export class BreakStmt extends Stmt {
 export class BlockStmt extends Stmt {
   readonly statements: Stmt[];
 
-  constructor(statements: Stmt[]) {
-    const firstStatement = statements[0];
-    const lastStatement = statements[statements.length - 1];
-    super(firstStatement.lToken, lastStatement.rToken);
+  constructor(leftBrace: Token, statements: Stmt[], rightBrace: Token) {
+    super(leftBrace, rightBrace);
     this.statements = statements;
   }
 
@@ -71,7 +66,6 @@ export class ExpressionStmt extends Stmt {
 }
 
 export class IfStmt extends Stmt {
-  readonly ifToken: Token;
   readonly condition: Expr;
   readonly thenBranch: Stmt;
   readonly elseBranch: Stmt | null;
@@ -85,7 +79,6 @@ export class IfStmt extends Stmt {
     else 
       super(ifToken, thenBranch.rToken);
 
-    this.ifToken = ifToken;
     this.condition  = condition;
     this.thenBranch = thenBranch;
     this.elseBranch = elseBranch;
@@ -97,12 +90,10 @@ export class IfStmt extends Stmt {
 }
 
 export class PrintStmt extends Stmt {
-  readonly keyword: Token;
   readonly expression: Expr;
 
   constructor(keyword: Token, expression: Expr,) {
     super(keyword, expression.rToken);
-    this.keyword = keyword;
     this.expression = expression;
   }
 
@@ -112,7 +103,6 @@ export class PrintStmt extends Stmt {
 }
 
 export class ReturnStmt extends Stmt {
-  readonly keyword: Token;
   readonly value: Expr | null;
 
   constructor(keyword: Token, value: Expr | null) {
@@ -120,7 +110,6 @@ export class ReturnStmt extends Stmt {
       super(keyword, value.rToken);
     else
       super(keyword, keyword);
-    this.keyword = keyword;
     this.value = value;
   }
 
@@ -148,13 +137,11 @@ export class DeclarationStmt extends Stmt {
 }
 
 export class WhileStmt extends Stmt {
-  readonly whileToken: Token;
   readonly condition: Expr;
   readonly body: Stmt;
 
   constructor(whileToken: Token, condition: Expr, body: Stmt) {
     super(whileToken, body.rToken);
-    this.whileToken = whileToken;
     this.condition = condition;
     this.body = body;
   }

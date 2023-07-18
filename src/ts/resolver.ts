@@ -5,7 +5,7 @@
  * variables are not defined to be their own value
  */
 
-import { TokenError } from "./error";
+import { SyntaxTreeNodeError, TokenError } from "./error";
 import { ArrayAccessExpr, ArrayAssignExpr, ArrayObjectExpr, AssignExpr, BinaryExpr, CallExpr, Expr, ExprVisitor, FunctionObjectExpr, GroupingExpr, LiteralExpr, LogicalExpr, UnaryExpr, VariableExpr } from "./expr";
 import Interpreter from "./interpreter";
 import { BlankStmt, BlockStmt, BreakStmt, DeclarationStmt, ExpressionStmt, IfStmt, PrintStmt, ReturnStmt, Stmt, StmtVisitor, WhileStmt } from "./stmt";
@@ -120,17 +120,17 @@ export default class Resolver implements StmtVisitor<void>, ExprVisitor<void> {
       = this.initializedVariablesScopes[peekIndex];
 
     if (this.initializedVariablesScopes.length > 0 &&
-        innermostScope.get(expr.identifier.lexeme) === false) {
+        innermostScope.get(expr.lToken.lexeme) === false) {
       const msg = 'Can\'t read local variable in its own initializer.';
-      throw new TokenError(msg, expr.identifier)
+      throw new SyntaxTreeNodeError(msg, expr)
     }
 
-    this.resolveLocalVariable(expr, expr.identifier.lexeme);
+    this.resolveLocalVariable(expr, expr.lToken.lexeme);
   }
 
   visitAssignExpr(expr: AssignExpr): void {
     this.resolveExpression(expr.value);
-    this.resolveLocalVariable(expr, expr.variableIdentifier.lexeme);
+    this.resolveLocalVariable(expr, expr.lToken.lexeme);
   }
 
   visitFunctionObjectExpr(expr: FunctionObjectExpr): void {
@@ -162,8 +162,8 @@ export default class Resolver implements StmtVisitor<void>, ExprVisitor<void> {
   }
   
   visitBinaryExpr(expr: BinaryExpr): void {
-    this.resolveExpression(expr.left);
-    this.resolveExpression(expr.right);
+    this.resolveExpression(expr.leftExpr);
+    this.resolveExpression(expr.rightExpr);
   }
 
   visitCallExpr(expr: CallExpr): void {
@@ -181,12 +181,12 @@ export default class Resolver implements StmtVisitor<void>, ExprVisitor<void> {
   }
 
   visitLogicalExpr(expr: LogicalExpr): void {
-    this.resolveExpression(expr.left);
-    this.resolveExpression(expr.right);
+    this.resolveExpression(expr.leftExpr);
+    this.resolveExpression(expr.rightExpr);
   }
 
   visitUnaryExpr(expr: UnaryExpr): void {
-    this.resolveExpression(expr.right);
+    this.resolveExpression(expr.rightExpr);
   }
 
   //======================================================================

@@ -1,6 +1,6 @@
 import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, 
           ExprVisitor, VariableExpr, AssignExpr, LogicalExpr, FunctionObjectExpr, CallExpr, ArrayObjectExpr, ArrayAccessExpr, ArrayAssignExpr } from './expr'
-import { TokenError, ImplementationError, TokenRangeError } from './error';
+import { TokenError, ImplementationError, TokenRangeError, SyntaxTreeNodeError } from './error';
 import { ArrayLangObject, FunctionLangObject, LangObject } from './langObject';
 import { Stmt, ExpressionStmt, PrintStmt, BlankStmt, StmtVisitor,
         DeclarationStmt,
@@ -181,39 +181,39 @@ export default class Interpreter
 
     switch(expr.operator.type) {
       case 'EQUAL_EQUAL':
-        leftValue = this.evaluate(expr.left);
-        rightValue = this.evaluate(expr.right);
+        leftValue = this.evaluate(expr.leftExpr);
+        rightValue = this.evaluate(expr.rightExpr);
         return leftValue === rightValue;
 
       case 'BANG_EQUAL':
-        leftValue = this.evaluate(expr.left) as boolean;
-        rightValue = this.evaluate(expr.right) as boolean;
+        leftValue = this.evaluate(expr.leftExpr) as boolean;
+        rightValue = this.evaluate(expr.rightExpr) as boolean;
         return leftValue != rightValue;
 
       case 'LESS':
-        leftValue = this.evaluate(expr.left) as number;
-        rightValue = this.evaluate(expr.right) as number;
+        leftValue = this.evaluate(expr.leftExpr) as number;
+        rightValue = this.evaluate(expr.rightExpr) as number;
         return leftValue < rightValue;
 
       case 'LESS_EQUAL':
-        leftValue = this.evaluate(expr.left) as number;
-        rightValue = this.evaluate(expr.right) as number;
+        leftValue = this.evaluate(expr.leftExpr) as number;
+        rightValue = this.evaluate(expr.rightExpr) as number;
         return leftValue <= rightValue;
 
       case 'GREATER':
-        leftValue = this.evaluate(expr.left) as number;
-        rightValue = this.evaluate(expr.right) as number;
+        leftValue = this.evaluate(expr.leftExpr) as number;
+        rightValue = this.evaluate(expr.rightExpr) as number;
         return leftValue > rightValue;
 
       case 'GREATER_EQUAL':
-        leftValue = this.evaluate(expr.left) as number;
-        rightValue = this.evaluate(expr.right) as number;
+        leftValue = this.evaluate(expr.leftExpr) as number;
+        rightValue = this.evaluate(expr.rightExpr) as number;
         return leftValue >= rightValue;
 
       case 'PLUS':
         // + can add numbers or concatenate strings
-        leftValue = this.evaluate(expr.left) as number | string;
-        rightValue = this.evaluate(expr.right) as number | string;
+        leftValue = this.evaluate(expr.leftExpr) as number | string;
+        rightValue = this.evaluate(expr.rightExpr) as number | string;
 
         if (typeof(leftValue) == 'number' && typeof(rightValue) == 'number') {
           // number addition
@@ -224,18 +224,18 @@ export default class Interpreter
         }
 
       case 'MINUS':
-        leftValue = this.evaluate(expr.left) as number;
-        rightValue = this.evaluate(expr.right) as number;
+        leftValue = this.evaluate(expr.leftExpr) as number;
+        rightValue = this.evaluate(expr.rightExpr) as number;
         return leftValue - rightValue;
 
       case 'STAR':
-        leftValue = this.evaluate(expr.left) as number;
-        rightValue = this.evaluate(expr.right) as number;
+        leftValue = this.evaluate(expr.leftExpr) as number;
+        rightValue = this.evaluate(expr.rightExpr) as number;
         return leftValue * rightValue;
 
       case 'SLASH':
-        leftValue = this.evaluate(expr.left) as number;
-        rightValue = this.evaluate(expr.right) as number;
+        leftValue = this.evaluate(expr.leftExpr) as number;
+        rightValue = this.evaluate(expr.rightExpr) as number;
         if (rightValue === 0) {
           throw new TokenError('Division by 0.', expr.operator);
         }
@@ -250,11 +250,11 @@ export default class Interpreter
 
     switch(expr.operator.type) {
       case 'MINUS':
-        rightValue = this.evaluate(expr.right) as number;
+        rightValue = this.evaluate(expr.rightExpr) as number;
         return - rightValue;
 
       case 'BANG':
-        rightValue = this.evaluate(expr.right) as boolean;
+        rightValue = this.evaluate(expr.rightExpr) as boolean;
         return rightValue;
     }
 
@@ -272,22 +272,11 @@ export default class Interpreter
   }
 
   visitVariableExpr(expr: VariableExpr): LangObject {
-    // NOTE OLD
-    // const value: LangObject | undefined
-    //   = this.currentEnvironment.get(expr.identifier.lexeme);
-
-    // // this should never happen
-    // if (value === undefined) {
-    //   throw new TokenError('Undefined variable.', expr.identifier);
-    // }
-    //
-    // return value;
-
-    return this.lookupVariable(expr.identifier.lexeme, expr);
+    return this.lookupVariable(expr.lToken.lexeme, expr);
   }
 
   visitAssignExpr(expr: AssignExpr): LangObject {
-    const identifier: string = expr.variableIdentifier.lexeme;
+    const identifier: string = expr.lToken.lexeme;
     const value: LangObject = this.evaluate(expr.value);
 
     const distance: number | undefined = this.localVariableDistances.get(expr);
@@ -298,21 +287,10 @@ export default class Interpreter
     }
 
     return value;
-
-    // NOTE old
-    // try {
-    //   this.currentEnvironment.assign(variable, value);
-    //   return value;
-    // } catch (error: unknown) {
-    //   if (error instanceof Error) {
-    //     throw new TokenError(error.message, expr.variableIdentifier);
-    //   }
-    //   throw new ImplementationError('Unable to assign to environment.');
-    // }
   }
 
   visitLogicalExpr(expr: LogicalExpr): LangObject {
-    const leftValue: boolean = this.evaluate(expr.left) as boolean;
+    const leftValue: boolean = this.evaluate(expr.leftExpr) as boolean;
 
     if (expr.operator.type === 'OR') {
       // or, if the left side is true, then the 'or' expression is true
@@ -322,7 +300,7 @@ export default class Interpreter
       if (!leftValue) return false;
     }
 
-    const rightValue: boolean = this.evaluate(expr.right) as boolean;
+    const rightValue: boolean = this.evaluate(expr.rightExpr) as boolean;
     return rightValue;
   }
 
@@ -379,16 +357,10 @@ export default class Interpreter
       = this.evaluate(expr.arrayExpr) as ArrayLangObject;
 
     if (index < 0 || index > array.capacity - 1) {
-      throw new TokenRangeError('Index is out of range.',
-                                expr.leftBracket, expr.rightBracket);
+      throw new SyntaxTreeNodeError('Index is out of range.', expr.index);
     }
 
-    // check if the object at the index is nonexistent / not set / null
     const accessed: LangObject = array.elements[index];
-    if (accessed === null) 
-      throw new TokenRangeError('The specified position in the array is empty.',
-                                expr.leftBracket, expr.rightBracket);
-
     return accessed;
   }
 
@@ -401,9 +373,8 @@ export default class Interpreter
       = this.evaluate(arrayExpr) as ArrayLangObject;
 
     if (index < 0 || index > arrayObject.capacity - 1) {
-      throw new TokenRangeError('Index is out of range.',
-                                expr.arrayAccessExpr.leftBracket,
-                                expr.arrayAccessExpr.rightBracket);
+      throw new SyntaxTreeNodeError('Index is out of range.',
+                                    expr.arrayAccessExpr.index);
     }
 
     // insert the value into the array

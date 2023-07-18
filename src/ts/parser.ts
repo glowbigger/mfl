@@ -141,7 +141,8 @@ export default class Parser {
 
   // ifStmt              → "if" expression "then" statement ("else" statement)? ;
   private parseIfStatement(): Stmt {
-    const ifToken: Token = this.expect('IF', 'Expect \'if\' to start if statement.');
+    const ifToken: Token =
+      this.expect('IF', 'Expect \'if\' to start if statement.');
     const condition: Expr = this.parseExpression();
     this.expect('THEN', 'Expect \'then\' after condition.');
     const thenBranch: Stmt = this.parseStatement();
@@ -157,16 +158,18 @@ export default class Parser {
 
   // blockStmt           → "{" statement* "}" ;
   private parseBlockStatement(): Stmt {
-    this.expect('LEFT_BRACE', 'Expect \'{\' to begin block statement.');
+    const leftBrace: Token =
+      this.expect('LEFT_BRACE', 'Expect \'{\' to begin block statement.');
 
     const statements: Stmt[] = [];
     while (!this.match('RIGHT_BRACE', 'EOF')) {
       statements.push(this.parseStatement());
     }
 
-    this.expect('RIGHT_BRACE', 'Expect \'}\' to end block statement.');
+    const rightBrace: Token =
+      this.expect('RIGHT_BRACE', 'Expect \'}\' to end block statement.');
 
-    return new BlockStmt(statements);
+    return new BlockStmt(leftBrace, statements, rightBrace);
   }
 
   // whileStmt           → "while" "(" condition ")" statement
@@ -313,7 +316,7 @@ export default class Parser {
 
       if (expr instanceof VariableExpr) {
         const value: Expr = this.parseAssignment();
-        return new AssignExpr(expr.identifier, value);
+        return new AssignExpr(expr.lToken, value);
       }
 
       if (expr instanceof ArrayAccessExpr) {
@@ -408,8 +411,8 @@ export default class Parser {
     return base;
   }
   
-  // new: 
   // call              → "(" ( expression ( "," expression)* )? ")" ;
+  // NOTE when this is called, the base has already been parsed
   private parseCall(base: Expr): CallExpr {
     this.expect('LEFT_PAREN', 'Expect \'(\' for call.');
 
@@ -429,16 +432,14 @@ export default class Parser {
   }
 
   // arrayAccess       → "[" expression "]" ;
+  // NOTE when this is called, the base has already been parsed
   private parseArrayAccess(base: Expr): ArrayAccessExpr {
-    const leftBracket: Token = 
-      this.expect('LEFT_BRACKET', 'Expect \'[\' for array access.');
-    
+    this.expect('LEFT_BRACKET', 'Expect \'[\' for array access.');
     const index: Expr = this.parseExpression();
-
     const rightBracket: Token = 
       this.expect('RIGHT_BRACKET', 'Expect \']\' for array access.');
 
-    return new ArrayAccessExpr(base, index, leftBracket, rightBracket);
+    return new ArrayAccessExpr(base, index, rightBracket);
   }
 
   // primary           → NUMBER | STRING | "true" | "false" | functionObject |
@@ -532,6 +533,7 @@ export default class Parser {
       const left: Expr = expr;
       const operator: Token = this.consume();
       const right: Expr = innerFunction();
+
       expr = new BinaryExpr(left, operator, right);
     }
     return expr;

@@ -25,16 +25,11 @@ export abstract class Expr extends SyntaxTreeNode {
 export class ArrayAccessExpr extends Expr {
   readonly arrayExpr: Expr;
   readonly index: Expr;
-  readonly leftBracket: Token;
-  readonly rightBracket: Token;
 
-  constructor(arrayExpr: Expr, index: Expr, 
-              leftBracket: Token, rightBracket: Token) {
+  constructor(arrayExpr: Expr, index: Expr, rightBracket: Token) {
     super(arrayExpr.lToken, rightBracket);
     this.arrayExpr = arrayExpr;
     this.index = index;
-    this.leftBracket = leftBracket;
-    this.rightBracket = rightBracket;
   }
 
   accept<R>(visitor: ExprVisitor<R>): R {
@@ -63,16 +58,12 @@ export class ArrayAssignExpr extends Expr {
 export class ArrayObjectExpr extends Expr {
   readonly capacity: number | Expr;
   readonly elements: Expr[] | Expr;
-  readonly leftBracket: Token;
-  readonly rightBracket: Token;
 
   constructor(capacity: number | Expr, elements: Expr[] | Expr,
               leftBracket: Token, rightBracket: Token) {
     super(leftBracket, rightBracket);
     this.capacity = capacity;
     this.elements = elements;
-    this.leftBracket = leftBracket;
-    this.rightBracket = rightBracket;
   }
 
   accept<R>(visitor: ExprVisitor<R>): R {
@@ -81,12 +72,10 @@ export class ArrayObjectExpr extends Expr {
 }
 
 export class AssignExpr extends Expr {
-  readonly variableIdentifier: Token;
   readonly value: Expr;
 
   constructor(variableIdentifier: Token, value: Expr) {
     super(variableIdentifier, value.rToken);
-    this.variableIdentifier = variableIdentifier;
     this.value = value;
   }
 
@@ -96,15 +85,15 @@ export class AssignExpr extends Expr {
 }
 
 export class BinaryExpr extends Expr {
-  readonly left: Expr;
+  readonly leftExpr: Expr;
   readonly operator: Token;
-  readonly right: Expr;
+  readonly rightExpr: Expr;
 
-  constructor(left: Expr, operator: Token, right: Expr) {
-    super(left.lToken, right.rToken);
-    this.left = left;
+  constructor(leftExpr: Expr, operator: Token, rightExpr: Expr) {
+    super(leftExpr.lToken, rightExpr.rToken);
+    this.leftExpr = leftExpr;
     this.operator = operator;
-    this.right = right;
+    this.rightExpr = rightExpr;
   }
 
   accept<R>(visitor: ExprVisitor<R>): R {
@@ -114,13 +103,11 @@ export class BinaryExpr extends Expr {
 
 export class CallExpr extends Expr {
   readonly callee: Expr;
-  readonly rightParen: Token;
   readonly args: Array<Expr>;
 
   constructor(callee: Expr, rightParen: Token, args: Array<Expr>) {
     super(callee.lToken, rightParen);
     this.callee = callee;
-    this.rightParen = rightParen;
     this.args = args;
   }
 
@@ -134,7 +121,6 @@ export class FunctionObjectExpr extends Expr {
   readonly parameterTypes: LangType[];
   readonly returnType: LangType;
   readonly statement: Stmt;
-  readonly keyword: Token;
 
   constructor(parameterTokens: Token[], parameterTypes: LangType[],
               returnType: LangType, statement: Stmt, keyword: Token) {
@@ -143,7 +129,6 @@ export class FunctionObjectExpr extends Expr {
     this.parameterTypes = parameterTypes;
     this.returnType = returnType;
     this.statement = statement;
-    this.keyword = keyword;
   }
 
   accept<R>(visitor: ExprVisitor<R>): R {
@@ -153,14 +138,10 @@ export class FunctionObjectExpr extends Expr {
 
 export class GroupingExpr extends Expr {
   readonly expression: Expr;
-  readonly lParen: Token;
-  readonly rParen: Token;
 
   constructor(lParen: Token, expression: Expr, rParen: Token) {
     super(lParen, rParen);
     this.expression = expression;
-    this.lParen = lParen;
-    this.rParen = rParen;
   }
 
   accept<R>(visitor: ExprVisitor<R>): R {
@@ -169,15 +150,15 @@ export class GroupingExpr extends Expr {
 }
 
 export class LogicalExpr extends Expr {
-  readonly left: Expr;
+  readonly leftExpr: Expr;
   readonly operator: Token;
-  readonly right: Expr;
+  readonly rightExpr: Expr;
 
-  constructor(left: Expr, operator: Token, right: Expr) {
-    super(left.lToken, right.rToken);
-    this.left = left;
+  constructor(leftExpr: Expr, operator: Token, rightExpr: Expr) {
+    super(leftExpr.lToken, rightExpr.rToken);
+    this.leftExpr = leftExpr;
     this.operator = operator;
-    this.right = right;
+    this.rightExpr = rightExpr;
   }
 
   accept<R>(visitor: ExprVisitor<R>): R {
@@ -200,12 +181,12 @@ export class LiteralExpr extends Expr {
 
 export class UnaryExpr extends Expr {
   readonly operator: Token;
-  readonly right: Expr;
+  readonly rightExpr: Expr;
 
-  constructor(operator: Token, right: Expr) {
-    super(operator, right.rToken);
+  constructor(operator: Token, rightExpr: Expr) {
+    super(operator, rightExpr.rToken);
     this.operator = operator;
-    this.right = right;
+    this.rightExpr = rightExpr;
   }
 
   accept<R>(visitor: ExprVisitor<R>): R {
@@ -214,11 +195,8 @@ export class UnaryExpr extends Expr {
 }
 
 export class VariableExpr extends Expr {
-  readonly identifier: Token;
-
   constructor(identifier: Token) {
     super(identifier, identifier);
-    this.identifier = identifier;
   }
 
   accept<R>(visitor: ExprVisitor<R>): R {
