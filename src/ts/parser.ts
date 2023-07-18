@@ -173,9 +173,9 @@ export default class Parser {
   private parseWhileStatement(): Stmt {
     const whileToken: Token =
       this.expect('WHILE', 'Expect \'while\' to begin while statement.');
-    this.expect('LEFT_PAREN', 'Expect \'(\' before condition.');
+
     const condition: Expr = this.parseExpression();
-    this.expect('RIGHT_PAREN', 'Expect \')\' before condition.');
+    this.expect('DO', 'Expect \'do\' after condition.');
     const body: Stmt = this.parseStatement();
 
     return new WhileStmt(whileToken, condition, body);

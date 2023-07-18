@@ -1,5 +1,5 @@
 let i = 0;
-while(i < 10) {
+while i < 10 do {
   print i;
   if i == 3 then { 
     print "break";

@@ -1,5 +1,25 @@
-let i: num = 0;
-while (i < 10) {
+print 'while';
+
+let i = 0;
+
+while i < 10 do {
   print i;
   i = i + 1;
+}
+
+// nested while
+print '';
+print 'nested while';
+
+let i = 0;
+
+while i <= 5 do {
+  print 'i: ' + i;
+  i = i + 1;
+
+  let j = 0;
+  while j < i do {
+    print 'j: ' + j;
+    j = j + 1;
+  }
 }

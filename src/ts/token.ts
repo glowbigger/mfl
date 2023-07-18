@@ -54,6 +54,7 @@ export type TokenType =
 	// keywords
 	'AND' |
 	'BREAK' |
+	'DO' |
 	'ELSE' |
 	'FALSE' |
 	'FUNCTION' |
