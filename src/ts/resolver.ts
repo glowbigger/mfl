@@ -150,7 +150,9 @@ export default class Resolver implements StmtVisitor<void>, ExprVisitor<void> {
   }
 
   visitArrayObjectExpr(expr: ArrayObjectExpr): void {
-    this.resolveExpression(expr.capacity);
+    if (expr.capacity instanceof Expr)
+      this.resolveExpression(expr.capacity);
+
     if (Array.isArray(expr.elements)) {
       for (const element of expr.elements)
         this.resolveExpression(element);

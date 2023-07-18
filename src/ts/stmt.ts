@@ -1,6 +1,7 @@
 import { Expr } from './expr';
 import { Token } from './token';
 import { LangType } from './langType';
+import SyntaxTreeNode from './syntaxTreeNode';
 
 export interface StmtVisitor<R> {
   visitBlankStmt(stmt: BlankStmt): R;
@@ -14,13 +15,13 @@ export interface StmtVisitor<R> {
   visitWhileStmt(stmt: WhileStmt): R;
 }
 
-export abstract class Stmt {
+export abstract class Stmt extends SyntaxTreeNode {
   abstract accept<R>(visitor: StmtVisitor<R>): R;
 }
 
 export class BlankStmt extends Stmt {
-  constructor() {
-    super();
+  constructor(semicolon: Token) {
+    super(semicolon, semicolon);
   }
 
   accept<R>(visitor: StmtVisitor<R>): R {
@@ -32,7 +33,7 @@ export class BreakStmt extends Stmt {
   breakToken: Token;
 
   constructor(breakToken: Token) {
-    super();
+    super(breakToken, breakToken);
     this.breakToken = breakToken;
   }
 
@@ -45,7 +46,9 @@ export class BlockStmt extends Stmt {
   readonly statements: Stmt[];
 
   constructor(statements: Stmt[]) {
-    super();
+    const firstStatement = statements[0];
+    const lastStatement = statements[statements.length - 1];
+    super(firstStatement.lToken, lastStatement.rToken);
     this.statements = statements;
   }
 
@@ -58,7 +61,7 @@ export class ExpressionStmt extends Stmt {
   readonly expression: Expr;
 
   constructor(expression: Expr) {
-    super();
+    super(expression.lToken, expression.rToken);
     this.expression = expression;
   }
 
@@ -77,7 +80,11 @@ export class IfStmt extends Stmt {
               condition: Expr, 
               thenBranch: Stmt, 
               elseBranch: Stmt | null = null) {
-    super();
+    if (elseBranch !== null)
+      super(ifToken, elseBranch.rToken);
+    else 
+      super(ifToken, thenBranch.rToken);
+
     this.ifToken = ifToken;
     this.condition  = condition;
     this.thenBranch = thenBranch;
@@ -94,7 +101,7 @@ export class PrintStmt extends Stmt {
   readonly expression: Expr;
 
   constructor(keyword: Token, expression: Expr,) {
-    super();
+    super(keyword, expression.rToken);
     this.keyword = keyword;
     this.expression = expression;
   }
@@ -109,7 +116,10 @@ export class ReturnStmt extends Stmt {
   readonly value: Expr | null;
 
   constructor(keyword: Token, value: Expr | null) {
-    super();
+    if (value !== null)
+      super(keyword, value.rToken);
+    else
+      super(keyword, keyword);
     this.keyword = keyword;
     this.value = value;
   }
@@ -124,8 +134,9 @@ export class DeclarationStmt extends Stmt {
   readonly type: LangType | null;
   readonly initialValue: Expr;
 
-  constructor(identifier: Token, type: LangType | null, initialValue: Expr) {
-    super();
+  constructor(keyword: Token, identifier: Token,
+              type: LangType | null, initialValue: Expr) {
+    super(keyword, initialValue.rToken);
     this.identifier = identifier;
     this.type = type;
     this.initialValue = initialValue;
@@ -142,7 +153,7 @@ export class WhileStmt extends Stmt {
   readonly body: Stmt;
 
   constructor(whileToken: Token, condition: Expr, body: Stmt) {
-    super();
+    super(whileToken, body.rToken);
     this.whileToken = whileToken;
     this.condition = condition;
     this.body = body;

@@ -103,8 +103,8 @@ export default class Parser {
     switch(this.peek().type) {
       // if the initial token is a ;, then return an empty statement
       case 'SEMICOLON': 
-        this.consume();
-        return new BlankStmt();
+        const semicolon: Token = this.consume();
+        return new BlankStmt(semicolon);
 
       // a break statement is a single token
       case 'BREAK':
@@ -206,7 +206,8 @@ export default class Parser {
 
   // declarationStmt     → "let" IDENTIFIER ( ":" objectType )? "=" expression ;
   private parseDeclarationStatement(): Stmt {
-    this.expect('LET', 'Expect \'let\' before variable declaration.');
+    const keyword: Token =
+      this.expect('LET', 'Expect \'let\' before variable declaration.');
     const identifier: Token = 
       this.expect('IDENTIFIER', 'Expect identifier name in declaration.');
 
@@ -219,7 +220,7 @@ export default class Parser {
     this.expect('EQUAL', 'Expect an \'=\' in a declaration.');
     const initialValue: Expr = this.parseExpression();
     
-    return new DeclarationStmt(identifier, type, initialValue);
+    return new DeclarationStmt(keyword, identifier, type, initialValue);
   }
 
   // returnStmt        → "return" expression ;
@@ -421,10 +422,10 @@ export default class Parser {
     }
 
     // rparen kept for error reporting
-    const paren: Token = this.expect('RIGHT_PAREN',
+    const rightParen: Token = this.expect('RIGHT_PAREN',
                                      'Expect \')\' after arguments.');
 
-    return new CallExpr(base, paren, args);
+    return new CallExpr(base, rightParen, args);
   }
 
   // arrayAccess       → "[" expression "]" ;
@@ -444,7 +445,8 @@ export default class Parser {
   //                     arrayObject | IDENTIFIER | "(" expression ")" ;
   private parsePrimary(): Expr {
     if (this.match('NUMBER', 'STRING', 'TRUE', 'FALSE')) {
-      return new LiteralExpr(this.consume().value);
+      const token = this.consume();
+      return new LiteralExpr(token.value, token);
     }
 
     if (this.match('FUNCTION')) {
@@ -460,11 +462,12 @@ export default class Parser {
     }
     
     if (this.match('LEFT_PAREN')) {
-      // skip the (
-      this.consume();
+      const rParen = this.consume();
       const primaryExpr = this.parseExpression();
-      this.expect('RIGHT_PAREN', 'Expect \')\' after expression.');
-      return new GroupingExpr(primaryExpr);
+      const lParen =
+
+        this.expect('RIGHT_PAREN', 'Expect \')\' after expression.');
+      return new GroupingExpr(lParen, primaryExpr, rParen);
     }
 
     // if nothing can be parsed in primary, then the expression rule failed
@@ -553,7 +556,7 @@ export default class Parser {
     // if the next token is ], the array has one expression, ie [ 5 ] or [ "hi" ]
     if (this.match('RIGHT_BRACKET')) {
       const rightBracket = this.consume();
-      const capacity: LiteralExpr = new LiteralExpr(1);
+      const capacity = 1;
       const expressions: Expr[] = [ lengthOrFirstElement];
       return new ArrayObjectExpr(capacity, expressions, 
                                  leftBracket, rightBracket);
@@ -584,7 +587,7 @@ export default class Parser {
     const rightBracket: Token = this.expect('RIGHT_BRACKET',
                                             'Expect right bracket.');
 
-    const capacity = new LiteralExpr(elements.length);
+    const capacity = elements.length;
     return new ArrayObjectExpr(capacity, elements,
                                leftBracket, rightBracket,);
   }

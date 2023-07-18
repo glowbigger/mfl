@@ -347,10 +347,14 @@ export default class Interpreter
 
   visitArrayObjectExpr(expr: ArrayObjectExpr): LangObject {
     // evaluate the capacity
-    const capacity: number = this.evaluate(expr.capacity) as number;
+    let capacity: number;
+    if (expr.capacity instanceof Expr)
+      capacity = this.evaluate(expr.capacity) as number;
+    else
+      capacity = expr.capacity;
 
+    // evaluate the elements
     let elements: LangObject[] = [];
-
     if (Array.isArray(expr.elements)) {
       // if the elements are all provided, then insert them all
       elements = []

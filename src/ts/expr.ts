@@ -1,6 +1,7 @@
 import { Stmt } from './stmt';
 import { Token, TokenValue } from './token';
 import { LangType } from './langType';
+import SyntaxTreeNode from './syntaxTreeNode';
 
 export interface ExprVisitor<R> {
   visitArrayAccessExpr(expr: ArrayAccessExpr): R;
@@ -17,7 +18,7 @@ export interface ExprVisitor<R> {
   visitVariableExpr(expr: VariableExpr): R;
 }
 
-export abstract class Expr {
+export abstract class Expr extends SyntaxTreeNode {
   abstract accept<R>(visitor: ExprVisitor<R>): R;
 }
 
@@ -29,7 +30,7 @@ export class ArrayAccessExpr extends Expr {
 
   constructor(arrayExpr: Expr, index: Expr, 
               leftBracket: Token, rightBracket: Token) {
-    super();
+    super(arrayExpr.lToken, rightBracket);
     this.arrayExpr = arrayExpr;
     this.index = index;
     this.leftBracket = leftBracket;
@@ -48,7 +49,7 @@ export class ArrayAssignExpr extends Expr {
 
   constructor(arrayAccessExpr: ArrayAccessExpr, assignmentValue: Expr,
               equalityToken: Token) {
-    super();
+    super(arrayAccessExpr.lToken, assignmentValue.rToken);
     this.arrayAccessExpr = arrayAccessExpr;
     this.assignmentValue = assignmentValue;
     this.equalityToken = equalityToken;
@@ -60,14 +61,14 @@ export class ArrayAssignExpr extends Expr {
 }
 
 export class ArrayObjectExpr extends Expr {
-  readonly capacity: Expr;
+  readonly capacity: number | Expr;
   readonly elements: Expr[] | Expr;
   readonly leftBracket: Token;
   readonly rightBracket: Token;
 
-  constructor(capacity: Expr, elements: Expr[] | Expr,
+  constructor(capacity: number | Expr, elements: Expr[] | Expr,
               leftBracket: Token, rightBracket: Token) {
-    super();
+    super(leftBracket, rightBracket);
     this.capacity = capacity;
     this.elements = elements;
     this.leftBracket = leftBracket;
@@ -84,7 +85,7 @@ export class AssignExpr extends Expr {
   readonly value: Expr;
 
   constructor(variableIdentifier: Token, value: Expr) {
-    super();
+    super(variableIdentifier, value.rToken);
     this.variableIdentifier = variableIdentifier;
     this.value = value;
   }
@@ -100,7 +101,7 @@ export class BinaryExpr extends Expr {
   readonly right: Expr;
 
   constructor(left: Expr, operator: Token, right: Expr) {
-    super();
+    super(left.lToken, right.rToken);
     this.left = left;
     this.operator = operator;
     this.right = right;
@@ -113,13 +114,13 @@ export class BinaryExpr extends Expr {
 
 export class CallExpr extends Expr {
   readonly callee: Expr;
-  readonly paren: Token;
+  readonly rightParen: Token;
   readonly args: Array<Expr>;
 
-  constructor(callee: Expr, paren: Token, args: Array<Expr>) {
-    super();
+  constructor(callee: Expr, rightParen: Token, args: Array<Expr>) {
+    super(callee.lToken, rightParen);
     this.callee = callee;
-    this.paren = paren;
+    this.rightParen = rightParen;
     this.args = args;
   }
 
@@ -137,7 +138,7 @@ export class FunctionObjectExpr extends Expr {
 
   constructor(parameterTokens: Token[], parameterTypes: LangType[],
               returnType: LangType, statement: Stmt, keyword: Token) {
-    super();
+    super(keyword, statement.rToken);
     this.parameterTokens = parameterTokens;
     this.parameterTypes = parameterTypes;
     this.returnType = returnType;
@@ -152,10 +153,14 @@ export class FunctionObjectExpr extends Expr {
 
 export class GroupingExpr extends Expr {
   readonly expression: Expr;
+  readonly lParen: Token;
+  readonly rParen: Token;
 
-  constructor(expression: Expr) {
-    super();
+  constructor(lParen: Token, expression: Expr, rParen: Token) {
+    super(lParen, rParen);
     this.expression = expression;
+    this.lParen = lParen;
+    this.rParen = rParen;
   }
 
   accept<R>(visitor: ExprVisitor<R>): R {
@@ -169,7 +174,7 @@ export class LogicalExpr extends Expr {
   readonly right: Expr;
 
   constructor(left: Expr, operator: Token, right: Expr) {
-    super();
+    super(left.lToken, right.rToken);
     this.left = left;
     this.operator = operator;
     this.right = right;
@@ -183,8 +188,8 @@ export class LogicalExpr extends Expr {
 export class LiteralExpr extends Expr {
   readonly value: TokenValue;
 
-  constructor(value: TokenValue) {
-    super();
+  constructor(value: TokenValue, literalToken: Token) {
+    super(literalToken, literalToken);
     this.value = value;
   }
 
@@ -198,7 +203,7 @@ export class UnaryExpr extends Expr {
   readonly right: Expr;
 
   constructor(operator: Token, right: Expr) {
-    super();
+    super(operator, right.rToken);
     this.operator = operator;
     this.right = right;
   }
@@ -212,7 +217,7 @@ export class VariableExpr extends Expr {
   readonly identifier: Token;
 
   constructor(identifier: Token) {
-    super();
+    super(identifier, identifier);
     this.identifier = identifier;
   }
 

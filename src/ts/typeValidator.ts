@@ -399,7 +399,7 @@ export default class TypeValidator
     
     // check whether the primary is callable
     if (!(maybeCallable instanceof FunctionLangType))
-      throw new TokenError('Expect callable object.', expr.paren);
+      throw new TokenError('Expect callable object.', expr.rToken);
 
     // get the arguments as types
     const argExprs: Expr[] = expr.args;
@@ -412,13 +412,13 @@ export default class TypeValidator
     const params: LangType[] = maybeCallable.parameters;
     if (params.length != args.length) {
       const errorMsg = 'Number of arguments does not equal number of parameters';
-      throw new TokenError(errorMsg, expr.paren);
+      throw new TokenError(errorMsg, expr.rToken);
     }
 
     // check if the parameter types equal the argument types
     for (const i in params) {
       if (!LangTypeEqual(params[i], args[i]))
-        throw new TokenError(`Invalid argument type(s).`, expr.paren);
+        throw new TokenError(`Invalid argument type(s).`, expr.rToken);
     }
 
     return ((maybeCallable.returnType == null) ? 
@@ -426,12 +426,14 @@ export default class TypeValidator
   }
 
   visitArrayObjectExpr(expr: ArrayObjectExpr): LangType {
-    // make sure that the given capacity is a number
-    const capacityType: LangType = this.validateExpression(expr.capacity);
-    if (capacityType !== 'Num')
-      throw new TokenRangeError('Given capacity must be a number.',
-                                expr.leftBracket, expr.rightBracket);
-    
+    // if the given capacity is an expression, the expression should be a number
+    if (expr.capacity instanceof Expr) {
+      const capacityType: LangType = this.validateExpression(expr.capacity);
+      if (capacityType !== 'Num')
+        throw new TokenRangeError('Given capacity must be a number.',
+                                  expr.leftBracket, expr.rightBracket);
+    }
+
     let type: LangType;
 
     // if the array is filled with expressions, ie [5, 6], deduce the type and
