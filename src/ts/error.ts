@@ -1,3 +1,4 @@
+import SyntaxTreeNode from "./syntaxTreeNode";
 import { Token } from "./token";
 
 export abstract class LangError extends Error {
@@ -9,7 +10,6 @@ export abstract class LangError extends Error {
   };
 }
 
-// an error at a single character
 export class CharacterError extends LangError {
   readonly column: number;
   readonly lineString: string;
@@ -34,7 +34,6 @@ export class CharacterError extends LangError {
   }
 }
 
-// an error at a token
 export class TokenError extends LangError {
   readonly token: Token;
 
@@ -59,7 +58,6 @@ export class TokenError extends LangError {
   }
 }
 
-// an error at a token
 export class TokenRangeError extends LangError {
   readonly tokenStart: Token;
   readonly tokenEnd: Token;
@@ -106,7 +104,17 @@ export class TokenRangeError extends LangError {
   }
 }
 
-// for errors in the interpreter code proper
+export class SyntaxTreeNodeError extends TokenRangeError {
+  constructor(message: string, treeNode: SyntaxTreeNode) {
+    super(message, treeNode.lToken, treeNode.rToken);
+  }
+
+  toString(): string {
+    return super.toString();
+  }
+}
+
+// for errors in the interpreter code proper and not the source code to be ran 
 export class ImplementationError extends Error {
   constructor(message: string) {
     super("Implementation error: " + message);
