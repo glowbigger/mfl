@@ -2,10 +2,6 @@ import { Expr } from './expr';
 import { Token } from './token';
 import { LangType } from './langType';
 
-/*
-* see expr.ts for detailed notes on this class
-*/
-
 export interface StmtVisitor<R> {
   visitBlankStmt(stmt: BlankStmt): R;
   visitBlockStmt(stmt: BlockStmt): R;

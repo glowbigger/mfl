@@ -46,36 +46,6 @@ export default class Parser {
   // program        → statement* EOF ;
   // NOTE no need to worry about the EOF
   parse(): Stmt[] {
-    // after an error is thrown, this function gets called; it consumes tokens
-    // until the start of a new statement
-    // NOTE it's a nested function because it shouldn't be called elsewhere
-    // NOTE uses an arrow function so that 'this' can be used within the method 
-    const synchronize = (): void => {
-      while (!this.isAtEnd()) {
-        switch (this.peek().type) {
-          case 'SEMICOLON':
-            // a semicolon ends a statement, so it must get consumed
-            this.consume();
-            return;
-
-          // these keywords begin a statement, so they shouldn't get consumed
-          // NOTE if one of these keywords triggers an error, but that keyword
-          // is not consumed before the error call, then you get an infinite loop
-          case 'FUNCTION':
-          case 'LET':
-          case 'FOR':
-          case 'IF':
-          case 'WHILE':
-          case 'PRINT':
-          case 'RETURN':
-          case 'BREAK':
-          // case 'CLASS':
-            return;
-        }
-        this.consume();
-      }
-    };
-
     const statements: Stmt[] = [];
     const errors: LangError[] = [];
 
@@ -86,7 +56,32 @@ export default class Parser {
       } catch(error: unknown) {
         if (error instanceof LangError) {
           errors.push(error);
-          synchronize();
+
+          // after an error, consume tokens until the beginning of a statement
+          let syncDone = false;
+          while (!this.isAtEnd() && !syncDone) {
+            switch (this.peek().type) {
+              case 'SEMICOLON':
+                // a semicolon ends a statement, so it must get consumed
+                this.consume();
+                syncDone = true;
+                break;
+
+              // these keywords begin a statement, so they shouldn't get consumed
+              // TODO if you add classes, you have to add the keyword here
+              case 'FUNCTION':
+              case 'LET':
+              case 'FOR':
+              case 'IF':
+              case 'WHILE':
+              case 'PRINT':
+              case 'RETURN':
+              case 'BREAK':
+                syncDone = false;
+                break;
+            }
+            this.consume();
+          }
         } else {
           // unexpected errors will stop the parser immediately
           throw error;

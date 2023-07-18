@@ -91,17 +91,4 @@ export class ArrayLangObject {
   toString() { 
     return '[' + this.elements.toString() + ']';
   }
-
-  // returns the empty array with this array's dimensions, ie
-  // [ null, null ] or [[ null, null, null], [null, null, null]], etc.
-  getEmptyArray() {
-    const emptyArray: ArrayLangObject = new ArrayLangObject(this.capacity, []);
-
-    // an array of non-arrays, is just [ null, ..., null ]
-    if (!(this.elements instanceof ArrayLangObject)) {
-      while (emptyArray.elements.length < this.capacity)
-        emptyArray.elements.push(null);
-      return emptyArray;
-    }
-  }
 }
