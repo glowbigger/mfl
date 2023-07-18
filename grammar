@@ -7,8 +7,6 @@ statement         → ifStmt | blockStmt | whileStmt |
 ifStmt            → "if" expression "then" statement ( "else" statement )? ;
 blockStmt         → "{" statement* "}" ;
 whileStmt         → "while" "(" condition ")" statement
-forStmt           → "for" "(" ( declarationStmt | exprStmt )? ";" |
-                    expression? ";" | expression? ")" statement ;
 declarationStmt   → "let" IDENTIFIER ( ":" objectType )? "=" expression ;
 exprStmt          → expression ;
 printStmt         → "print" expression ;
