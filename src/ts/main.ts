@@ -7,20 +7,24 @@ function main(): void {
   const args: string[] = process.argv.slice(2);
 
   // if no arguments are given, run in interactive mode
-  // if an argument is given, 
   if (args.length === 0) {
     const prompt = require('prompt-sync')({ sigint: true });
     console.log('Interactive mode started (Ctrl-c to exit):');
     while (true) {
       const input: string = prompt('> ');
-      run(input);
+      console.log(run(input)[0]);
     }
-  } else if (args.length === 1) {
+  }
+
+  // if an argument is given, run it as a file
+  else if (args.length === 1) {
     const filePath: string = args[0];
     const contentBuffer = Buffer.from(filePath, 'utf8')
     const contentString = readFileSync(contentBuffer).toString();
-    run(contentString);
-  } else {
+    console.log(run(contentString)[0]);
+  }
+
+  else {
     console.log('mfl: enter a file name or none for interactive mode.');
   }
 }

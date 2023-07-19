@@ -10,8 +10,13 @@ import { LangError } from './error';
 /**
  * runs (scans, parses, etc.) a given string, which can be either a text file or
  * a line entered from the interactive prompt
+ * returns a tuple with the console output and whether there was an error or not
  */
-export default function run(source: string): void {
+export default function run(source: string): [string, boolean] {
+  // the resulting output string, can be from the execution of the program or
+  // the language error messages (other errors are thrown immediately)
+  let output: string = '';
+
   // scanning
   const scanner = new Scanner(source);
   let tokens: Token[];
@@ -21,15 +26,12 @@ export default function run(source: string): void {
     // if an array of errors is caught, then it must be from the scanner
     // otherwise, a js error was thrown and something is wrong with the code
     if (Array.isArray(errors)) {
-      console.log('Scanning errors exist -');
-      for (const error of errors) {
-        console.log();
-        console.log(error.toString());
-      }
-    } else {
-      console.log(errors);
-    }
-    return;
+      output += 'Scanning errors exist -\n';
+      for (const error of errors)
+        output += '\n' + error.toString();
+    } else throw errors;
+
+    return [output, true];
   }
 
   // parsing
@@ -39,16 +41,12 @@ export default function run(source: string): void {
     program = parser.parse();
   } catch(errors: unknown) {
     if (Array.isArray(errors)) {
-      console.log('Parsing errors exist -');
+      output += 'Parsing errors exist -\n';
+      for (const error of errors)
+        output += '\n' + error.toString();
+    } else throw errors;
 
-      for (const error of errors) {
-        console.log();
-        console.log(error.toString());
-      }
-    } else {
-      console.log(errors);
-    }
-    return;
+    return [output, true];
   }
 
   // resolving
@@ -62,29 +60,26 @@ export default function run(source: string): void {
     typeValidator.validateProgram();
   } catch(errors: unknown) {
     if (Array.isArray(errors)) {
-      console.log('Type checking errors exist -');
-
+      output += 'Type checking errors exist -\n';
       for (const error of errors) {
-        console.log();
-        console.log(error.toString());
+        output += '\n' + error.toString();
       }
-    } else {
-      console.log(errors);
-    }
-    return;
+    } else throw errors;
+
+    return [output, true];
   }
   
   // interpreting, only one error stops the program
   try {
-    console.log(interpreter.interpret());
+    output += interpreter.interpret();
   } catch(error: unknown) {
     if (error instanceof LangError) {
-      console.log('Runtime error -');
-      console.log();
-      console.log(error.toString());
-    } else {
-      console.log(error);
-    }
-    return;
+      output += 'Runtime error -\n';
+      output += error.toString() + '\n';
+    } else throw error;
+
+    return [output, true];
   }
+
+  return [output, false];
 }
