@@ -25,8 +25,8 @@ export default class Interpreter
 
   // a function call might set its arguments to be a new environment, 
   // if this variable is not null, then a function call was just made
-  // NOTE this is only set by FunctionLangObject
-  private functionEnvironment: Environment<LangObject> | null;
+  // NOTE this must be public because it is set by FunctionLangObject
+  functionEnvironment: Environment<LangObject> | null;
 
   // set by the resolver, used to find variable values
   private localVariableDistances: Map<Expr, number>;

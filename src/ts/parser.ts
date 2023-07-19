@@ -11,7 +11,7 @@ import { Expr,
          CallExpr,
          ArrayObjectExpr,
          ArrayAccessExpr,
-         ArrayAssignExpr} from './expr'
+         ArrayAssignExpr } from './expr'
 import { LangError,
          TokenError,
          TokenRangeError } from './error';
@@ -38,10 +38,6 @@ export default class Parser {
     this.tokens = tokens;
     this.currentIndex = 0;
   }
-
-  //======================================================================
-  // Parsing Methods
-  //======================================================================
 
   // program        → statement* EOF ;
   // NOTE no need to worry about the EOF
@@ -95,6 +91,10 @@ export default class Parser {
     return statements;
   }
 
+  //======================================================================
+  // Statement Parsing Methods
+  //======================================================================
+
   // statement           → ifStmt | blockStmt | whileStmt | forStmt |
   //                     ( ( declarationStmt | printStmt | exprStmt )? ";" ) ;
   private parseStatement(): Stmt {
@@ -136,7 +136,7 @@ export default class Parser {
   }
 
   // ifStmt              → "if" expression "then" statement ("else" statement)? ;
-  private parseIfStatement(): Stmt {
+  private parseIfStatement(): IfStmt {
     const ifToken: Token =
       this.expect('IF', 'Expect \'if\' to start if statement.');
     const condition: Expr = this.parseExpression();
@@ -153,7 +153,7 @@ export default class Parser {
   }
 
   // blockStmt           → "{" statement* "}" ;
-  private parseBlockStatement(): Stmt {
+  private parseBlockStatement(): BlockStmt {
     const leftBrace: Token =
       this.expect('LEFT_BRACE', 'Expect \'{\' to begin block statement.');
 
@@ -169,7 +169,7 @@ export default class Parser {
   }
 
   // whileStmt           → "while" "(" condition ")" statement
-  private parseWhileStatement(): Stmt {
+  private parseWhileStatement(): WhileStmt {
     const whileToken: Token =
       this.expect('WHILE', 'Expect \'while\' to begin while statement.');
 
@@ -180,16 +180,8 @@ export default class Parser {
     return new WhileStmt(whileToken, condition, body);
   }
 
-  // forStmt             → "for" "(" ( declarationStmt | exprStmt )? ";" | 
-  //                                 expression? ";" |
-  //                                 expression? ")" 
-  //                       statement ;
-  // private parseForStatement(): Stmt {
-  //   this.expect 
-  // }
-
   // NOTE exprStmt only exists to make clear that expression statements exist
-  private parseExpressionStatement(): Stmt {
+  private parseExpressionStatement(): ExpressionStmt {
     const expression: Expr = this.parseExpression();
     const semicolon: Token = this.expect('SEMICOLON',
                                          'Expect semicolon instead.');
@@ -198,7 +190,7 @@ export default class Parser {
   }
   
   // printStmt      → "print" expression ;
-  private parsePrintStatement(): Stmt {
+  private parsePrintStatement(): PrintStmt {
     const keyword: Token =
       this.expect('PRINT', 'Expect initial \'print\' for print statement.');
 
@@ -210,7 +202,7 @@ export default class Parser {
   }
 
   // declarationStmt     → "let" IDENTIFIER ( ":" objectType )? "=" expression ;
-  private parseDeclarationStatement(): Stmt {
+  private parseDeclarationStatement(): DeclarationStmt {
     const keyword: Token =
       this.expect('LET', 'Expect \'let\' before variable declaration.');
     const identifier: Token = 
@@ -232,7 +224,7 @@ export default class Parser {
   }
 
   // returnStmt        → "return" expression ;
-  private parseReturnStatement(): Stmt {
+  private parseReturnStatement(): ReturnStmt {
     const keyword: Token =
       this.expect('RETURN', 'Expect initial \'return\' for return statement.');
     const expression = this.parseExpression();
@@ -242,53 +234,9 @@ export default class Parser {
     return new ReturnStmt(keyword, expression, semicolon);
   }
 
-  // objectType     → "number" | "string" | "bool" | functionType | arrayType ;
-  private parseObjectType(): LangType {
-    switch(this.peek().type) {
-      case 'NUMBER_PRIMITIVE_TYPE':
-        this.consume();
-        return 'Num';
-      case 'STRING_PRIMITIVE_TYPE':
-        this.consume();
-        return 'Str';
-      case 'BOOL_PRIMITIVE_TYPE':
-        this.consume();
-        return 'Bool';
-      case 'LEFT_BRACKET':
-        return this.parseArrayObjectType();
-    }
-    return this.parseFunctionObjectType();
-  }
-
-  // functionType        → "(" ( ( objectType "," )* objectType )? ")" "=>"
-  //                       ( objectType ) ;
-  private parseFunctionObjectType(): FunctionLangType {
-    this.expect('LEFT_PAREN', 'Expect \'(\' for function type.');
-
-    let parameters: LangType[] = [];
-    let returnType: LangType | null;
-
-    // parameters
-    let commaNeeded: boolean = false;
-    while (!this.match('RIGHT_PAREN')) {
-      if (commaNeeded) {
-        this.expect('COMMA', 'Expect comma between parameters.');
-      }
-
-      parameters.push(this.parseObjectType());
-
-      // if a ) isn't found after the first identifier, a comma is needed
-      commaNeeded = true;
-    }
-
-    // consume the ) and =>
-    this.consume();
-    this.expect('RIGHTARROW', 'Expect => for function type.');
-
-    returnType = this.parseObjectType();
-
-    return new FunctionLangType(parameters, returnType);
-  }
+  //======================================================================
+  // Expression Parsing Methods
+  //======================================================================
 
   // expression     → assignment ;
   private parseExpression(): Expr {
@@ -298,7 +246,6 @@ export default class Parser {
   // assignment          → callOrAccess "=" assignment
   //                       IDENTIFIER "=" assignment
   //                       | logic_or ;
-  // NOTE the code does not follow the grammar exactly
   // NOTE as a reminder, an assignment is not a statement: a = (b = c), but it
   // almost always gets called as apart of an expression statement
   private parseAssignment(): Expr {
@@ -474,7 +421,6 @@ export default class Parser {
   // functionObject → "fn" "(" ( ( IDENTIFIER ":" objectType "," )* 
   //                  ( IDENTIFIER ":" objectType) )? ")" 
   //                  "=>" ( objectType ) statement
-  // NOTE this is not a function call, it's an anonymous/unnamed function
   private parseFunctionObject(): FunctionObjectExpr {
     const keyword: Token =
       this.expect('FUNCTION', 'Expect \'fn\' for function object.');
@@ -515,12 +461,12 @@ export default class Parser {
   }
 
   // equality, comparison, term, factor have the same syntax, so they share code
-  private parseBinary(innerFunction: () => Expr, ...matchTypes: TokenType[]): Expr {
-    let expr: Expr = innerFunction();
+  private parseBinary(inner: () => Expr, ...matchTypes: TokenType[]): Expr {
+    let expr: Expr = inner();
     while (this.match(...matchTypes)) {
       const left: Expr = expr;
       const operator: Token = this.consume();
-      const right: Expr = innerFunction();
+      const right: Expr = inner();
 
       expr = new BinaryExpr(left, operator, right);
     }
@@ -562,7 +508,7 @@ export default class Parser {
   }
 
   // filledArray       → "[" expression (( "," expression )* )? "]"
-  // NOTE this parses the rest of a filled array after the first expression
+  // NOTE parses the rest of a filled array after the first expression
   private parseFilledArray(leftBracket: Token, 
                            firstExpression: Expr): ArrayObjectExpr {
     const elements: Expr[] = [ firstExpression ];
@@ -583,7 +529,7 @@ export default class Parser {
   }
 
   // lengthArray       → "[" expression expression "]" ;
-  // NOTE this parses the rest of a length array after the first expression
+  // NOTE parses the rest of a length array after the first expression
   private parseLengthArray(leftBracket: Token,
                            expression: Expr): ArrayObjectExpr {
     const object: Expr = this.parseExpression();
@@ -591,6 +537,58 @@ export default class Parser {
                                             'Expect right bracket.');
     return new ArrayObjectExpr(expression, object,
                                leftBracket, rightBracket);
+  }
+
+  //======================================================================
+  // Type Parsing Methods
+  //======================================================================
+
+  // objectType     → "number" | "string" | "bool" | functionType | arrayType ;
+  private parseObjectType(): LangType {
+    switch(this.peek().type) {
+      case 'NUMBER_PRIMITIVE_TYPE':
+        this.consume();
+        return 'Num';
+      case 'STRING_PRIMITIVE_TYPE':
+        this.consume();
+        return 'Str';
+      case 'BOOL_PRIMITIVE_TYPE':
+        this.consume();
+        return 'Bool';
+      case 'LEFT_BRACKET':
+        return this.parseArrayObjectType();
+    }
+    return this.parseFunctionObjectType();
+  }
+
+  // functionType        → "(" ( ( objectType "," )* objectType )? ")" "=>"
+  //                       ( objectType ) ;
+  private parseFunctionObjectType(): FunctionLangType {
+    this.expect('LEFT_PAREN', 'Expect \'(\' for function type.');
+
+    let parameters: LangType[] = [];
+    let returnType: LangType | null;
+
+    // parameters
+    let commaNeeded: boolean = false;
+    while (!this.match('RIGHT_PAREN')) {
+      if (commaNeeded) {
+        this.expect('COMMA', 'Expect comma between parameters.');
+      }
+
+      parameters.push(this.parseObjectType());
+
+      // if a ) isn't found after the first identifier, a comma is needed
+      commaNeeded = true;
+    }
+
+    // consume the ) and =>
+    this.consume();
+    this.expect('RIGHTARROW', 'Expect => for function type.');
+
+    returnType = this.parseObjectType();
+
+    return new FunctionLangType(parameters, returnType);
   }
 
   // arrayType         → "[" objectType "]"

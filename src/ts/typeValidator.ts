@@ -7,11 +7,15 @@ import Environment from './environment';
 
 export default class TypeValidator
   implements ExprVisitor<LangType>, StmtVisitor<void> {
-
   private program: Stmt[];
 
-  private currentEnvironment: Environment<LangType>;
   private globalEnvironment: Environment<LangType>;
+  private currentEnvironment: Environment<LangType>;
+
+  // a function call might set its arguments to be a new environment, 
+  // if this variable is not null, then a function call was just made
+  // NOTE this is only set by FunctionLangObject
+  private functionEnvironment: Environment<LangType> | null;
 
   // expected types of the functions being visited and current return type of the
   // function being visited
@@ -29,6 +33,7 @@ export default class TypeValidator
     this.program = program;
     this.globalEnvironment = new Environment<LangType>(null);
     this.currentEnvironment = this.globalEnvironment;
+    this.functionEnvironment = null;
     this.expectedTypeStack = [];
     this.withinIf = false;
     this.withinWhile = false;
@@ -518,7 +523,7 @@ export default class TypeValidator
   }
 
   //======================================================================
-  // PUBLIC
+  // Public
   //======================================================================
 
   resolve(expr: Expr, depth: number): void {
