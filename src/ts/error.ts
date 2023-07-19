@@ -82,26 +82,63 @@ export class TokenRangeError extends LangError {
     const endCol: number = tokenEnd.column;
 
     // validate the token ranges
-    if (startLineIndex > endLineIndex || 
-      (startLineIndex === endLineIndex && startCol > endCol) ||
-      tokenStart.type === 'EOF') {
-      throw new ImplementationError(`Bad TokenRangeError creation.`);
+    if (endLineIndex < startLineIndex || 
+        tokenStart.type === 'EOF' ||
+        tokenEnd.type === 'EOF') {
+      throw new ImplementationError('Bad ranges for TokenRangeError.');
     }
 
-    // create the error message
-    let message = '';
+    // the error is on one line
     if (startLineIndex === endLineIndex) {
-      const indicator = indicatorString(startCol - 1, endCol);
-      message +=
-        `[line ${startLineIndex}, from column ${startCol} to column ${endCol}]`;
-      message += ` ${this.message}\n${startLineString}\n${indicator}`;
-    } else {
-      message = `Error starting with ${tokenStart.lexeme} on ` +
-                `line ${startLineIndex}, at column ${startCol} ` +
-                `and ending with ${tokenEnd.lexeme} on ` +
-                `line ${endLineIndex}, at column ${endCol}:\n` +
-                `${startLineString}\n${endLineString}\n${this.message}`;
+      if (endCol < startCol) {
+        const msg = 'Ending column comes before starting column.';
+        throw new ImplementationError(msg);
+      }
+
+      // create the message
+      const indicator = indicatorString(startCol, endCol);
+      let message =
+        `[line ${startLineIndex}, column ${startCol} to column ${endCol}] `;
+      message += `${this.message}\n${startLineString}\n${indicator}`;
+
+      return message;
     }
+
+    // the error is on consecutive lines
+    if (endLineIndex - startLineIndex === 1) {
+      // create the indicators
+      const startLineIndicator =
+        indicatorString(startCol, startCol + startLineString.length - 1);
+      const endLineIndicator =
+        indicatorString(1, endCol);
+
+      // create the message
+      let message =
+        `[line ${startLineIndex}, column ${startCol} ` +
+        `to line ${endLineIndex}, column ${endCol}] `;
+      message += `${this.message}\n`;
+      message += `${startLineString}\n${startLineIndicator}\n`;
+      message += `${endLineString}\n${endLineIndicator}`;
+
+      return message;
+    }
+
+    // the error spans multiple lines
+
+    // create the indicators
+    const startLineIndicator =
+      indicatorString(startCol, startCol + startLineString.length - 1);
+    const endLineIndicator =
+      indicatorString(1, endCol);
+
+    // create the message
+    let message =
+      `[line ${startLineIndex}, column ${startCol} ` +
+      `to line ${endLineIndex}, column ${endCol}] `;
+    message += `${this.message}\n`;
+    message += `${startLineString}\n${startLineIndicator}\n`;
+    message += `(inner lines omitted)\n`;
+    message += `${endLineString}\n${endLineIndicator}`;
 
     return message;
   }
@@ -125,12 +162,13 @@ export class ImplementationError extends Error {
 }
 
 // given two indices, create a ^^^ indicator string to be displayed below text
+// NOTE expects the indices to be 1-based
 function indicatorString(start: number, end: number): string {
   if (end < start)
     throw new ImplementationError('Invalid indices given for offset.');
 
-  const offset: string = ' '.repeat(start);
-  const indicator: string = '^'.repeat(end - start);
+  const offset: string = ' '.repeat(start - 1);
+  const indicator: string = '^'.repeat(end - start + 1);
 
   return offset + indicator;
 }

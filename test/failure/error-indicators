@@ -11,3 +11,8 @@ let x: str =
 let x: str
 =
 5;
+
+let x:
+str
+=
+5;
