@@ -24,7 +24,7 @@ import { Stmt,
          IfStmt,
          WhileStmt,
          BreakStmt, 
-         ReturnStmt} from './stmt';
+         ReturnStmt } from './stmt';
 import { ArrayLangType, FunctionLangType, LangType } from './langType';
 
 export default class Parser {
@@ -509,15 +509,9 @@ export default class Parser {
     const returnType = this.parseObjectType();
 
     // for error reporting, keep the current token
-    const start: Token = this.peek();
-    try {
-      const statement: Stmt = this.parseStatement();
-      return new FunctionObjectExpr(parameterTokens, parameterTypes,
-                                    returnType, statement, keyword);
-    } catch (error:unknown) {
-      throw new TokenRangeError('Expect statement as body for function.',
-                                start, this.peek());
-    }
+    const statement: Stmt = this.parseStatement();
+    return new FunctionObjectExpr(parameterTokens, parameterTypes,
+                                  returnType, statement, keyword);
   }
 
   // equality, comparison, term, factor have the same syntax, so they share code
