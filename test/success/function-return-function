@@ -18,7 +18,7 @@ print adder2(); // 1
 print adder2(); // 2
 
 // modifying adder2's counter won't affect adder1's counter
-print adder1(); // 3
+print adder1(); // 4
 
 // this adder has its own counter variable that is not bound to a variable
 print returnAdder()(); // 1
