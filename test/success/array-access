@@ -23,9 +23,9 @@ fn () => [[ num ]] {
 print get_3x3_identity_matrix()[0][0]; // 1
 
 // calling a function in an array
-let arr: [ () => void ] = [ fn () => void { print 'hi0'; },
-                            fn () => void { print 'hi1'; } ];
-arr[1](); // hi1
+let arr: [ () => str ] = [ fn () => str { return 'hi0'; },
+                           fn () => str { return 'hi1'; } ];
+print arr[1](); // hi1
 
 // calling an anonymous array
 print [ 5 'a' ][4]; // a

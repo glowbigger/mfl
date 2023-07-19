@@ -1,8 +1,9 @@
 let a = "global";
 {
-  let showA = fn () => void {
+  let showA = fn () => num {
     // this should resolve to "global" no matter where and when showA is called
     print a;
+    return 0;
   };
 
   showA();

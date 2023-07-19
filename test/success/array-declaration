@@ -11,6 +11,6 @@ let array: [ str ] = [ 'str' ];
 print array;
 
 // array of array of functions
-let fun = fn () => void print 'hi'; ;
-let array: [[ () => void ]] = [[ fun, fun ], [fun]];
+let fun = fn () => str return 'hi'; ;
+let array: [[ () => str ]] = [[ fun, fun ], [fun]];
 print array;

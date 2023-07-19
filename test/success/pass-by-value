@@ -1,17 +1,19 @@
 // all values are passed by value
 let x = 2;
 print x;
-let changer = fn (n: num) => void {
+let changer = fn (n: num) => num {
   n = 1;
-  return;
+  return 0;
 };
 changer(x);
+print x;
+
 print x; // x is still 2
 
 let array = [1, 1];
-let changer = fn (arr: [ num ]) => void {
+let changer = fn (arr: [ num ]) => num {
   arr = [0, 0];
-  return;
+  return 0;
 };
 changer(array);
 print array; // the array did not change

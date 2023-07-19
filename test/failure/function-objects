@@ -1,31 +1,34 @@
 // function type inference
 let func =
-fn(x: num, y: str) => void { print x; };
+fn(x: num, y: str) => str { return y; };
 
 // valid function type hinting
-let func: (num, str) => void =
-fn(x: num, y: str) => void { print x; };
-let func: (() => void) => void =
-fn(x: () => void) => void { print x; };
-let func: ((str, num) => void, () => str ) => void =
-fn(x: (str, num) => void, y: () => str ) => void { print x; };
+let func: (num, str) => num =
+fn(x: num, y: str) => num { return x; };
+
+let func: (() => num) => num =
+fn(x: () => num) => num { return x(); };
+
+let func: ((str, num) => num, () => str ) => num =
+fn(x: (str, num) => num, y: () => str ) => num { return x('', 0); };
 
 // invalid function type hinting
-let func: (str, str) => void =
-fn(x: num, y: str) => void { print x; };
-let func: (num, str, str) => void =
-fn(x: num, y: str) => void { print x; };
+let func: (str, str) => str =
+fn(x: num, y: str) => str { return x; };
+
+let func: (num, str, str) => str =
+fn(x: num, y: str) => str { return y; };
+
 let func: (num, str) => str =
-fn(x: num, y: str) => void { print x; };
-let func: (num, str) => void =
-fn(x: num, y: str) => str { print x; };
-let func: (() => void) => void =
-fn(x: num, y: str) => str { print x; };
-let func: ((str, num) => void) => void =
-fn(x: (str, num) => void, y: str) => void { print x; };
+fn(x: num, y: str) => str { return x; };
+
+let func: (() => str) => str =
+fn(x: num, y: str) => str { return x; };
+
+let func: ((str, num) => str) => str =
+fn(x: (str, num) => str, y: str) => str { return x; };
 
 // assignment
-let fun: () => void = fn() => void { print 5; };
-fun = fn() => void { print 5; }; // fine
-fun = fn(x: num) => void { print x; }; // error
-fun = fn() => str { print ''; }; // error
+let fun: () => str = fn() => str { return 'hello'; };
+fun = fn() => str { return 5; }; // fine
+fun = fn(x: num) => str { return x; }; // error

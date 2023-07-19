@@ -1,12 +1,10 @@
 let x = 0;
 let y = 0;
 let z = 0;
-fn (x: str, y: str) => void { 
-  x = 'imastring'; // fine
+fn (x: str, y: str) => num { 
+  x = 'imastring'; // fine, x is a str within the function's scope
   y = true; // error because y is a str
-  z = 'imastringtoo'; /* error because z is a num, but since the previous line
-                         is an error, this one will not get reported until the
-                         previous line is fixed. */
+  return 0;
 };
 
 {
