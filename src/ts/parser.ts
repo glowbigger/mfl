@@ -109,7 +109,8 @@ export default class Parser {
       // a break statement is a single token
       case 'BREAK':
         const keyword: Token = this.consume();
-        const breakSemicolon: Token = this.consume();
+        const breakSemicolon: Token = this.expect('SEMICOLON',
+                                                  'Expect semicolon instead.');
         return new BreakStmt(keyword, breakSemicolon);
 
       case 'IF':
@@ -190,7 +191,8 @@ export default class Parser {
   // NOTE exprStmt only exists to make clear that expression statements exist
   private parseExpressionStatement(): Stmt {
     const expression: Expr = this.parseExpression();
-    const semicolon: Token = this.consume();
+    const semicolon: Token = this.expect('SEMICOLON',
+                                         'Expect semicolon instead.');
 
     return new ExpressionStmt(expression, semicolon);
   }
@@ -201,7 +203,8 @@ export default class Parser {
       this.expect('PRINT', 'Expect initial \'print\' for print statement.');
 
     const expression: Expr = this.parseExpression();
-    const semicolon: Token = this.consume();
+    const semicolon: Token = this.expect('SEMICOLON',
+                                         'Expect semicolon instead.');
 
     return new PrintStmt(keyword, expression, semicolon);
   }
@@ -221,7 +224,8 @@ export default class Parser {
 
     this.expect('EQUAL', 'Expect an \'=\' in a declaration.');
     const initialValue: Expr = this.parseExpression();
-    const semicolon: Token = this.consume();
+    const semicolon: Token = this.expect('SEMICOLON',
+                                         'Expect semicolon instead.');
 
     return new DeclarationStmt(keyword, identifier, type, initialValue,
                                semicolon);
@@ -238,7 +242,8 @@ export default class Parser {
     } else {
       expression = this.parseExpression();
     }
-    const semicolon: Token = this.consume();
+    const semicolon: Token = this.expect('SEMICOLON',
+                                         'Expect semicolon instead.');
 
     return new ReturnStmt(keyword, expression, semicolon);
   }
