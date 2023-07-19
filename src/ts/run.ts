@@ -28,7 +28,7 @@ export default function run(source: string): [string, boolean] {
     if (Array.isArray(errors)) {
       output += 'Scanning errors exist -\n';
       for (const error of errors)
-        output += '\n' + error.toString();
+        output += `\n${error.toString()}\n`;
     } else throw errors;
 
     return [output, true];
@@ -43,7 +43,7 @@ export default function run(source: string): [string, boolean] {
     if (Array.isArray(errors)) {
       output += 'Parsing errors exist -\n';
       for (const error of errors)
-        output += '\n' + error.toString();
+        output += `\n${error.toString()}\n`;
     } else throw errors;
 
     return [output, true];
@@ -62,7 +62,7 @@ export default function run(source: string): [string, boolean] {
     if (Array.isArray(errors)) {
       output += 'Type checking errors exist -\n';
       for (const error of errors) {
-        output += '\n' + error.toString();
+        output += `\n${error.toString()}\n`;
       }
     } else throw errors;
 
@@ -75,7 +75,7 @@ export default function run(source: string): [string, boolean] {
   } catch(error: unknown) {
     if (error instanceof LangError) {
       output += 'Runtime error -\n';
-      output += error.toString() + '\n';
+      output += '\n' + error.toString() + '\n';
     } else throw error;
 
     return [output, true];

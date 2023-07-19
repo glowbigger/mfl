@@ -72,9 +72,11 @@ export default class Scanner {
     if (this.errors.length > 0) throw this.errors;
 
     // otherwise, return all of the tokens with the EOF token appended
+    const lastLineLastColumn =
+      this.sourceLines[this.sourceLines.length - 1].length;
     const endOfFileToken = 
       new Token('EOF', '', null, this.sourceLines[this.line - 1], 
-        this.line, this.source.length + 1);
+                this.line, lastLineLastColumn);
     this.tokens.push(endOfFileToken);
     return this.tokens;
   }

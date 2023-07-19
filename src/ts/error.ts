@@ -46,14 +46,15 @@ export class TokenError extends LangError {
     if (this.token.type === 'EOF') {
       return `(at the end of the file) ${this.message}`;
     } else { 
-      const offset: string = ' '.repeat(this.token.column - 1);
-      const indicator: string = '^'.repeat(this.token.lexeme.length);
+      const indicator: string =
+        indicatorString(this.token.column - 1,
+                        this.token.column - 1 + this.token.lexeme.length);
       const lineIndex: number = this.token.lineIndex;
       const column: number = this.token.column;
       const message: string = this.message;
 
       return `[line ${lineIndex}, column ${column}] ${message}\n` +
-             this.token.lineString + '\n' + offset + indicator;
+             this.token.lineString + '\n' + indicator;
     }
   }
 }
@@ -118,4 +119,15 @@ export class ImplementationError extends Error {
   constructor(message: string) {
     super("Implementation error: " + message);
   }
+}
+
+// given two indices, create a ^^^ indicator string to be displayed below text
+function indicatorString(start: number, end: number): string {
+  if (end < start)
+    throw new ImplementationError('Invalid indices given for offset.');
+
+  const offset: string = ' '.repeat(start);
+  const indicator: string = '^'.repeat(end - start);
+
+  return offset + indicator;
 }
