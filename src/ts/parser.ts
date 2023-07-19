@@ -108,34 +108,29 @@ export default class Parser {
 
       // a break statement is a single token
       case 'BREAK':
-        return new BreakStmt(this.consume());
+        const keyword: Token = this.consume();
+        const breakSemicolon: Token = this.consume();
+        return new BreakStmt(keyword, breakSemicolon);
 
-      // no semicolon required for control flow statements
       case 'IF':
         return(this.parseIfStatement());
       case 'LEFT_BRACE':
         return(this.parseBlockStatement());
       case 'WHILE':
         return(this.parseWhileStatement());
-
-      // let, print, return have their own functions
       case 'LET':
-        statement = this.parseDeclarationStatement();
-        break;
+        return(this.parseDeclarationStatement());
       case 'PRINT':
-        statement = this.parsePrintStatement();
-        break;
+        return(this.parsePrintStatement());
       case 'RETURN':
-        statement = this.parseReturnStatement();
-        break;
+        return(this.parseReturnStatement());
 
+      // otherwise, parse an expression statement
       default:
         statement = this.parseExpressionStatement();
-
         break;
     }
 
-    this.expect('SEMICOLON', 'Semicolon expected before a new statement.');
     return statement;
   }
 
@@ -195,7 +190,9 @@ export default class Parser {
   // NOTE exprStmt only exists to make clear that expression statements exist
   private parseExpressionStatement(): Stmt {
     const expression: Expr = this.parseExpression();
-    return new ExpressionStmt(expression);
+    const semicolon: Token = this.consume();
+
+    return new ExpressionStmt(expression, semicolon);
   }
   
   // printStmt      → "print" expression ;
@@ -204,7 +201,9 @@ export default class Parser {
       this.expect('PRINT', 'Expect initial \'print\' for print statement.');
 
     const expression: Expr = this.parseExpression();
-    return new PrintStmt(keyword, expression);
+    const semicolon: Token = this.consume();
+
+    return new PrintStmt(keyword, expression, semicolon);
   }
 
   // declarationStmt     → "let" IDENTIFIER ( ":" objectType )? "=" expression ;
@@ -222,8 +221,10 @@ export default class Parser {
 
     this.expect('EQUAL', 'Expect an \'=\' in a declaration.');
     const initialValue: Expr = this.parseExpression();
-    
-    return new DeclarationStmt(keyword, identifier, type, initialValue);
+    const semicolon: Token = this.consume();
+
+    return new DeclarationStmt(keyword, identifier, type, initialValue,
+                               semicolon);
   }
 
   // returnStmt        → "return" expression ;
@@ -237,7 +238,9 @@ export default class Parser {
     } else {
       expression = this.parseExpression();
     }
-    return new ReturnStmt(keyword, expression);
+    const semicolon: Token = this.consume();
+
+    return new ReturnStmt(keyword, expression, semicolon);
   }
 
   // objectType     → "number" | "string" | "bool" | functionType | arrayType ;

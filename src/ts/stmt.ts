@@ -30,8 +30,8 @@ export class BlankStmt extends Stmt {
 }
 
 export class BreakStmt extends Stmt {
-  constructor(breakToken: Token) {
-    super(breakToken, breakToken);
+  constructor(breakToken: Token, semicolon: Token) {
+    super(breakToken, semicolon);
   }
 
   accept<R>(visitor: StmtVisitor<R>): R {
@@ -55,8 +55,8 @@ export class BlockStmt extends Stmt {
 export class ExpressionStmt extends Stmt {
   readonly expression: Expr;
 
-  constructor(expression: Expr) {
-    super(expression.lToken, expression.rToken);
+  constructor(expression: Expr, semicolon: Token) {
+    super(expression.lToken, semicolon);
     this.expression = expression;
   }
 
@@ -92,8 +92,8 @@ export class IfStmt extends Stmt {
 export class PrintStmt extends Stmt {
   readonly expression: Expr;
 
-  constructor(keyword: Token, expression: Expr,) {
-    super(keyword, expression.rToken);
+  constructor(keyword: Token, expression: Expr, semicolon: Token) {
+    super(keyword, semicolon);
     this.expression = expression;
   }
 
@@ -105,11 +105,8 @@ export class PrintStmt extends Stmt {
 export class ReturnStmt extends Stmt {
   readonly value: Expr | null;
 
-  constructor(keyword: Token, value: Expr | null) {
-    if (value !== null)
-      super(keyword, value.rToken);
-    else
-      super(keyword, keyword);
+  constructor(keyword: Token, value: Expr | null, semicolon: Token) {
+    super(keyword, semicolon);
     this.value = value;
   }
 
@@ -124,8 +121,8 @@ export class DeclarationStmt extends Stmt {
   readonly initialValue: Expr;
 
   constructor(keyword: Token, identifier: Token,
-              type: LangType | null, initialValue: Expr) {
-    super(keyword, initialValue.rToken);
+              type: LangType | null, initialValue: Expr, semicolon: Token) {
+    super(keyword, semicolon);
     this.identifier = identifier;
     this.type = type;
     this.initialValue = initialValue;
