@@ -47,8 +47,8 @@ export class TokenError extends LangError {
       return `(at the end of the file) ${this.message}`;
     } else { 
       const indicator: string =
-        indicatorString(this.token.column - 1,
-                        this.token.column - 1 + this.token.lexeme.length);
+        indicatorString(this.token.column,
+                        this.token.column + this.token.lexeme.length);
       const lineIndex: number = this.token.lineIndex;
       const column: number = this.token.column;
       const message: string = this.message;
@@ -108,7 +108,7 @@ export class TokenRangeError extends LangError {
     if (endLineIndex - startLineIndex === 1) {
       // create the indicators
       const startLineIndicator =
-        indicatorString(startCol, startCol + startLineString.length - 1);
+        indicatorString(startCol, startCol + startLineString.length);
       const endLineIndicator =
         indicatorString(1, endCol);
 
@@ -127,7 +127,7 @@ export class TokenRangeError extends LangError {
 
     // create the indicators
     const startLineIndicator =
-      indicatorString(startCol, startCol + startLineString.length - 1);
+      indicatorString(startCol, startCol + startLineString.length);
     const endLineIndicator =
       indicatorString(1, endCol);
 
@@ -168,7 +168,7 @@ function indicatorString(start: number, end: number): string {
     throw new ImplementationError('Invalid indices given for offset.');
 
   const offset: string = ' '.repeat(start - 1);
-  const indicator: string = '^'.repeat(end - start + 1);
+  const indicator: string = '^'.repeat(end - start);
 
   return offset + indicator;
 }
