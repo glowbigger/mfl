@@ -84,7 +84,6 @@ export class TokenRangeError extends LangError {
     // validate the token ranges
     if (startLineIndex > endLineIndex || 
       (startLineIndex === endLineIndex && startCol > endCol) ||
-      tokenStart === tokenEnd ||
       tokenStart.type === 'EOF') {
       throw new ImplementationError(`Bad TokenRangeError creation.`);
     }
