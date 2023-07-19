@@ -403,7 +403,7 @@ export default class TypeValidator
       this.withinWhile = outerWithinWhile;
       this.currentReturnType = outerReturnType;
 
-      throw new SyntaxTreeNodeError('Invalid return type', expr);
+      throw new SyntaxTreeNodeError('Invalid return type', expr.statement);
     } else {
       // restore the outer properties
       this.withinIf = outerWithinIf;
@@ -419,7 +419,7 @@ export default class TypeValidator
     
     // check whether the primary is callable
     if (!(maybeCallable instanceof FunctionLangType))
-      throw new TokenError('Expect callable object.', expr.rToken);
+      throw new SyntaxTreeNodeError('Expect callable object.', expr.callee);
 
     // get the arguments as types
     const argExprs: Expr[] = expr.args;
@@ -432,13 +432,15 @@ export default class TypeValidator
     const params: LangType[] = maybeCallable.parameters;
     if (params.length != args.length) {
       const errorMsg = 'Number of arguments does not equal number of parameters';
-      throw new TokenError(errorMsg, expr.rToken);
+      throw new SyntaxTreeNodeError(errorMsg, expr);
     }
 
     // check if the parameter types equal the argument types
     for (const i in params) {
-      if (!LangTypeEqual(params[i], args[i]))
-        throw new TokenError(`Invalid argument type(s).`, expr.rToken);
+      if (!LangTypeEqual(params[i], args[i])) {
+        const msg = 'Invalid argument type(s)';
+        throw new SyntaxTreeNodeError(msg, expr);
+      }
     }
 
     return ((maybeCallable.returnType == null) ? 

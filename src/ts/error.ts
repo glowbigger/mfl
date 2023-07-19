@@ -72,14 +72,13 @@ export class TokenRangeError extends LangError {
   toString() {
     const tokenStart = this.tokenStart;
     const tokenEnd = this.tokenEnd;
-    const msg: string = this.message;
 
+    // NOTE reminder that the indices follow 1-based indexing
     const startLineString: string = this.tokenStart.lineString;
     const startLineIndex: number = this.tokenStart.lineIndex;
-    const startCol: number = this.tokenStart.column;
-
     const endLineString: string = this.tokenEnd.lineString;
     const endLineIndex: number = tokenEnd.lineIndex;
+    const startCol: number = tokenStart.column;
     const endCol: number = tokenEnd.column;
 
     // validate the token ranges
@@ -89,18 +88,22 @@ export class TokenRangeError extends LangError {
       throw new ImplementationError(`Bad TokenRangeError creation.`);
     }
 
-    if (startLineIndex != endLineIndex)
-      return `Error starting with ${tokenStart.lexeme} on ` +
-        `line ${startLineIndex}, at column ${startCol} ` +
-        `and ending with ${tokenEnd.lexeme} on ` +
-        `line ${endLineIndex}, at column ${endCol}:\n` +
-        `${startLineString}\n${endLineString}\n${msg}`;
-    else
-      return `Error starting with ${tokenStart.lexeme} on ` +
-        `line ${startLineIndex}, at column ${startCol} ` +
-        `and ending with ${tokenEnd.lexeme} on ` +
-        `line ${endLineIndex}, at column ${endCol}:\n` +
-        `${startLineString}\n${msg}`;
+    // create the error message
+    let message = '';
+    if (startLineIndex === endLineIndex) {
+      const indicator = indicatorString(startCol - 1, endCol);
+      message +=
+        `[line ${startLineIndex}, from column ${startCol} to column ${endCol}]`;
+      message += ` ${this.message}\n${startLineString}\n${indicator}`;
+    } else {
+      message = `Error starting with ${tokenStart.lexeme} on ` +
+                `line ${startLineIndex}, at column ${startCol} ` +
+                `and ending with ${tokenEnd.lexeme} on ` +
+                `line ${endLineIndex}, at column ${endCol}:\n` +
+                `${startLineString}\n${endLineString}\n${this.message}`;
+    }
+
+    return message;
   }
 }
 

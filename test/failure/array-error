@@ -5,4 +5,4 @@ let arr = [0, 1, 2, 3];
 //arr[4];
 
 // type errors
-let arr: [ str ] = [0, 1, 2, 3];
+let arr: [ str ] = [0, 1, 2, 3]; // types do not match

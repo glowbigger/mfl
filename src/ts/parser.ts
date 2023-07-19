@@ -77,10 +77,10 @@ export default class Parser {
               case 'PRINT':
               case 'RETURN':
               case 'BREAK':
-                syncDone = false;
+                syncDone = true;
                 break;
             }
-            this.consume();
+            if (!syncDone) this.consume();
           }
         } else {
           // unexpected errors will stop the parser immediately

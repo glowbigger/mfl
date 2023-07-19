@@ -1,0 +1,13 @@
+// shows the various error reports that use indicators
+
+// error at a range of tokens on one line
+let x: str = 5;
+
+// error at a range of tokens on consecutive lines
+let x: str =
+5;
+
+// error at a range of tokens on more than two lines
+let x: str
+=
+5;
