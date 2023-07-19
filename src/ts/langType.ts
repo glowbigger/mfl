@@ -1,6 +1,6 @@
 // the type of an object within the language (LangType = Language Object Type)
 // nullReturn is only ever used as the output type of a null function return
-export type LangType = PrimitiveLangType | ComplexLangType | 'nullReturn' ;
+export type LangType = PrimitiveLangType | ComplexLangType;
 export type PrimitiveLangType = 'Num' | 'Str' | 'Bool' ;
 export abstract class ComplexLangType {
   abstract equals(other: LangType): boolean;
@@ -24,9 +24,9 @@ export function LangTypeEqual(type1: LangType | null,
 
 export class FunctionLangType extends ComplexLangType {
   parameters: LangType[];
-  returnType: LangType | null;
+  returnType: LangType;
 
-  constructor(parameters: LangType[], returnType: LangType | null) {
+  constructor(parameters: LangType[], returnType: LangType) {
     super();
     this.parameters = parameters;
     this.returnType = returnType;

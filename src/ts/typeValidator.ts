@@ -176,9 +176,7 @@ export default class TypeValidator
       throw new SyntaxTreeNodeError('Cannot return outside of function.',
                                     stmt);
 
-    let returnType: LangType;
-    if (stmt.value === null) returnType = 'nullReturn';
-    else returnType = this.validateExpression(stmt.value);
+    const returnType: LangType = this.validateExpression(stmt.value);
 
     // if not within if or while, set the returnType if it has not been set
     if (this.withinIf || this.withinWhile) return;
@@ -363,9 +361,8 @@ export default class TypeValidator
     this.withinWhile = false;
     this.currentReturnType = null;
 
-    // set the expect type before evaluating the statements
-    this.expectedTypeStack.push(expr.returnType === null ?
-                                'nullReturn' : expr.returnType);
+    // set the expected type before evaluating the statements
+    this.expectedTypeStack.push(expr.returnType);
 
     // create the inner environment
     const innerEnvironment = new Environment<LangType>(outerEnvironment);
@@ -387,11 +384,6 @@ export default class TypeValidator
     } finally {
       // restore the outer environment regardless of any errors
       this.currentEnvironment = outerEnvironment;
-    }
-
-    // if the return type has not been set yet, then set it be void
-    if (this.currentReturnType === null) {
-      this.currentReturnType = 'nullReturn';
     }
 
     // check if the two types are the same
@@ -443,8 +435,7 @@ export default class TypeValidator
       }
     }
 
-    return ((maybeCallable.returnType == null) ? 
-            'nullReturn' : maybeCallable.returnType);
+    return maybeCallable.returnType;
   }
 
   visitArrayObjectExpr(expr: ArrayObjectExpr): LangType {

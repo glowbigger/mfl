@@ -18,7 +18,6 @@ const KEYWORDS = new Map<string, TokenType>([
   ['then', 'THEN'],
   ['true', 'TRUE'],
   ['let', 'LET'],
-  ['void', 'VOID'],
   ['while', 'WHILE'],
 
   // primitive object types

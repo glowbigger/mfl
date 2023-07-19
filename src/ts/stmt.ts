@@ -103,9 +103,9 @@ export class PrintStmt extends Stmt {
 }
 
 export class ReturnStmt extends Stmt {
-  readonly value: Expr | null;
+  readonly value: Expr;
 
-  constructor(keyword: Token, value: Expr | null, semicolon: Token) {
+  constructor(keyword: Token, value: Expr, semicolon: Token) {
     super(keyword, semicolon);
     this.value = value;
   }

@@ -235,13 +235,7 @@ export default class Parser {
   private parseReturnStatement(): Stmt {
     const keyword: Token =
       this.expect('RETURN', 'Expect initial \'return\' for return statement.');
-
-    let expression: Expr | null;
-    if (this.peek().type === 'SEMICOLON') {
-      expression = null;
-    } else {
-      expression = this.parseExpression();
-    }
+    const expression = this.parseExpression();
     const semicolon: Token = this.expect('SEMICOLON',
                                          'Expect semicolon instead.');
 
@@ -267,7 +261,7 @@ export default class Parser {
   }
 
   // functionType        → "(" ( ( objectType "," )* objectType )? ")" "=>"
-  //                       ( objectType | "void" ) ;
+  //                       ( objectType ) ;
   private parseFunctionObjectType(): FunctionLangType {
     this.expect('LEFT_PAREN', 'Expect \'(\' for function type.');
 
@@ -291,13 +285,7 @@ export default class Parser {
     this.consume();
     this.expect('RIGHTARROW', 'Expect => for function type.');
 
-    // return type
-    if (this.match('VOID')) {
-      this.consume();
-      returnType = 'nullReturn';
-    } else {
-      returnType = this.parseObjectType();
-    }
+    returnType = this.parseObjectType();
 
     return new FunctionLangType(parameters, returnType);
   }
@@ -485,7 +473,7 @@ export default class Parser {
 
   // functionObject → "fn" "(" ( ( IDENTIFIER ":" objectType "," )* 
   //                  ( IDENTIFIER ":" objectType) )? ")" 
-  //                  "=>" ( objectType | "void" )statement
+  //                  "=>" ( objectType ) statement
   // NOTE this is not a function call, it's an anonymous/unnamed function
   private parseFunctionObject(): FunctionObjectExpr {
     const keyword: Token =
@@ -518,9 +506,7 @@ export default class Parser {
 
     // return type and statement
     this.expect('RIGHTARROW', 'Expect \'=>\' after parameters.');
-    let returnType: LangType = 'nullReturn';
-    if (this.match('VOID')) this.consume();
-    else returnType = this.parseObjectType();
+    const returnType = this.parseObjectType();
 
     // for error reporting, keep the current token
     const start: Token = this.peek();
@@ -669,8 +655,4 @@ export default class Parser {
   private isAtEnd(): boolean {
     return this.peek().type === 'EOF';
   }
-
-  // TODO change LangError and implement this
-  // private addError(error: LangError): void {
-  // }
 }

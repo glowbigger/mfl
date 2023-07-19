@@ -66,7 +66,6 @@ export type TokenType =
 	'THEN' |
 	'TRUE' |
 	'LET' |
-	'VOID' |
 	'WHILE' |
 
   // primitive type
