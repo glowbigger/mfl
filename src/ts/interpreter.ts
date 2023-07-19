@@ -1,6 +1,6 @@
 import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, 
           ExprVisitor, VariableExpr, AssignExpr, LogicalExpr, FunctionObjectExpr, CallExpr, ArrayObjectExpr, ArrayAccessExpr, ArrayAssignExpr } from './expr'
-import { TokenError, ImplementationError, TokenRangeError, SyntaxTreeNodeError } from './error';
+import { TokenError, ImplementationError, SyntaxTreeNodeError } from './error';
 import { ArrayLangObject, FunctionLangObject, LangObject } from './langObject';
 import { Stmt, ExpressionStmt, PrintStmt, BlankStmt, StmtVisitor,
         DeclarationStmt,
@@ -14,25 +14,21 @@ import { BreakIndicator, ReturnIndicator } from "./indicator";
 
 export default class Interpreter 
   implements ExprVisitor<LangObject>, StmtVisitor<void> {
-
-  // the lines printed by the program given
+  // the lines printed by the given program
   private printedLines: string[];
 
   // the program is defined as a list of statements
   private program: Stmt[];
 
-  // the environment of current scope / block statement being interpreted
-  // NOTE the alternative is to have each visit statement method take an
-  // environment as a parameter which is the environment for that statement
-  private currentEnvironment: Environment<LangObject>;
-
   private globalEnvironment: Environment<LangObject>;
+  private currentEnvironment: Environment<LangObject>;
 
   // a function call might set its arguments to be a new environment, 
   // if this variable is not null, then a function call was just made
   // NOTE this is only set by FunctionLangObject
-  functionEnvironment: Environment<LangObject> | null;
+  private functionEnvironment: Environment<LangObject> | null;
 
+  // set by the resolver, used to find variable values
   private localVariableDistances: Map<Expr, number>;
   
   constructor(program: Stmt[]) {

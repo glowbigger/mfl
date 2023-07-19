@@ -1,6 +1,6 @@
 import { Token, TokenType } from './token';
 import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, ExprVisitor, VariableExpr, AssignExpr, LogicalExpr, FunctionObjectExpr, CallExpr, ArrayObjectExpr, ArrayAccessExpr, ArrayAssignExpr } from './expr'
-import { TokenError, ImplementationError, LangError, TokenRangeError, SyntaxTreeNodeError } from './error';
+import { TokenError, ImplementationError, LangError, SyntaxTreeNodeError } from './error';
 import { ArrayLangType, FunctionLangType, LangTypeEqual, LangType, ComplexLangType } from './langType';
 import { BlankStmt, BlockStmt, BreakStmt, DeclarationStmt, ExpressionStmt, IfStmt, PrintStmt, ReturnStmt, Stmt, StmtVisitor, WhileStmt } from './stmt';
 import Environment from './environment';
@@ -11,23 +11,29 @@ export default class TypeValidator
   private program: Stmt[];
 
   private currentEnvironment: Environment<LangType>;
+  private globalEnvironment: Environment<LangType>;
 
-  // expected type of the function being visited, stack used for nested functions 
+  // expected types of the functions being visited and current return type of the
+  // function being visited
   private expectedTypeStack: LangType[];
-
   private currentReturnType: unknown;
 
   // for type checking within control flow, knowing this is important
   private withinIf: boolean;
   private withinWhile: boolean;
 
+  // set by the resolver, used to find variable types
+  private localVariableDistances: Map<Expr, number>;
+
   constructor(program: Stmt[]) {
     this.program = program;
-    this.currentEnvironment = new Environment<LangType>(null);
+    this.globalEnvironment = new Environment<LangType>(null);
+    this.currentEnvironment = this.globalEnvironment;
     this.expectedTypeStack = [];
     this.withinIf = false;
     this.withinWhile = false;
     this.currentReturnType = null;
+    this.localVariableDistances = new Map<Expr, number>();
   }
 
   //======================================================================
@@ -509,5 +515,13 @@ export default class TypeValidator
       }
     }
     return false;
+  }
+
+  //======================================================================
+  // PUBLIC
+  //======================================================================
+
+  resolve(expr: Expr, depth: number): void {
+    this.localVariableDistances.set(expr, depth);
   }
 }

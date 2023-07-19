@@ -51,11 +51,11 @@ export default function run(source: string): [string, boolean] {
 
   // resolving
   const interpreter = new Interpreter(program);
-  const resolver = new Resolver(interpreter);
+  const typeValidator = new TypeValidator(program);
+  const resolver = new Resolver(interpreter, typeValidator);
   resolver.resolveProgram(program);
 
   // type checking
-  const typeValidator = new TypeValidator(program);
   try {
     typeValidator.validateProgram();
   } catch(errors: unknown) {

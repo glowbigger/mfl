@@ -5,11 +5,12 @@
  * variables are not defined to be their own value
  */
 
-import { SyntaxTreeNodeError, TokenError } from "./error";
+import { SyntaxTreeNodeError } from "./error";
 import { ArrayAccessExpr, ArrayAssignExpr, ArrayObjectExpr, AssignExpr, BinaryExpr, CallExpr, Expr, ExprVisitor, FunctionObjectExpr, GroupingExpr, LiteralExpr, LogicalExpr, UnaryExpr, VariableExpr } from "./expr";
 import Interpreter from "./interpreter";
 import { BlankStmt, BlockStmt, BreakStmt, DeclarationStmt, ExpressionStmt, IfStmt, PrintStmt, ReturnStmt, Stmt, StmtVisitor, WhileStmt } from "./stmt";
 import { Token } from "./token";
+import TypeValidator from "./typeValidator";
 
 //class Resolver implements ExprVisitor, StmtVisitor {
 //  private readonly interpreter: Interpreter;
@@ -24,6 +25,7 @@ import { Token } from "./token";
 
 export default class Resolver implements StmtVisitor<void>, ExprVisitor<void> {
   private readonly interpreter: Interpreter;
+  private readonly typeValidator: TypeValidator;
 
   // each map in the stack refers to a different scope, and each value refers to
   // an identifier, with its value indicating if it has been initialized or not
@@ -31,8 +33,9 @@ export default class Resolver implements StmtVisitor<void>, ExprVisitor<void> {
   // let a = ((a)), let a = returnA(), let a = (returnA()), etc.
   private initializedVariablesScopes: Array<Map<string, boolean>>;
 
-  constructor(interpreter: Interpreter) {
+  constructor(interpreter: Interpreter, typeValidator: TypeValidator) {
     this.interpreter = interpreter;
+    this.typeValidator = typeValidator;
     this.initializedVariablesScopes = [];
   }
 
@@ -235,6 +238,7 @@ export default class Resolver implements StmtVisitor<void>, ExprVisitor<void> {
     for (let i = stack.length - 1; i >= 0; i--) {
       if (stack[i].has(identifier)) {
         this.interpreter.resolve(expr, stack.length - 1 - i);
+        this.typeValidator.resolve(expr, stack.length - 1 - i);
         return;
       }
     }
