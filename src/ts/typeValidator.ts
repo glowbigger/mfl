@@ -1,7 +1,7 @@
 import { Token, TokenType } from './token';
 import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, ExprVisitor, VariableExpr, AssignExpr, LogicalExpr, FunctionObjectExpr, CallExpr, ArrayObjectExpr, ArrayAccessExpr, ArrayAssignExpr } from './expr'
 import { TokenError, ImplementationError, LangError, TokenRangeError, SyntaxTreeNodeError } from './error';
-import { ArrayLangType, FunctionLangType, LangTypeEqual, LangType } from './langType';
+import { ArrayLangType, FunctionLangType, LangTypeEqual, LangType, ComplexLangType } from './langType';
 import { BlankStmt, BlockStmt, BreakStmt, DeclarationStmt, ExpressionStmt, IfStmt, PrintStmt, ReturnStmt, Stmt, StmtVisitor, WhileStmt } from './stmt';
 import Environment from './environment';
 
@@ -103,8 +103,8 @@ export default class TypeValidator
 
     // if a type hint exists, check the two types
     if (leftType !== null && !LangTypeEqual(leftType, rightType))
-        throw new TokenError('Types do not match in declaration.',
-                             stmt.identifier);
+        throw new SyntaxTreeNodeError('Types do not match in declaration.',
+                                      stmt);
 
     // NOTE functions are just redefined
     this.currentEnvironment.define(stmt.identifier.lexeme, rightType);
@@ -203,7 +203,17 @@ export default class TypeValidator
     if (this.tokenTypeMatch(opType, 'EQUAL_EQUAL', 'BANG_EQUAL')) {
       const leftType: LangType = this.validateExpression(expr.leftExpr);
       const rightType: LangType = this.validateExpression(expr.rightExpr);
-      if (leftType != rightType)
+
+      if (leftType instanceof ComplexLangType) {
+        const message = 'Left expression type must be num, str, or bool';
+        throw new SyntaxTreeNodeError(message, expr.leftExpr);
+      }
+      if (rightType instanceof ComplexLangType) {
+        const message = 'Right expression type must be num, str, or bool';
+        throw new SyntaxTreeNodeError(message, expr.rightExpr);
+      }
+
+      if (leftType !== rightType)
         throw new TokenError('Types do not match.', expr.operator);
       return 'Bool';
     }
@@ -212,12 +222,12 @@ export default class TypeValidator
     if (this.tokenTypeMatch(opType, 'LESS', 'LESS_EQUAL', 
                                     'GREATER', 'GREATER_EQUAL')) {
       const leftType: LangType = this.validateExpression(expr.leftExpr);
-      if (leftType != 'Num') {
+      if (leftType !== 'Num') {
         throw new SyntaxTreeNodeError('Left operand is not a number.',
                                       expr.leftExpr);
       }
       const rightType = this.validateExpression(expr.rightExpr);
-      if (rightType != 'Num') {
+      if (rightType !== 'Num') {
         throw new SyntaxTreeNodeError('Right operand is not a number.',
                                       expr.rightExpr);
       }
@@ -227,12 +237,12 @@ export default class TypeValidator
     // number operations: -, *, /
     if (this.tokenTypeMatch(opType, 'MINUS', 'STAR', 'SLASH')) {
       const leftType: LangType = this.validateExpression(expr.leftExpr);
-      if (leftType != 'Num') {
+      if (leftType !== 'Num') {
         throw new SyntaxTreeNodeError('Left operand is not a number.',
                                       expr.leftExpr);
       }
       const rightType = this.validateExpression(expr.rightExpr);
-      if (rightType != 'Num') {
+      if (rightType !== 'Num') {
         throw new SyntaxTreeNodeError('Right operand is not a number.',
                                       expr.rightExpr);
       }
@@ -242,13 +252,13 @@ export default class TypeValidator
     // + is defined for both strings and numbers
     if (this.tokenTypeMatch(opType, 'PLUS')) {
       const leftType: LangType = this.validateExpression(expr.leftExpr);
-      if (leftType != 'Num' && leftType != 'Str') {
+      if (leftType !== 'Num' && leftType !== 'Str') {
         throw new SyntaxTreeNodeError('Left operand is not a number or string.',
                                       expr.leftExpr);
       }
 
       const rightType = this.validateExpression(expr.rightExpr);
-      if (rightType != 'Num' && rightType != 'Str') {
+      if (rightType !== 'Num' && rightType !== 'Str') {
         throw new SyntaxTreeNodeError('Right operand is not a number or string.',
                                       expr.rightExpr);
       }
@@ -487,8 +497,8 @@ export default class TypeValidator
       = this.validateExpression(expr.assignmentValue);
 
     if (!LangTypeEqual(arrayType, valueType)) {
-      throw new TokenError('Types do not match in assignment',
-                           expr.equalityToken);
+      throw new SyntaxTreeNodeError('Types do not match in assignment',
+                                    expr);
     }
 
     return valueType;

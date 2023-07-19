@@ -321,7 +321,7 @@ export default class Parser {
 
       if (expr instanceof ArrayAccessExpr) {
         const value: Expr = this.parseAssignment();
-        return new ArrayAssignExpr(expr, value, equalsSign);
+        return new ArrayAssignExpr(expr, value);
       }
 
       throw new TokenError('Trying to assign to invalid target.', equalsSign);

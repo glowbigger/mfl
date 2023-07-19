@@ -40,14 +40,11 @@ export class ArrayAccessExpr extends Expr {
 export class ArrayAssignExpr extends Expr {
   readonly arrayAccessExpr: ArrayAccessExpr;
   readonly assignmentValue: Expr;
-  readonly equalityToken: Token;
 
-  constructor(arrayAccessExpr: ArrayAccessExpr, assignmentValue: Expr,
-              equalityToken: Token) {
+  constructor(arrayAccessExpr: ArrayAccessExpr, assignmentValue: Expr) {
     super(arrayAccessExpr.lToken, assignmentValue.rToken);
     this.arrayAccessExpr = arrayAccessExpr;
     this.assignmentValue = assignmentValue;
-    this.equalityToken = equalityToken;
   }
 
   accept<R>(visitor: ExprVisitor<R>): R {
