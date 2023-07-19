@@ -48,7 +48,7 @@ export class TokenError extends LangError {
     } else { 
       const indicator: string =
         indicatorString(this.token.column,
-                        this.token.column + this.token.lexeme.length);
+                        this.token.column + this.token.lexeme.length - 1);
       const lineIndex: number = this.token.lineIndex;
       const column: number = this.token.column;
       const message: string = this.message;
@@ -108,7 +108,7 @@ export class TokenRangeError extends LangError {
     if (endLineIndex - startLineIndex === 1) {
       // create the indicators
       const startLineIndicator =
-        indicatorString(startCol, startCol + startLineString.length);
+        indicatorString(startCol, startCol + startLineString.length - 1);
       const endLineIndicator =
         indicatorString(1, endCol);
 
@@ -127,7 +127,7 @@ export class TokenRangeError extends LangError {
 
     // create the indicators
     const startLineIndicator =
-      indicatorString(startCol, startCol + startLineString.length);
+      indicatorString(startCol, startCol + tokenStart.lexeme.length - 1);
     const endLineIndicator =
       indicatorString(1, endCol);
 
@@ -136,8 +136,8 @@ export class TokenRangeError extends LangError {
       `[line ${startLineIndex}, column ${startCol} ` +
       `to line ${endLineIndex}, column ${endCol}] `;
     message += `${this.message}\n`;
-    message += `${startLineString}\n${startLineIndicator}\n`;
-    message += `(inner lines omitted)\n`;
+    message += `${startLineString}\n${startLineIndicator}`;
+    message += `\n\n... (inner lines omitted) ...\n\n`;
     message += `${endLineString}\n${endLineIndicator}`;
 
     return message;
@@ -168,7 +168,7 @@ function indicatorString(start: number, end: number): string {
     throw new ImplementationError('Invalid indices given for offset.');
 
   const offset: string = ' '.repeat(start - 1);
-  const indicator: string = '^'.repeat(end - start);
+  const indicator: string = '^'.repeat(end - start + 1);
 
   return offset + indicator;
 }
