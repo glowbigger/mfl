@@ -8,7 +8,7 @@ import { Stmt, ExpressionStmt, PrintStmt, BlankStmt, StmtVisitor,
         IfStmt,
         WhileStmt,
         BreakStmt,
-        ReturnStmt} from './stmt';
+        ReturnStmt } from './stmt';
 import Environment from './environment';
 import { BreakIndicator, ReturnIndicator } from "./indicator";
 
@@ -163,8 +163,7 @@ export default class Interpreter
   }
 
   visitReturnStmt(stmt: ReturnStmt): void {
-    let returnValue: LangObject | null = null;
-    if (stmt.value !== null) returnValue = this.evaluate(stmt.value);
+    const returnValue: LangObject = this.evaluate(stmt.value);
     throw new ReturnIndicator(returnValue);
   }
 
@@ -315,7 +314,7 @@ export default class Interpreter
       args.push(this.evaluate(arg));
     }
 
-    const returnValue = callee.call(this, args);
+    const returnValue: LangObject = callee.call(this, args);
     return returnValue;
   }
 

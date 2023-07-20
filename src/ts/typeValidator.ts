@@ -15,7 +15,7 @@ export default class TypeValidator
 
   // a function call might set its arguments to be a new environment, 
   // if this variable is not null, then a function call was just made
-  // NOTE this is only set by FunctionLangObject
+  // NOTE this is only set by FunctionLangType (not implemented yet)
   private functionEnvironment: Environment<LangType> | null;
 
   // expected types of the functions being visited and current return type of the

@@ -5,9 +5,9 @@ export class BreakIndicator { }
 
 // indicates a return value to be thrown in a function
 export class ReturnIndicator { 
-  value: LangObject| null
+  value: LangObject;
 
-  constructor(value: LangObject | null) {
+  constructor(value: LangObject) {
     this.value = value;
   }
 }

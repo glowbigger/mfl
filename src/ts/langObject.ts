@@ -6,10 +6,8 @@ import { Token } from "./token";
 import { ReturnIndicator } from "./indicator";
 
 // the objects within the language
-// NOTE null is only for void returns and empty array cells
-// NOTE there are no null values or types in the language
 export type LangObject = number | string | boolean | 
-                         FunctionLangObject | ArrayLangObject | null;
+                         FunctionLangObject | ArrayLangObject ;
 
 //======================================================================
 // Complex Objects
@@ -34,7 +32,7 @@ export class FunctionLangObject {
     return 'anonymous function object';
   }
 
-  call(interpreter: Interpreter, args: LangObject[]): LangObject | null {
+  call(interpreter: Interpreter, args: LangObject[]): LangObject {
     // create the inner environment, make sure it exists
     if (this.closure == null)
       throw new ImplementationError('Function called with no closure set.');
@@ -66,26 +64,17 @@ export class FunctionLangObject {
     }
 
     // if no value was returned with no errors, then the function was a void
-    return null;
+    throw new ImplementationError('No return value was thrown by a function.');
   }
 }
 
 export class ArrayLangObject {
   readonly capacity: number;
   readonly elements: LangObject[];
-  readonly innerElements: LangObject;
 
-  constructor(capacity: number, initialElements: LangObject[]) {
-    this.innerElements = null;
+  constructor(capacity: number, elements: LangObject[]) {
     this.capacity = capacity;
-    this.elements = [];
-
-    // fill the initial elements array with empty values until it is max capacity
-    while (initialElements.length < this.capacity) {
-      initialElements.push(null);
-    }
-
-    this.elements = initialElements;
+    this.elements = elements;
   }
 
   toString() { 
