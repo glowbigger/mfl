@@ -28,4 +28,4 @@ let arr: [ () => str ] = [ fn () => str { return 'hi0'; },
 print arr[1](); // hi1
 
 // calling an anonymous array
-print [ 5 'a' ][4]; // a
+print [ 5 of 'a' ][4]; // a

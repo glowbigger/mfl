@@ -2,13 +2,12 @@
 let array = [ true, true, false ];
 print array;
 
-// 2d array (10x10) array of falses
-let false_array = [ 10 false ];
-let array = [ 10 false_array ];
+// 2d array (5x5) array of 0s
+let array = [ 5 of [ 5 of 0 ] ];
 print array;
 
 // empty array of string array type
-let array: [ str ] = [ 0 '' ];
+let array: [ str ] = [ 0 of '' ];
 print array;
 
 // array of arrays

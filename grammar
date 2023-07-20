@@ -42,4 +42,4 @@ functionObject    → "fn" "(" ( ( IDENTIFIER ":" objectType "," )*
                     "=>" objectType statement
 arrayObject       → filledArray | lengthArray ;
 filledArray       → "[" ( expression (( "," expression )* )? )? "]"
-lengthArray       → "[" expression expression "]" ;
+lengthArray       → "[" expression "of" expression "]" ;

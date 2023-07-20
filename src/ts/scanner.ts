@@ -12,6 +12,7 @@ const KEYWORDS = new Map<string, TokenType>([
   ['for', 'FOR'],
   ['fn', 'FUNCTION'],
   ['if', 'IF'],
+  ['of', 'OF'],
   ['or', 'OR'],
   ['print', 'PRINT'],
   ['return', 'RETURN'],

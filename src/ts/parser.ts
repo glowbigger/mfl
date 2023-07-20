@@ -500,7 +500,7 @@ export default class Parser {
 
     // if the next token is a comma, then the array has multiple expression
     // NOTE the comma must not be consumed here
-    if (this.match('COMMA')) 
+    if (this.match('COMMA'))
       return this.parseFilledArray(leftBracket, lengthOrFirstElement);
 
     // otherwise try to parse an array with a given length, ie [ 4 int ]
@@ -528,10 +528,11 @@ export default class Parser {
                                leftBracket, rightBracket,);
   }
 
-  // lengthArray       → "[" expression expression "]" ;
+  // lengthArray       → "[" expression "of" expression "]" ;
   // NOTE parses the rest of a length array after the first expression
   private parseLengthArray(leftBracket: Token,
                            expression: Expr): ArrayObjectExpr {
+    this.expect('OF', 'Expect \'of\' after length expression.');
     const object: Expr = this.parseExpression();
     const rightBracket: Token = this.expect('RIGHT_BRACKET',
                                             'Expect right bracket.');

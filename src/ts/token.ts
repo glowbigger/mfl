@@ -60,6 +60,7 @@ export type TokenType =
 	'FUNCTION' |
 	'FOR' |
 	'IF' |
+	'OF' |
 	'OR' |
 	'PRINT' |
 	'RETURN' |
