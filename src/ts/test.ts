@@ -22,9 +22,8 @@ function test(): void {
     const output: [string, boolean] = run(contentString);
     const hadErrors: boolean = output[1];
     if (hadErrors) files_to_examine.push(fileString);
-    console.log(hadErrors ? 'failure' : 'success');
+    console.log(hadErrors ? 'failed' : 'passed');
   }
-
 
   // process the failure directory, source code which should have errors
   console.log('\nChecking files which should have errors:');
@@ -38,7 +37,7 @@ function test(): void {
     const output: [string, boolean] = run(contentString);
     const hadErrors: boolean = output[1];
     if (!hadErrors) files_to_examine.push(fileString);
-    console.log(hadErrors? 'failure' : 'success');
+    console.log(hadErrors ? 'passed' : 'failed');
   }
 
   if (files_to_examine.length > 0) {

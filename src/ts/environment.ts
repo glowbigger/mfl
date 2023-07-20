@@ -8,7 +8,7 @@ export default class Environment<R> {
 
   constructor(enclosing: Environment<R> | null) {
     this.enclosing = enclosing;
-    this.idMap= new Map<string, R>;
+    this.idMap = new Map<string, R>;
   }
 
   define(id: string, value: R): void {
