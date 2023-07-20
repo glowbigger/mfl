@@ -1,0 +1,5 @@
+let return_neg_1 = fn () => num {
+  return -1;
+};
+
+[ return_neg_1() of 0 ]; 

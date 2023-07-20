@@ -321,10 +321,14 @@ export default class Interpreter
   visitArrayObjectExpr(expr: ArrayObjectExpr): LangObject {
     // evaluate the capacity
     let capacity: number;
-    if (expr.capacity instanceof Expr)
+    if (expr.capacity instanceof Expr) {
       capacity = this.evaluate(expr.capacity) as number;
-    else
-      capacity = expr.capacity;
+
+      // if the capacity is an expression, then the array was made with a given
+      // length, which might be invalid, in which case throw a runtime error
+      if (capacity < 0)
+        throw new SyntaxTreeNodeError('Number must be positive.', expr.capacity);
+    } else capacity = expr.capacity;
 
     // evaluate the elements
     let elements: LangObject[] = [];
