@@ -3,7 +3,7 @@ import run from './run';
 
 // runs a given file or an interactive prompt
 function test(): void {
-  const testPath = __dirname + '/../../test';
+  const testPath = `${__dirname}/../../test`;
   const successPath: string = `${testPath}/success/`;
   const failurePath: string = `${testPath}/failure/`;
 
@@ -21,7 +21,7 @@ function test(): void {
     process.stdout.write(`Running ${fileString}... `);
     const output: [string, boolean] = run(contentString);
     const hadErrors: boolean = output[1];
-    if (hadErrors) files_to_examine.push(fileString);
+    if (hadErrors) files_to_examine.push(`success/${fileString}`);
     console.log(hadErrors ? 'failed' : 'passed');
   }
 
@@ -36,7 +36,7 @@ function test(): void {
     process.stdout.write(`Running ${fileString}... `);
     const output: [string, boolean] = run(contentString);
     const hadErrors: boolean = output[1];
-    if (!hadErrors) files_to_examine.push(fileString);
+    if (!hadErrors) files_to_examine.push(`failure/${fileString}`);
     console.log(hadErrors ? 'passed' : 'failed');
   }
 
