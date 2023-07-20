@@ -4,9 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "clang":  "tsc && node src/js/main.js",
-    "lang":   "node src/js/main.js",
-    "test":   "tsc && node src/js/test.js"
+    "clang": "tsc && node src/js/main.js",
+    "lang": "node src/js/main.js",
+    "test": "tsc && node src/js/test.js",
+    "web": "tsc && live-server src/web/index.html"
   },
   "keywords": [],
   "author": "",
