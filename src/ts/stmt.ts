@@ -1,6 +1,5 @@
 import { Expr } from './expr';
 import { Token } from './token';
-import { LangType } from './langType';
 import SyntaxTreeNode from './syntaxTreeNode';
 
 export interface StmtVisitor<R> {
@@ -117,11 +116,11 @@ export class ReturnStmt extends Stmt {
 
 export class DeclarationStmt extends Stmt {
   readonly identifier: Token;
-  readonly type: LangType | null;
+  readonly type: Expr | null;
   readonly initialValue: Expr;
 
   constructor(keyword: Token, identifier: Token,
-              type: LangType | null, initialValue: Expr, semicolon: Token) {
+              type: Expr | null, initialValue: Expr, semicolon: Token) {
     super(keyword, semicolon);
     this.identifier = identifier;
     this.type = type;

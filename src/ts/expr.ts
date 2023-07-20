@@ -1,18 +1,20 @@
 import { Stmt } from './stmt';
 import { Token, TokenValue } from './token';
-import { LangType } from './langType';
 import SyntaxTreeNode from './syntaxTreeNode';
 
 export interface ExprVisitor<R> {
   visitArrayAccessExpr(expr: ArrayAccessExpr): R;
   visitArrayAssignExpr(expr: ArrayAssignExpr): R;
   visitArrayObjectExpr(expr: ArrayObjectExpr): R;
+  visitArrayTypeExpr(expr: ArrayTypeExpr): R;
   visitAssignExpr(expr: AssignExpr): R;
   visitBinaryExpr(expr: BinaryExpr): R;
   visitCallExpr(expr: CallExpr): R;
   visitFunctionObjectExpr(expr: FunctionObjectExpr): R;
+  visitFunctionTypeExpr(expr: FunctionTypeExpr): R;
   visitGroupingExpr(expr: GroupingExpr): R;
   visitLiteralExpr(expr: LiteralExpr): R;
+  visitLiteralTypeExpr(expr: LiteralTypeExpr): R;
   visitLogicalExpr(expr: LogicalExpr): R;
   visitUnaryExpr(expr: UnaryExpr): R;
   visitVariableExpr(expr: VariableExpr): R;
@@ -68,6 +70,19 @@ export class ArrayObjectExpr extends Expr {
   }
 }
 
+export class ArrayTypeExpr extends Expr {
+  readonly innerType: Expr;
+
+  constructor(lBracket: Token, innerType: Expr, rBracket: Token) {
+    super(lBracket, rBracket);
+    this.innerType = innerType;
+  }
+
+  accept<R>(visitor: ExprVisitor<R>): R {
+    return visitor.visitArrayTypeExpr(this);
+  }
+}
+
 export class AssignExpr extends Expr {
   readonly value: Expr;
 
@@ -115,12 +130,12 @@ export class CallExpr extends Expr {
 
 export class FunctionObjectExpr extends Expr {
   readonly parameterTokens: Token[]; 
-  readonly parameterTypes: LangType[];
-  readonly returnType: LangType;
+  readonly parameterTypes: Expr[];
+  readonly returnType: Expr;
   readonly statement: Stmt;
 
-  constructor(parameterTokens: Token[], parameterTypes: LangType[],
-              returnType: LangType, statement: Stmt, keyword: Token) {
+  constructor(parameterTokens: Token[], parameterTypes: Expr[],
+              returnType: Expr, statement: Stmt, keyword: Token) {
     super(keyword, statement.rToken);
     this.parameterTokens = parameterTokens;
     this.parameterTypes = parameterTypes;
@@ -130,6 +145,21 @@ export class FunctionObjectExpr extends Expr {
 
   accept<R>(visitor: ExprVisitor<R>): R {
     return visitor.visitFunctionObjectExpr(this);
+  }
+}
+
+export class FunctionTypeExpr extends Expr {
+  readonly parameterTypes: Expr[];
+  readonly returnType: Expr;
+
+  constructor(lParen: Token, parameterTypes: Expr[], returnType: Expr) {
+    super(lParen, returnType.rToken);
+    this.parameterTypes = parameterTypes;
+    this.returnType = returnType;
+  }
+
+  accept<R>(visitor: ExprVisitor<R>): R {
+    return visitor.visitFunctionTypeExpr(this);
   }
 }
 
@@ -173,6 +203,19 @@ export class LiteralExpr extends Expr {
 
   accept<R>(visitor: ExprVisitor<R>): R {
     return visitor.visitLiteralExpr(this);
+  }
+}
+
+export class LiteralTypeExpr extends Expr {
+  readonly token: Token;
+
+  constructor(token: Token) {
+    super(token, token);
+    this.token = token;
+  }
+
+  accept<R>(visitor: ExprVisitor<R>): R {
+    return visitor.visitLiteralTypeExpr(this);
   }
 }
 

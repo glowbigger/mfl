@@ -1,5 +1,5 @@
 import { Token, TokenType } from './token';
-import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, ExprVisitor, VariableExpr, AssignExpr, LogicalExpr, FunctionObjectExpr, CallExpr, ArrayObjectExpr, ArrayAccessExpr, ArrayAssignExpr } from './expr'
+import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, ExprVisitor, VariableExpr, AssignExpr, LogicalExpr, FunctionObjectExpr, CallExpr, ArrayObjectExpr, ArrayAccessExpr, ArrayAssignExpr, ArrayTypeExpr, FunctionTypeExpr, LiteralTypeExpr } from './expr'
 import { TokenError, ImplementationError, LangError, SyntaxTreeNodeError } from './error';
 import { ArrayLangType, FunctionLangType, LangTypeEqual, LangType, ComplexLangType } from './langType';
 import { BlankStmt, BlockStmt, BreakStmt, DeclarationStmt, ExpressionStmt, IfStmt, PrintStmt, ReturnStmt, Stmt, StmtVisitor, WhileStmt } from './stmt';
@@ -101,15 +101,27 @@ export default class TypeValidator
       initialValue = value.expression;
     }
 
-    // check if the initial value is a function
+    // if the initial value is a function, then define it in the environment
     if (initialValue instanceof FunctionObjectExpr) {
+      const returnType: LangType
+        = this.validateExpression(initialValue.returnType);
+      const parameterTypes: LangType[] = [];
+
+      for (const param of initialValue.parameterTypes) {
+        parameterTypes.push(this.validateExpression(param));
+      }
+
       this.currentEnvironment.define(stmt.identifier.lexeme,
-                                     new FunctionLangType(initialValue.parameterTypes,
-                                                     initialValue.returnType));
+                                     new FunctionLangType(parameterTypes,
+                                                          returnType));
     }
 
     // the left type is the hinted type, the right type is the declared one
-    const leftType: LangType | null = stmt.type;
+    let leftType: LangType | null;
+    if (stmt.type === null)
+      leftType = null;
+    else
+      leftType = this.validateExpression(stmt.type);
     const rightType: LangType = this.validateExpression(initialValue);
 
     // if a type hint exists, check the two types
@@ -373,7 +385,9 @@ export default class TypeValidator
     this.currentReturnType = null;
 
     // set the expected type before evaluating the statements
-    this.expectedTypeStack.push(expr.returnType);
+    const returnType = this.validateExpression(expr.returnType);
+    const parameterTypes: LangType[] = [];
+    this.expectedTypeStack.push(returnType);
 
     // create the inner environment
     const innerEnvironment = new Environment<LangType>(outerEnvironment);
@@ -381,7 +395,8 @@ export default class TypeValidator
     // get each parameter name and type and add it to the environment
     for (const index in expr.parameterTokens) {
       const id: string = expr.parameterTokens[index].lexeme;
-      const type: LangType = expr.parameterTypes[index];
+      const type: LangType = this.validateExpression(expr.parameterTypes[index]);
+      parameterTypes.push(type);
       innerEnvironment.define(id, type);
     }
 
@@ -413,7 +428,7 @@ export default class TypeValidator
       this.withinWhile = outerWithinWhile;
       this.currentReturnType = outerReturnType;
 
-      return new FunctionLangType(expr.parameterTypes, expr.returnType);
+      return new FunctionLangType(parameterTypes, returnType);
     }
   }
 
@@ -506,6 +521,35 @@ export default class TypeValidator
     }
 
     return valueType;
+  }
+
+  visitArrayTypeExpr(expr: ArrayTypeExpr): LangType {
+    const innerType: LangType = this.validateExpression(expr.innerType);
+    return new ArrayLangType(innerType);
+  }
+
+  visitFunctionTypeExpr(expr: FunctionTypeExpr): LangType {
+    const parameterTypes: LangType[] = []
+    for (const param of expr.parameterTypes) {
+      parameterTypes.push(this.validateExpression(param));
+    }
+
+    const returnType = this.validateExpression(expr.returnType);
+
+    return new FunctionLangType(parameterTypes, returnType);
+  }
+
+  visitLiteralTypeExpr(expr: LiteralTypeExpr): LangType {
+    switch(expr.token.type) {   
+      case 'NUMBER_PRIMITIVE_TYPE':
+        return 'Num';
+      case 'BOOL_PRIMITIVE_TYPE':
+        return 'Bool';
+      case 'STRING_PRIMITIVE_TYPE':
+        return 'Str';
+      default:
+        throw new ImplementationError('Unknown LiteralTypeExpr token.');
+    }
   }
 
   //======================================================================

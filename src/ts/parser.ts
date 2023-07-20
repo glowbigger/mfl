@@ -11,7 +11,10 @@ import { Expr,
          CallExpr,
          ArrayObjectExpr,
          ArrayAccessExpr,
-         ArrayAssignExpr } from './expr'
+         ArrayAssignExpr, 
+         LiteralTypeExpr,
+         FunctionTypeExpr,
+         ArrayTypeExpr} from './expr'
 import { LangError,
          TokenError,
          TokenRangeError } from './error';
@@ -25,7 +28,6 @@ import { Stmt,
          WhileStmt,
          BreakStmt, 
          ReturnStmt } from './stmt';
-import { ArrayLangType, FunctionLangType, LangType } from './langType';
 
 export default class Parser {
   // the tokens to be parsed
@@ -208,7 +210,7 @@ export default class Parser {
     const identifier: Token = 
       this.expect('IDENTIFIER', 'Expect identifier name in declaration.');
 
-    let type: LangType | null = null;
+    let type: Expr | null = null;
     if (this.match('COLON')) {
       this.consume();
       type = this.parseObjectType();
@@ -427,7 +429,7 @@ export default class Parser {
     this.expect('LEFT_PAREN', 'Expect \'(\' after \'fn\'.');
 
     let parameterTokens: Token[] = [];
-    let parameterTypes: LangType[] = [];
+    let parameterTypes: Expr[] = [];
 
     // parameters
     let commaNeeded: boolean = false;
@@ -439,7 +441,7 @@ export default class Parser {
       // parse one parameter
       const id: Token = this.expect('IDENTIFIER', 'Expect identifier.');
       this.expect('COLON', 'Expect colon after identifier.');
-      const type: LangType = this.parseObjectType();
+      const type: Expr = this.parseObjectType();
       parameterTokens.push(id);
       parameterTypes.push(type);
 
@@ -544,37 +546,39 @@ export default class Parser {
   //======================================================================
 
   // objectType     → "number" | "string" | "bool" | functionType | arrayType ;
-  private parseObjectType(): LangType {
-    switch(this.peek().type) {
-      case 'NUMBER_PRIMITIVE_TYPE':
-        this.consume();
-        return 'Num';
-      case 'STRING_PRIMITIVE_TYPE':
-        this.consume();
-        return 'Str';
-      case 'BOOL_PRIMITIVE_TYPE':
-        this.consume();
-        return 'Bool';
-      case 'LEFT_BRACKET':
-        return this.parseArrayObjectType();
+  private parseObjectType(): Expr {
+    const peekType: TokenType = this.peek().type;
+    const primitiveTypes: TokenType[] = ['NUMBER_PRIMITIVE_TYPE',
+                                     'STRING_PRIMITIVE_TYPE',
+                                     'BOOL_PRIMITIVE_TYPE'];
+
+    // primitives
+    if (primitiveTypes.includes(peekType))
+      return new LiteralTypeExpr(this.consume());
+
+    // arrays
+    if (peekType === 'LEFT_BRACKET') {
+      return this.parseArrayObjectType();
     }
+
+    // default, try to parse a function
     return this.parseFunctionObjectType();
   }
 
   // functionType        → "(" ( ( objectType "," )* objectType )? ")" "=>"
   //                       ( objectType ) ;
-  private parseFunctionObjectType(): FunctionLangType {
-    this.expect('LEFT_PAREN', 'Expect \'(\' for function type.');
+  private parseFunctionObjectType(): FunctionTypeExpr {
+    const lparen: Token =
+      this.expect('LEFT_PAREN', 'Expect \'(\' for function type.');
 
-    let parameters: LangType[] = [];
-    let returnType: LangType | null;
+    let parameters: Expr[] = [];
+    let returnType: Expr;
 
     // parameters
     let commaNeeded: boolean = false;
     while (!this.match('RIGHT_PAREN')) {
-      if (commaNeeded) {
+      if (commaNeeded)
         this.expect('COMMA', 'Expect comma between parameters.');
-      }
 
       parameters.push(this.parseObjectType());
 
@@ -583,21 +587,23 @@ export default class Parser {
     }
 
     // consume the ) and =>
-    this.consume();
-    this.expect('RIGHTARROW', 'Expect => for function type.');
+    this.expect('RIGHT_PAREN', 'Expect \')\' after parameters.');
+    this.expect('RIGHTARROW', 'Expect \'=>\' for function type.');
 
     returnType = this.parseObjectType();
 
-    return new FunctionLangType(parameters, returnType);
+    return new FunctionTypeExpr(lparen, parameters, returnType);
   }
 
   // arrayType         → "[" objectType "]"
-  private parseArrayObjectType(): ArrayLangType {
-    this.expect('LEFT_BRACKET', 'Expect \'[\' for array type.');
-    const innerType: LangType = this.parseObjectType();
-    this.expect('RIGHT_BRACKET', 'Expect \']\' for array type.');
+  private parseArrayObjectType(): ArrayTypeExpr {
+    const lBracket: Token =
+      this.expect('LEFT_BRACKET', 'Expect \'[\' for array type.');
+    const innerType: Expr = this.parseObjectType();
+    const rBracket: Token =
+      this.expect('RIGHT_BRACKET', 'Expect \']\' for array type.');
 
-    return new ArrayLangType(innerType);
+    return new ArrayTypeExpr(lBracket, innerType, rBracket);
   }
 
   //======================================================================
