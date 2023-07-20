@@ -1,6 +1,7 @@
 import { Expr } from './expr';
 import { Token } from './token';
 import SyntaxTreeNode from './syntaxTreeNode';
+import { TypeExpr } from './typeExpr';
 
 export interface StmtVisitor<R> {
   visitBlankStmt(stmt: BlankStmt): R;
@@ -116,11 +117,11 @@ export class ReturnStmt extends Stmt {
 
 export class DeclarationStmt extends Stmt {
   readonly identifier: Token;
-  readonly type: Expr | null;
+  readonly type: TypeExpr | null;
   readonly initialValue: Expr;
 
   constructor(keyword: Token, identifier: Token,
-              type: Expr | null, initialValue: Expr, semicolon: Token) {
+              type: TypeExpr | null, initialValue: Expr, semicolon: Token) {
     super(keyword, semicolon);
     this.identifier = identifier;
     this.type = type;

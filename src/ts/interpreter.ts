@@ -1,5 +1,5 @@
 import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, 
-          ExprVisitor, VariableExpr, AssignExpr, LogicalExpr, FunctionObjectExpr, CallExpr, ArrayObjectExpr, ArrayAccessExpr, ArrayAssignExpr, LiteralTypeExpr, FunctionTypeExpr, ArrayTypeExpr } from './expr'
+         ExprVisitor, VariableExpr, AssignExpr, LogicalExpr, FunctionObjectExpr, CallExpr, ArrayObjectExpr, ArrayAccessExpr, ArrayAssignExpr } from './expr'
 import { TokenError, ImplementationError, SyntaxTreeNodeError } from './error';
 import { ArrayLangObject, FunctionLangObject, LangObject } from './langObject';
 import { Stmt, ExpressionStmt, PrintStmt, BlankStmt, StmtVisitor,
@@ -378,18 +378,6 @@ export default class Interpreter
     arrayObject.elements[index] = value;
 
     return value;
-  }
-
-  visitLiteralTypeExpr(expr: LiteralTypeExpr): LangObject | null {
-    return null;
-  }
-
-  visitFunctionTypeExpr(expr: FunctionTypeExpr): LangObject | null {
-    return null;
-  }
-
-  visitArrayTypeExpr(expr: ArrayTypeExpr): LangObject | null {
-    return null;
   }
 
   //======================================================================

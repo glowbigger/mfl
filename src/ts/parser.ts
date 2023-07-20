@@ -11,10 +11,7 @@ import { Expr,
          CallExpr,
          ArrayObjectExpr,
          ArrayAccessExpr,
-         ArrayAssignExpr, 
-         LiteralTypeExpr,
-         FunctionTypeExpr,
-         ArrayTypeExpr} from './expr'
+         ArrayAssignExpr } from './expr'
 import { LangError,
          TokenError,
          TokenRangeError } from './error';
@@ -28,6 +25,7 @@ import { Stmt,
          WhileStmt,
          BreakStmt, 
          ReturnStmt } from './stmt';
+import { LiteralTypeExpr, ArrayTypeExpr, FunctionTypeExpr, TypeExpr } from './typeExpr';
 
 export default class Parser {
   // the tokens to be parsed
@@ -210,7 +208,7 @@ export default class Parser {
     const identifier: Token = 
       this.expect('IDENTIFIER', 'Expect identifier name in declaration.');
 
-    let type: Expr | null = null;
+    let type: TypeExpr | null = null;
     if (this.match('COLON')) {
       this.consume();
       type = this.parseObjectType();
@@ -429,7 +427,7 @@ export default class Parser {
     this.expect('LEFT_PAREN', 'Expect \'(\' after \'fn\'.');
 
     let parameterTokens: Token[] = [];
-    let parameterTypes: Expr[] = [];
+    let parameterTypes: TypeExpr[] = [];
 
     // parameters
     let commaNeeded: boolean = false;
@@ -441,7 +439,7 @@ export default class Parser {
       // parse one parameter
       const id: Token = this.expect('IDENTIFIER', 'Expect identifier.');
       this.expect('COLON', 'Expect colon after identifier.');
-      const type: Expr = this.parseObjectType();
+      const type: TypeExpr = this.parseObjectType();
       parameterTokens.push(id);
       parameterTypes.push(type);
 
@@ -454,7 +452,7 @@ export default class Parser {
 
     // return type and statement
     this.expect('RIGHTARROW', 'Expect \'=>\' after parameters.');
-    const returnType = this.parseObjectType();
+    const returnType: TypeExpr = this.parseObjectType();
 
     // for error reporting, keep the current token
     const statement: Stmt = this.parseStatement();
@@ -546,7 +544,7 @@ export default class Parser {
   //======================================================================
 
   // objectType     → "number" | "string" | "bool" | functionType | arrayType ;
-  private parseObjectType(): Expr {
+  private parseObjectType(): TypeExpr {
     const peekType: TokenType = this.peek().type;
     const primitiveTypes: TokenType[] = ['NUMBER_PRIMITIVE_TYPE',
                                      'STRING_PRIMITIVE_TYPE',
@@ -571,8 +569,8 @@ export default class Parser {
     const lparen: Token =
       this.expect('LEFT_PAREN', 'Expect \'(\' for function type.');
 
-    let parameters: Expr[] = [];
-    let returnType: Expr;
+    let parameters: TypeExpr[] = [];
+    let returnType: TypeExpr;
 
     // parameters
     let commaNeeded: boolean = false;
@@ -599,7 +597,7 @@ export default class Parser {
   private parseArrayObjectType(): ArrayTypeExpr {
     const lBracket: Token =
       this.expect('LEFT_BRACKET', 'Expect \'[\' for array type.');
-    const innerType: Expr = this.parseObjectType();
+    const innerType: TypeExpr = this.parseObjectType();
     const rBracket: Token =
       this.expect('RIGHT_BRACKET', 'Expect \']\' for array type.');
 

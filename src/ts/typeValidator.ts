@@ -1,12 +1,13 @@
 import { Token, TokenType } from './token';
-import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, ExprVisitor, VariableExpr, AssignExpr, LogicalExpr, FunctionObjectExpr, CallExpr, ArrayObjectExpr, ArrayAccessExpr, ArrayAssignExpr, ArrayTypeExpr, FunctionTypeExpr, LiteralTypeExpr } from './expr'
+import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, ExprVisitor, VariableExpr, AssignExpr, LogicalExpr, FunctionObjectExpr, CallExpr, ArrayObjectExpr, ArrayAccessExpr, ArrayAssignExpr } from './expr'
 import { TokenError, ImplementationError, LangError, SyntaxTreeNodeError } from './error';
 import { ArrayLangType, FunctionLangType, LangTypeEqual, LangType, ComplexLangType } from './langType';
 import { BlankStmt, BlockStmt, BreakStmt, DeclarationStmt, ExpressionStmt, IfStmt, PrintStmt, ReturnStmt, Stmt, StmtVisitor, WhileStmt } from './stmt';
 import Environment from './environment';
+import { TypeExpr, TypeExprVisitor, LiteralTypeExpr, ArrayTypeExpr, FunctionTypeExpr } from './typeExpr';
 
 export default class TypeValidator
-  implements ExprVisitor<LangType>, StmtVisitor<void> {
+  implements ExprVisitor<LangType>, StmtVisitor<void>, TypeExprVisitor {
   private program: Stmt[];
 
   private globalEnvironment: Environment<LangType>;
@@ -71,7 +72,7 @@ export default class TypeValidator
 
   // checks whether the types of the variables are valid in a given expression
   // and if so, returns the type of the expression
-  private validateExpression(expr: Expr): LangType {
+  private validateExpression(expr: Expr | TypeExpr): LangType {
     return expr.accept(this);
   }
 
@@ -523,24 +524,24 @@ export default class TypeValidator
     return valueType;
   }
 
-  visitArrayTypeExpr(expr: ArrayTypeExpr): LangType {
-    const innerType: LangType = this.validateExpression(expr.innerType);
+  visitArrayTypeExpr(typeExpr: ArrayTypeExpr): LangType {
+    const innerType: LangType = this.validateExpression(typeExpr.innerType);
     return new ArrayLangType(innerType);
   }
 
-  visitFunctionTypeExpr(expr: FunctionTypeExpr): LangType {
+  visitFunctionTypeExpr(typeExpr: FunctionTypeExpr): LangType {
     const parameterTypes: LangType[] = []
-    for (const param of expr.parameterTypes) {
+    for (const param of typeExpr.parameterTypes) {
       parameterTypes.push(this.validateExpression(param));
     }
 
-    const returnType = this.validateExpression(expr.returnType);
+    const returnType = this.validateExpression(typeExpr.returnType);
 
     return new FunctionLangType(parameterTypes, returnType);
   }
 
-  visitLiteralTypeExpr(expr: LiteralTypeExpr): LangType {
-    switch(expr.token.type) {   
+  visitLiteralTypeExpr(typeExpr: LiteralTypeExpr): LangType {
+    switch(typeExpr.token.type) {   
       case 'NUMBER_PRIMITIVE_TYPE':
         return 'Num';
       case 'BOOL_PRIMITIVE_TYPE':
