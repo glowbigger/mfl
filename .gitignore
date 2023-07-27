@@ -1,4 +1,5 @@
 node_modules
 notes
 todo
-src/js/*
+/src/compiled/
+/dist/bundle.js

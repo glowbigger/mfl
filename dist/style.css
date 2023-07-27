@@ -1,0 +1,68 @@
+body {
+  height: 100vh;
+  margin: 0;
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  width: 100%;
+  height: 100vh;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  flex-basis: 100%;
+  flex: 1;
+}
+
+.control-bar {
+  display: flex;
+  height: 50px;
+  border-bottom: 1px solid #ddd;
+  background-color: #f7f7f7;
+}
+
+.control-bar button, .control-bar select {
+  margin: 2px 2px;
+  padding-left: 25px;
+  padding-right: 25px;
+}
+
+.control-bar h4 {
+  line-height: 50px;
+  padding: 0px 15px;
+  margin: 0;
+}
+
+#example-selection {
+  margin-left: auto;
+}
+
+.codeBox {
+  height: 100%;
+  padding: 5px;
+  font-family: monospace;
+  font-size: 110%;
+  white-space: pre;
+  border: none;
+  border-right: 1px solid lightgrey;
+  resize: none;
+}
+
+/*
+.code .error {
+  color: maroon;
+}
+
+.syntax-error, .static-error, .runtime-error {
+  color: maroon;
+}
+
+.success {
+  color: darkgreen;
+}
+*/

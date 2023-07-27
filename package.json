@@ -7,15 +7,22 @@
     "clang": "tsc && node src/js/main.js",
     "lang": "node src/js/main.js",
     "test": "tsc && node src/js/test.js",
-    "web": "tsc && live-server src/web/index.html"
+    "web": "live-server dist",
+    "build": "webpack --mode=production",
+    "watch": "webpack --mode=development --watch"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@types/node": "^20.3.2"
+    "@types/node": "^20.3.2",
+    "ts-loader": "^9.4.4",
+    "webpack-cli": "^5.1.4"
   },
   "dependencies": {
-    "prompt-sync": "^4.2.0"
+    "jquery": "^3.7.0",
+    "prompt-sync": "^4.2.0",
+    "typescript": "^5.1.6",
+    "webpack": "^5.88.2"
   }
 }
