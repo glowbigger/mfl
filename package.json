@@ -7,7 +7,9 @@
     "clang": "tsc && node src/js/main.js",
     "lang": "node src/js/main.js",
     "test": "tsc && node src/js/test.js",
-    "web": "webpack --mode=development --watch & live-server dist",
+    "dontusethis": "webpack --mode=development --watch & live-server dist",
+    "web": "live-server dist",
+    "watch": "webpack --mode=development --watch",
     "build": "webpack --mode=production"
   },
   "keywords": [],

@@ -15,20 +15,18 @@ const outputBox =
 // TODO get the recursion test file as a string
 const RECURSION_EXAMPLE: string = ''
 
-async function runCode(): Promise<string> {
+function runCode(): void {
+  runButton.disabled = true;
   const source: string = inputBox.innerText;
   const [result, hadErrors]: [string, boolean] = run(source);
 
-  return result;
-}
+  if (!hadErrors)
+    outputBox.innerHTML = result;
+  else {
+    outputBox.innerHTML = result;
+  }
 
-async function runButtonPressed(): Promise<void> {
-  // FIXME running the code freezes the window for now
-  runButton.disabled = true;
-  const output: string = await runCode();
   runButton.disabled = false;
-
-  outputBox.innerHTML = output;
 }
 
-runButton.addEventListener('click', runButtonPressed);
+runButton.addEventListener('click', runCode);
