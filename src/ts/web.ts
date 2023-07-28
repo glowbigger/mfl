@@ -2,6 +2,7 @@
 // NOTE completely separate from the cli interpreter
 
 import run from './run';
+import examples from './examples';
 
 const exampleSelection =
   document.getElementById('example-selection') as HTMLSelectElement;
@@ -11,9 +12,6 @@ const inputBox =
   document.getElementById('input') as HTMLDivElement;
 const outputBox =
   document.getElementById('output') as HTMLDivElement;
-
-// TODO get the recursion test file as a string
-const RECURSION_EXAMPLE: string = ''
 
 function runCode(): void {
   runButton.disabled = true;
@@ -30,3 +28,4 @@ function runCode(): void {
 }
 
 runButton.addEventListener('click', runCode);
+inputBox.innerHTML = examples[0][1];

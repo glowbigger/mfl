@@ -14,7 +14,7 @@ function test(): void {
   console.log('Checking files which should run without errors:');
   const successFiles: string[] = readdirSync(successPath);
   for (const fileString of successFiles) {
-    const contentBuffer = Buffer.from(fileString, 'utf8')
+    const contentBuffer = Buffer.from(fileString, 'utf8');
     const contentString = readFileSync(successPath + contentBuffer).toString();
 
     // run the file, report whether it was successful or not

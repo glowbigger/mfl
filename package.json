@@ -4,9 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "clang": "tsc && node src/js/main.js",
     "lang": "node src/js/main.js",
-    "test": "tsc && node src/js/test.js",
+    "clang": "tsc && node src/js/main.js",
+    "test": "tsc && node src/compiled/test.js",
+    "build-examples": "tsc && node src/compiled/build-examples.js",
     "dontusethis": "webpack --mode=development --watch & live-server dist",
     "web": "live-server dist",
     "watch": "webpack --mode=development --watch",
