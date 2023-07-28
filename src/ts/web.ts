@@ -13,6 +13,11 @@ const inputBox =
 const outputBox =
   document.getElementById('output') as HTMLDivElement;
 
+// add examples to dropdown menu
+for (const exampleName of Object.keys(examples)) {
+  exampleSelection.add(new Option(exampleName));
+}
+
 function runCode(): void {
   runButton.disabled = true;
   const source: string = inputBox.innerText;
@@ -27,5 +32,12 @@ function runCode(): void {
   runButton.disabled = false;
 }
 
+// 
+function selectExample(): void {
+  const exampleName: string = exampleSelection.value;
+  inputBox.innerHTML = examples[exampleName];
+}
+
+exampleSelection.addEventListener("input", selectExample);
 runButton.addEventListener('click', runCode);
-inputBox.innerHTML = examples[0][1];
+selectExample();

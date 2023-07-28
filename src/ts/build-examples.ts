@@ -10,11 +10,11 @@ const examples: [string, string][] = [
   ['hello world', 'print \'hello world\';'],
 ];
 
-const examples_directory = `${__dirname}/../examples/`;
-
 if (require.main === module) {
+  const examples_directory = `${__dirname}/../examples/`;
   const exampleFiles: string[] = readdirSync(examples_directory);
 
+  // get the file name and contents of each example file in the examples folder
   for (const exampleFileName of exampleFiles) {
     const buffer = Buffer.from(examples_directory + exampleFileName, 'utf8')
     const content = readFileSync(buffer).toString();
@@ -23,13 +23,14 @@ if (require.main === module) {
 
   // the contents of the examples.ts file to be generated
   let created = '// created by build-examples.ts, do not edit directly\n\n';
-  created += 'const examples: [string, string][] = [\n';
 
+  // create the file contents
+  created += 'const examples: { [key: string]: string } = {\n';
   for (const example of examples) {
-    created += `\t['${example[0]}',\n\t\`${example[1]}\`],\n`;
+    created += `\t'${example[0]}':\n`;
+    created += `\t\`${example[1]}\`,\n\n`;
   }
-
-  created += '];\n\n';
+  created += '};\n\n';
   created += 'export default examples;';
 
   // create the file
