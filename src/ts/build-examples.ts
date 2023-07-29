@@ -6,9 +6,7 @@ import { readFileSync, readdirSync, writeFile } from 'fs';
 
 // each example file is stored as an array with the first entry being the name
 // and the second entry being the code
-const examples: [string, string][] = [
-  ['hello world', 'print \'hello world\';'],
-];
+const examples: [string, string][] = [];
 
 if (require.main === module) {
   const examples_directory = `${__dirname}/../examples/`;

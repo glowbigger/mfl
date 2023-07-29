@@ -32,7 +32,6 @@ function runCode(): void {
   runButton.disabled = false;
 }
 
-// 
 function selectExample(): void {
   const exampleName: string = exampleSelection.value;
   inputBox.innerHTML = examples[exampleName];

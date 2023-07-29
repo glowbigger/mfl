@@ -27,6 +27,8 @@ import { Stmt,
          ReturnStmt } from './stmt';
 import { LiteralTypeExpr, ArrayTypeExpr, FunctionTypeExpr, TypeExpr } from './typeExpr';
 
+const SEMICOLON_MESSAGE = 'Expect a \';\' before this token.';
+
 export default class Parser {
   // the tokens to be parsed
   private readonly tokens: Token[];
@@ -109,8 +111,7 @@ export default class Parser {
       // a break statement is a single token
       case 'BREAK':
         const keyword: Token = this.consume();
-        const breakSemicolon: Token = this.expect('SEMICOLON',
-                                                  'Expect semicolon instead.');
+        const breakSemicolon: Token = this.expect('SEMICOLON', SEMICOLON_MESSAGE);
         return new BreakStmt(keyword, breakSemicolon);
 
       case 'IF':
@@ -183,8 +184,7 @@ export default class Parser {
   // NOTE exprStmt only exists to make clear that expression statements exist
   private parseExpressionStatement(): ExpressionStmt {
     const expression: Expr = this.parseExpression();
-    const semicolon: Token = this.expect('SEMICOLON',
-                                         'Expect semicolon instead.');
+    const semicolon: Token = this.expect('SEMICOLON', SEMICOLON_MESSAGE);
 
     return new ExpressionStmt(expression, semicolon);
   }
@@ -195,8 +195,7 @@ export default class Parser {
       this.expect('PRINT', 'Expect initial \'print\' for print statement.');
 
     const expression: Expr = this.parseExpression();
-    const semicolon: Token = this.expect('SEMICOLON',
-                                         'Expect semicolon instead.');
+    const semicolon: Token = this.expect('SEMICOLON', SEMICOLON_MESSAGE);
 
     return new PrintStmt(keyword, expression, semicolon);
   }
@@ -216,8 +215,7 @@ export default class Parser {
 
     this.expect('EQUAL', 'Expect an \'=\' in a declaration.');
     const initialValue: Expr = this.parseExpression();
-    const semicolon: Token = this.expect('SEMICOLON',
-                                         'Expect semicolon instead.');
+    const semicolon: Token = this.expect('SEMICOLON', SEMICOLON_MESSAGE);
 
     return new DeclarationStmt(keyword, identifier, type, initialValue,
                                semicolon);
@@ -228,8 +226,7 @@ export default class Parser {
     const keyword: Token =
       this.expect('RETURN', 'Expect initial \'return\' for return statement.');
     const expression = this.parseExpression();
-    const semicolon: Token = this.expect('SEMICOLON',
-                                         'Expect semicolon instead.');
+    const semicolon: Token = this.expect('SEMICOLON', SEMICOLON_MESSAGE);
 
     return new ReturnStmt(keyword, expression, semicolon);
   }

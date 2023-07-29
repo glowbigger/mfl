@@ -1,8 +1,191 @@
 // created by build-examples.ts, do not edit directly
 
 const examples: { [key: string]: string } = {
-	'hello world':
-	`print 'hello world';`,
+	'1-introduction':
+	`// Welcome to the playground for mfl, which stands for 'my first language',
+// a statically-typed scripting language.
+
+// The dropdown menu above can be used to load different scripts demonstrating
+// different features of the language.
+
+// Click the run button above to run code written here (nothing will happen for
+// this file, of course).
+`,
+
+	'2-statements':
+	`// MFL programs consist of statements ending with a closing semicolon.
+
+// Print statements use the built-in 'print' keyword.
+print 'hello';
+
+// Variables can be declared with 'let'. The types will be discussed later.
+let x = 69; let y = 'im a string'; let z = true;
+print x; print y; print z;
+
+// Variables can then be assigned.
+x = 5; y = 'hello'; z = false;
+print x; print y; print z;
+
+// Block statements are wrapped in '{' and '}' and have their own scope.
+let x = 'outer'; let y = 'outer';
+{
+  let x = 'inner, not outer';
+  print x; print y;
+}
+
+// If-else statements use a 'if' statement 'then' statement 'else' syntax.
+if 1 > 0 then
+  print 'yes';
+
+if 1 > 0 then
+  print 'yes';
+else
+  print 'no';
+
+// WARNING: be sure to use '{' and '}' for multi-line statements
+if true then {
+  print 'line 1';
+  print 'line 2';
+}
+
+// While loops use a 'while' condition 'do' statement syntax.
+let i = 0;
+while i < 5 do {
+  print i;
+  i = i + 1;
+}
+
+// Use the 'break' keyword to escape a while loop.
+/* FIXME
+while true do {
+  print 'forever?';
+  break;
+}
+*/
+
+// Finally, C-style comments are supported.
+
+// this is a one-line comment
+/* this is a multi-line comment */
+/* this is a /* nested */ comment */
+`,
+
+	'3-types':
+	`// The primitive variable types are numbers, strings, and booleans. The types can
+// be hinted ('num' for number, 'str' for string, 'bool' for boolean).
+let a: num = 0;
+let b: num = 1.5;
+let c: str = 'string';
+let d: bool = true;
+print a; print b; print c; print d;
+
+// These statements are commented out, but will result in type-checking errors.
+/*
+let a: num = true;
+let b: str = 5;
+*/
+
+// Types are not mutable, since the language is statically-typed.
+/*
+let n: num = 5;
+n = 'string'; // error here
+*/
+let n: num = 5;
+let n: str = 'string'; // this is fine
+
+// Type inference is supported, so hints can be ommitted.
+let x = 5; // x is a num
+let y = true; // y is a bool
+print x; print y;
+
+// Basic arithmetic operators are supported, as well as negative numbers.
+let x = (((1 + 1) / 2) * 5) - 1; print x;
+let x = -0.5 / 1.2; print x;
+
+// The standard relations are also supported.
+print 1 > 0;
+print 1 >= 0;
+print 1 < 0;
+print 1 <= 0;
+print 1 == 0;
+print 1 != 0;
+
+// Strings can be concatenated to numbers and other strings using '+'.
+let s1 = 'abc'; let s2 = 'def';
+print s1 + (s2 + 5);
+
+// The basic boolean operators are supported.
+print (true or false);
+print (true and false);
+
+// There are two other types not shown here, functions and arrays. They are the
+// subjects of the next sections.
+`,
+
+	'4-functions':
+	`// Functions are created with the 'fn' keyword, and are anonymous (unnamed) by
+// default. The following anonymous functions sit in their own statements, and so
+// the ending semicolon is necessary.
+
+// This is a function that returns a string.
+// NOTE the return type must be specified.
+fn() => str { return 'a string'; } ;
+
+// This is a function that takes a number and returns it. 
+// NOTE the types of the parameters must be specified.
+fn(x: num) => num { return x; } ;
+
+// Functions are first-class objects, and can be assigned to variables so that
+// they can be called.
+// NOTE void functions are not supported.
+
+let returnHello = fn() => str {
+  return 'hello';
+};
+print returnHello();
+
+let addNums = fn(x: num, y: num) => num {
+  return x + y;
+};
+print addNums(1, 2);
+
+// Functions can be type-hinted too using () => notation.
+let conditionalPrint: (num, str) => str =
+fn(x: num, message: str) => str {
+  if x > 0 then return 'x greater than 0';
+  return message;
+};
+print conditionalPrint(1, 'i wont get printed');
+print conditionalPrint(0, 'i will get printed');
+
+// Functions can return other functions, since functions are first-class.
+// NOTE this function returns a function taking no arguments and returning a num
+let returnAFunctionThatReturnsFive =
+fn() => () => num { 
+  return fn() => num { return 5; } ;
+};
+let iReturnFive = returnAFunctionThatReturnsFive();
+print iReturnFive();
+
+// Naturally, functions can also take other functions as arguments.
+let returnSumOfOutputs = fn(func1: () => num, func2: () => num) => num {
+  return func1() + func2();
+};
+print returnSumOfOutputs(iReturnFive, iReturnFive);
+
+// Recursion works too. Here's the first 20 fibonacci numbers.
+let fib = fn(n: num) => num {
+  if n <= 1 then return n;
+  return fib(n - 1) + fib(n - 2);
+};
+
+// WARNING: printing more than 25 or so numbers will take a long time.
+let i = 1; let max = 20;
+while i < max do {
+  print fib(i);
+  i = i + 1;
+}
+`,
 
 	'array-access':
 	`// simple

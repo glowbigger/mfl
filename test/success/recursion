@@ -1,4 +1,4 @@
-// a simple recursion to print the 5 4 3 2 1
+// a simple recursion to print 5 4 3 2 1
 print 'recursive countdown';
 let rec = fn (n: num) => num {
   print n;
