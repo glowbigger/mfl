@@ -56,12 +56,10 @@ while i < 5 do {
 }
 
 // Use the 'break' keyword to escape a while loop.
-/* FIXME
 while true do {
   print 'forever?';
   break;
 }
-*/
 
 // Finally, C-style comments are supported.
 
@@ -131,7 +129,7 @@ print (true and false);
 // NOTE the return type must be specified.
 fn() => str { return 'a string'; } ;
 
-// This is a function that takes a number and returns it. 
+// This is a function that takes a number and returns it.
 // NOTE the types of the parameters must be specified.
 fn(x: num) => num { return x; } ;
 
@@ -179,94 +177,68 @@ let fib = fn(n: num) => num {
   return fib(n - 1) + fib(n - 2);
 };
 
-// WARNING: printing more than 25 or so numbers will take a long time.
-let i = 1; let max = 20;
+let i = 1; let max = 20; // WARNING: setting max to more than 25 or so will make
+                         // the printing take a long time
 while i < max do {
   print fib(i);
   i = i + 1;
 }
 `,
 
-	'array-access':
-	`// simple
-let primes = [2, 3, 5, 7, 11];
-print primes[1]; // 3
+	'5-arrays':
+	`// Arrays are also first-class objects. They can be created by specifying the
+// elements in brackets or by providing a number along with an expression
+print [ 1, 2, 3 ];
+print [ 'a', 'b', 'c' ];
+print [ 5 of true ];
 
-// accessing an element in a multi-dimensional array
-let identity_matrix: [[ num ]] = [[ 1, 0 ], 
-                                  [ 0, 1 ]];
-print identity_matrix[1][1]; // 1
+let fnArr = [ fn () => num { return 0; }, fn () => num { return 1; } ];
+print fnArr[0]();
+print fnArr[1]();
 
-// accessing an element in an array returned from a function
-let fun: () => [[ num ]] = fn () => [[ num ]] {
-  return [[ 0 ]];
+// Array types given by wrapping '[' and ']' around the inner type in the array
+let arr1: [ num ] = [ 1, 2, 3 ];
+let arr2: [ str ] = [ 'a', 'b', 'c' ];
+let arr3: [ bool ] = [ 5 of true ];
+
+let getFirstNum = fn (arr: [ num ]) => num {
+  return arr[0];
 };
-print fun()[0];
+print getFirstNum([3, 2, 1, 0]);
 
-let get_3x3_identity_matrix: () => [[ num ]] =
-fn () => [[ num ]] {
-  let identity_matrix: [[ num ]] = [[ 1, 0, 0 ], 
-                                    [ 0, 1, 0 ],
-                                    [ 0, 0, 1 ]];
-  return identity_matrix;
-};
-print get_3x3_identity_matrix()[0][0]; // 1
+// NOTE empty arrays can only be specified using 0 along with some expression
+/*
+let arr = []; // this won't work because the type of the array is unknown
+*/
+let emptyNumArr = [ 0 of 0 ]; // this is fine, the type is [ num ]
+let emptyStrArr = [ 0 of '' ]; // this is fine too, the type is [ str ]
+print emptyNumArr; print emptyStrArr;
 
-// calling a function in an array
-let arr: [ () => str ] = [ fn () => str { return 'hi0'; },
-                           fn () => str { return 'hi1'; } ];
-print arr[1](); // hi1
+// Array values can be reassigned by specifying the index
+let arr = [ 0, 1 ]; print arr;
+arr[0] = 1; print arr;
 
-// calling an anonymous array
-print [ 5 of 'a' ][4]; // a
-`,
+let arr = [[ 0, 0 ], [ 0, 0 ]]; print arr;
+arr[0][1] = 4; print arr;
 
-	'array-assignment':
-	`// changing a one-dimensional array
-let arr: [ str ] = [ 'a', 'b', 'c' ];
-print arr[0]; // a
-arr[0] = 'z';
-print arr[0];
+// Arrays can only contain a single type, and they are not dynamic, in other
+// words the capacity cannot be changed
+let arr: [ num ] = [ 0, 1, 2 ];
+/*
+arr[0] = 'a'; // error, type of an element must be a num
+arr[3] = 3; // error, index out of range
+*/
 
-// changing a two-dimensional array
-let arr: [[ num ]] = [[1, 2], [3, 4]];
-print arr; // 1
-arr[0][0] = 2;
-print arr;
-arr[0] = [5, 6];
-print arr;
-`,
+// Arrays can contain other arrays, allowing for multi-dimensional arrays
+let arr: [[ str ]] = [3 of [ 'dog', 'cat' ]];
+let idMatrix: [[ num ]] = [[ 1, 0, 0],
+                           [ 0, 1, 0],
+                           [ 0, 0, 1]];
 
-	'array-declaration':
-	`// basic array of bools
-let array = [ true, true, false ];
-print array;
-
-// 2d array (5x5) array of 0s
-let array = [ 5 of [ 5 of 0 ] ];
-print array;
-
-// empty array of string array type
-let array: [ str ] = [ 0 of '' ];
-print array;
-
-// array of arrays
-let array: [ str ] = [ 'str' ];
-print array;
-
-// array of array of functions
-let fun = fn () => str return 'hi'; ;
-let array: [[ () => str ]] = [ [ fun, fun ], [ fun ] ];
-print array;
-`,
-
-	'basic-variables':
-	`let number: num = 5;
-let string: str = "hey";
-let boolean: bool = true;
-print number;
-print string;
-print boolean;
+// NOTE the reason why fixed-length arrays are the only supported data structure
+// is because other common data structures, linked lists, dictionaries, dynamic 
+// arrays, etc. can be built in the language using fixed-length arrays and
+// classes. Unfortunately, classes are not supported at the moment.
 `,
 
 	'break':
@@ -279,7 +251,15 @@ while i < 10 do {
   }
   i = i + 1;
 }
+
+while true do {
+  print 'forever?';
+  break;
+}
 `,
+
+	'fizzbuzz':
+	``,
 
 	'function-calls':
 	`let fun = fn(x: str) => str { return x; };

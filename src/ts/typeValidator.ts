@@ -189,7 +189,7 @@ export default class TypeValidator
   }
 
   visitBreakStmt(stmt: BreakStmt): void {
-    if (!this.withinIf || !this.withinWhile)
+    if (!(this.withinIf || this.withinWhile))
       throw new TokenError('Cannot break outside of an if or while statement.',
                            stmt.lToken);
     return;

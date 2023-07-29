@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "lang": "node src/js/main.js",
-    "clang": "tsc && node src/js/main.js",
+    "lang": "node src/compiled/main.js",
+    "clang": "tsc && node src/compiled/main.js",
     "test": "tsc && node src/compiled/test.js",
     "build-examples": "tsc && node src/compiled/build-examples.js",
     "web": "live-server dist",
