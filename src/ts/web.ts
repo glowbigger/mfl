@@ -12,6 +12,8 @@ const inputBox =
   document.getElementById('input') as HTMLDivElement;
 const outputBox =
   document.getElementById('output') as HTMLDivElement;
+const statusIndicator =
+  document.getElementById('status') as HTMLHeadingElement;
 
 // add examples to dropdown menu
 for (const exampleName of Object.keys(examples)) {
@@ -19,17 +21,16 @@ for (const exampleName of Object.keys(examples)) {
 }
 
 function runCode(): void {
-  runButton.disabled = true;
   const source: string = inputBox.innerText;
   const [result, hadErrors]: [string, boolean] = run(source);
 
-  if (!hadErrors)
+  if (!hadErrors) {
     outputBox.innerHTML = result;
-  else {
+    statusIndicator.innerHTML = `<span style='color: green;'>SUCCESS</span>`;
+  } else {
     outputBox.innerHTML = result;
+    statusIndicator.innerHTML = `<span style='color: red;'>FAILURE</span>`;
   }
-
-  runButton.disabled = false;
 }
 
 function selectExample(): void {
