@@ -75,20 +75,10 @@ body {
   user-select: none;
 }
 
-.hl_comment{ color: red; }
-.hl_keyword{ color: purple; }
-.hl_number { color: green; }
-
-/*
-.code .error {
-  color: maroon;
-}
-
-.syntax-error, .static-error, .runtime-error {
-  color: maroon;
-}
-
-.success {
-  color: darkgreen;
-}
-*/
+/* theme for syntax highlighting */
+.hl_red     { color: red; }
+.hl_green   { color: green; }
+.hl_blue    { color: blue; }
+.hl_yellow  { color: dimgray; }
+.hl_purple  { color: purple; }
+.hl_gray    { color: dimgray; }

@@ -1,8 +1,12 @@
 // this script will be bundled using webpack for use in the web client
-// NOTE completely separate from the cli interpreter
 
 import run from './run';
 import examples from './examples';
+import highlight from './highlight';
+
+//======================================================================
+// variables for html elements
+//======================================================================
 
 const exampleSelection =
   document.getElementById('example-selection') as HTMLSelectElement;
@@ -17,12 +21,23 @@ const outputBox =
 const statusIndicator =
   document.getElementById('status') as HTMLHeadingElement;
 
-// add examples to dropdown menu
-for (const exampleName of Object.keys(examples)) {
-  exampleSelection.add(new Option(exampleName));
+//======================================================================
+// helpers
+//======================================================================
+
+// set the editor text to be whatever example is selected
+function selectExample(): void {
+  const exampleName: string = exampleSelection.value;
+  const exampleText: string = examples[exampleName];
+  editor.innerHTML = exampleText;
+  applyHighlight();
 }
 
-// runs the code in the editor
+// see highlight.ts
+function applyHighlight(): void {
+  highlighter.innerHTML = highlight(editor.innerHTML);
+}
+
 function runCode(): void {
   const source: string = editor.innerText;
   const [result, hadErrors]: [string, boolean] = run(source);
@@ -38,24 +53,22 @@ function runCode(): void {
   }
 }
 
-function selectExample(): void {
-  const exampleName: string = exampleSelection.value;
-  const exampleText: string = examples[exampleName];
-  editor.innerHTML = exampleText;
-  highlight();
-}
+//======================================================================
+// script
+//======================================================================
 
-function highlight(): void {
-  highlighter.innerHTML = editor.innerHTML;
-}
-
+// create examples dropdown
+for (const exampleName of Object.keys(examples))
+  exampleSelection.add(new Option(exampleName));
 exampleSelection.addEventListener('input', selectExample);
 runButton.addEventListener('click', runCode);
-selectExample();
+selectExample(); // set the default example
 
-// disable spellcheck in editor
+// disable spellcheck in editor, requires refreshing the editor
 editor.spellcheck = false;
 editor.focus();
 editor.blur();
-editor.addEventListener('input', highlight);
-highlight();
+
+// highlight the editor code by default and whenever the editor code changes
+editor.addEventListener('input', applyHighlight);
+applyHighlight();
