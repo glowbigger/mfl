@@ -8,10 +8,12 @@ const exampleSelection =
   document.getElementById('example-selection') as HTMLSelectElement;
 const runButton =
   document.getElementById('run-button') as HTMLButtonElement;
-const inputBox =
-  document.getElementById('input') as HTMLDivElement;
+const editor =
+  document.getElementById('editor') as HTMLDivElement;
+const highlighter =
+  document.getElementById('highlighter') as HTMLDivElement;
 const outputBox =
-  document.getElementById('output') as HTMLDivElement;
+  document.getElementById('outputBox') as HTMLDivElement;
 const statusIndicator =
   document.getElementById('status') as HTMLHeadingElement;
 
@@ -20,24 +22,40 @@ for (const exampleName of Object.keys(examples)) {
   exampleSelection.add(new Option(exampleName));
 }
 
+// runs the code in the editor
 function runCode(): void {
-  const source: string = inputBox.innerText;
+  const source: string = editor.innerText;
   const [result, hadErrors]: [string, boolean] = run(source);
 
   if (!hadErrors) {
     outputBox.innerHTML = result;
-    statusIndicator.innerHTML = `<span style='color: green;'>SUCCESS</span>`;
+    statusIndicator.style.color = 'green';
+    statusIndicator.innerText = 'SUCCESS';
   } else {
     outputBox.innerHTML = result;
-    statusIndicator.innerHTML = `<span style='color: red;'>FAILURE</span>`;
+    statusIndicator.style.color = 'red';
+    statusIndicator.innerText = 'FAILURE';
   }
 }
 
 function selectExample(): void {
   const exampleName: string = exampleSelection.value;
-  inputBox.innerHTML = examples[exampleName];
+  const exampleText: string = examples[exampleName];
+  editor.innerHTML = exampleText;
+  highlight();
 }
 
-exampleSelection.addEventListener("input", selectExample);
+function highlight(): void {
+  highlighter.innerHTML = editor.innerHTML;
+}
+
+exampleSelection.addEventListener('input', selectExample);
 runButton.addEventListener('click', runCode);
 selectExample();
+
+// disable spellcheck in editor
+editor.spellcheck = false;
+editor.focus();
+editor.blur();
+editor.addEventListener('input', highlight);
+highlight();

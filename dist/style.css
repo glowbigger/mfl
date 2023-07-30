@@ -44,14 +44,40 @@ body {
 
 .codeBox {
   height: 100%;
-  padding: 5px;
+  padding: 2px;
   font-family: monospace;
   font-size: 150%;
   white-space: pre;
   border: none;
   border-right: 1px solid lightgrey;
   resize: none;
+
+  /* for the editor and highlighter */
+  display: flex;
+  flex-flow: column;
+  position: relative;
 }
+
+#editor {
+  height: 100%;
+  position: relative;
+  color: transparent; /* Make text invisible */
+  caret-color: black; /* But keep caret visible */
+}
+
+#highlighter {
+  height: 100%;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0; 
+  user-select: none;
+}
+
+.hl_comment{ color: red; }
+.hl_keyword{ color: purple; }
+.hl_number { color: green; }
 
 /*
 .code .error {
