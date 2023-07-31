@@ -53,10 +53,18 @@ function runCode(): void {
 
   // set the status indicator
   if (hadErrors) {
-    const message = `Failure (ran in ${executionTime} ms)`;
+    let message: string;
+    if (executionTime >= 1000)
+      message = `Failure (ran in ${executionTime / 1000} s)`;
+    else
+      message = `Failure (ran in ${executionTime} ms)`;
     statusIndicator.innerHTML = `<span class = 'hl_red'>${message}</span>`;
   } else {
-    const message = `Success (ran in ${executionTime} ms)`;
+    let message: string;
+    if (executionTime >= 1000)
+      message = `Success (ran in ${executionTime / 1000} s)`;
+    else
+      message = `Success (ran in ${executionTime} ms)`;
     statusIndicator.innerHTML = `<span class = 'hl_green'>${message}</span>`;
   }
 }
@@ -69,8 +77,13 @@ function runCode(): void {
 for (const exampleName of Object.keys(examples))
   exampleSelection.add(new Option(exampleName));
 exampleSelection.addEventListener('input', selectExample);
-runButton.addEventListener('click', runCode);
 selectExample(); // set the default example
+
+// run button functionality, display a yellow ... before running the code
+runButton.addEventListener('click', () => {
+  statusIndicator.innerHTML = `<span class = 'hl_yellow'>...</span>`;
+  setTimeout(runCode, 1);
+});
 
 // disable spellcheck in editor, requires refreshing the editor
 editor.spellcheck = false;
