@@ -88,7 +88,7 @@ export default class Scanner {
 		const currentChar: string = this.consume();
 
 		switch (currentChar) {
-      // text for tokens that are one character long and a part of another token
+      // tokens that are one character long
 			case '(': 
         this.addToken('LEFT_PAREN'); 
         break;
@@ -129,7 +129,7 @@ export default class Scanner {
         this.addToken('COLON'); 
         break; 
 
-      // text for tokens that may be one or two characters long
+      // tokens that may be one or two characters long
 			case '!':
 				this.addToken(this.consumeIfMatching('=') ? 'BANG_EQUAL' : 'BANG');
         break;
@@ -153,7 +153,7 @@ export default class Scanner {
 				this.addToken(this.consumeIfMatching('=') ? 'GREATER_EQUAL' : 'GREATER');
         break;
 
-      // / can be a division sign or a comment
+      // the / can be a division sign or a comment
 			case '/':
         // / can be either //, /*, or just /
 				if (this.consumeIfMatching('/')) {
@@ -171,8 +171,6 @@ export default class Scanner {
 
       // strings start with ' or '
 			case '"': 
-        this.scanString();
-        break;
 			case '\'': 
         this.scanString();
         break;

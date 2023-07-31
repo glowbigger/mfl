@@ -1,6 +1,6 @@
 // this script will be bundled using webpack for use in the web client
 
-import run from './run';
+import run from '../run';
 import examples from './examples';
 import highlight from './highlight';
 

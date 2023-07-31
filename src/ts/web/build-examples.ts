@@ -9,7 +9,7 @@ import { readFileSync, readdirSync, writeFile } from 'fs';
 const examples: [string, string][] = [];
 
 if (require.main === module) {
-  const examples_directory = `${__dirname}/../examples/`;
+  const examples_directory = `${__dirname}/../../examples/`;
   const exampleFiles: string[] = readdirSync(examples_directory);
 
   // get the file name and contents of each example file in the examples folder
