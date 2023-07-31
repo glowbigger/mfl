@@ -5,8 +5,6 @@
 // NOTE it's not worth it to highlight operators because the symbols <, >, and /
 // are used in html
 
-const EOF_CHAR: string = '\0';
-
 const KEYWORDS: string[] = [
   'and',
   'break',

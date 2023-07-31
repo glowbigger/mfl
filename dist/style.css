@@ -1,7 +1,50 @@
+/* TODO change border colors */
+/* TODO change selection color */
+
+/* variables */
+/* 
+    theme
+
+    kanagawa color scheme
+    #090618
+    #C34043
+    #76946A
+    #C0A36E
+    #7E9CD8
+    #957FB8
+    #6A9589
+    #DCD7BA
+    #727169
+    #E82424
+    #98BB6C
+    #E6C384
+    #7FB4CA
+    #938AA9
+    #7AA89F
+    #C8C093
+*/
+
+:root {
+  /* variables */
+  --bg:         #1F1F28;
+  --fg:         #DCD7BA;
+  --red:        #C34043;
+  --green:      #76946A;
+  --blue:       #7E9CD8;
+  --yellow:     #C0A36E;
+  --purple:     #957FB8;
+  --gray:       #727169;
+  --lightgray:  #727169;
+}
+
 body {
   height: 100vh;
   margin: 0;
   font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+
+  /* color */
+  background-color: var(--bg);
+  color: var(--fg);
 }
 
 .row {
@@ -22,14 +65,17 @@ body {
 .control-bar {
   display: flex;
   height: 50px;
-  border-bottom: 1px solid #ddd;
-  background-color: #f7f7f7;
+  border-bottom: 1px solid ;
 }
 
 .control-bar button, .control-bar select {
   margin: 2px 2px;
   padding-left: 25px;
   padding-right: 25px;
+
+  /* color */
+  background-color: var(--bg);
+  color: var(--fg);
 }
 
 .control-bar h4 {
@@ -49,7 +95,7 @@ body {
   font-size: 150%;
   white-space: pre;
   border: none;
-  border-right: 1px solid lightgrey;
+  border-right: 1px solid ;
   resize: none;
 
   /* for the editor and highlighter */
@@ -62,7 +108,7 @@ body {
   height: 100%;
   position: relative;
   color: transparent; /* Make text invisible */
-  caret-color: black; /* But keep caret visible */
+  caret-color: var(--fg); /* But keep caret visible */
 }
 
 #highlighter {
@@ -75,11 +121,13 @@ body {
   user-select: none;
 }
 
-/* theme for syntax highlighting */
-.hl_red       { color: red; }
-.hl_green     { color: green; }
-.hl_blue      { color: blue; }
-.hl_yellow    { color: yellow; }
-.hl_purple    { color: purple; }
-.hl_gray      { color: dimgray; }
-.hl_lightgray { color: gray; }
+/* color scheme */
+.hl_fg        { color: var(--fg); }
+.hl_bg        { color: var(--bg); }
+.hl_red       { color: var(--red); }
+.hl_blue      { color: var(--blue); }
+.hl_green     { color: var(--green); }
+.hl_yellow    { color: var(--yellow); }
+.hl_purple    { color: var(--purple); }
+.hl_gray      { color: var(--gray); }
+.hl_lightgray { color: var(--lightgray); }
