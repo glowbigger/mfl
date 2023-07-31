@@ -1,29 +1,4 @@
-/* TODO change border colors */
-/* TODO change selection color */
-
 /* variables */
-/* 
-    theme
-
-    kanagawa color scheme
-    #090618
-    #C34043
-    #76946A
-    #C0A36E
-    #7E9CD8
-    #957FB8
-    #6A9589
-    #DCD7BA
-    #727169
-    #E82424
-    #98BB6C
-    #E6C384
-    #7FB4CA
-    #938AA9
-    #7AA89F
-    #C8C093
-*/
-
 :root {
   /* variables */
   --bg:         #1F1F28;
@@ -35,6 +10,18 @@
   --purple:     #957FB8;
   --gray:       #727169;
   --lightgray:  #727169;
+}
+
+/* text selection override */
+::selection {
+  color: var(--bg);
+  background: var(--fg);
+}
+
+/* firefox text selection override */
+::-moz-selection {
+  color: var(--bg);
+  background: var(--fg);
 }
 
 body {
@@ -65,13 +52,17 @@ body {
 .control-bar {
   display: flex;
   height: 50px;
-  border-bottom: 1px solid ;
+  border-bottom: 3px solid ;
+  font-size: 200%;
 }
 
 .control-bar button, .control-bar select {
   margin: 2px 2px;
   padding-left: 25px;
   padding-right: 25px;
+  border-radius: 6px;
+  border: 2px solid var(--fg);
+  /* border-color: var(--fg); */
 
   /* color */
   background-color: var(--bg);
@@ -88,20 +79,20 @@ body {
   margin-left: auto;
 }
 
-.codeBox {
+.textBox {
   height: 100%;
-  padding: 2px;
   font-family: monospace;
-  font-size: 150%;
+  font-size: 160%;
   white-space: pre;
   border: none;
-  border-right: 1px solid ;
   resize: none;
 
   /* for the editor and highlighter */
   display: flex;
   flex-flow: column;
   position: relative;
+
+  padding: 10px;
 }
 
 #editor {
@@ -118,7 +109,14 @@ body {
   right: 0;
   bottom: 0;
   left: 0; 
+  padding: 10px;
   user-select: none;
+  border-right: 3px solid ;
+}
+
+/* make contenteditable focus border invisible */
+[contenteditable]:focus {
+    outline: 0px solid transparent;
 }
 
 /* color scheme */
