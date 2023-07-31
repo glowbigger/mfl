@@ -40,14 +40,25 @@ function applyHighlight(): void {
 
 function runCode(): void {
   const source: string = editor.innerText;
+
+  // run the code, measure its execution time
+  const start: number = performance.now();
   const [result, hadErrors]: [string, boolean] = run(source);
+  const end: number = performance.now();
+
+  // the execution time is in milliseconds by default
+  const executionTime: number = end - start;
+
   outputBox.innerHTML = result;
 
   // set the status indicator
-  if (hadErrors)
-    statusIndicator.innerHTML = `<span class='hl_red'>Failure</span>`;
-  else
-    statusIndicator.innerHTML = `<span class='hl_green'>Success</span>`;
+  if (hadErrors) {
+    const message = `Failure (ran in ${executionTime} ms)`;
+    statusIndicator.innerHTML = `<span class = 'hl_red'>${message}</span>`;
+  } else {
+    const message = `Success (ran in ${executionTime} ms)`;
+    statusIndicator.innerHTML = `<span class = 'hl_green'>${message}</span>`;
+  }
 }
 
 //======================================================================
