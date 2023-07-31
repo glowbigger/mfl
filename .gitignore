@@ -3,5 +3,5 @@ notes
 todo
 /src/compiled/
 /src/examples/
-/src/ts/examples.ts
+/src/ts/web/examples.ts
 /dist/bundle.js
