@@ -9,7 +9,7 @@ import { readFileSync, readdirSync, writeFile } from 'fs';
 const examples: [string, string][] = [];
 
 if (require.main === module) {
-  const examples_directory = `${__dirname}/../../examples/`;
+  const examples_directory = `${__dirname}/../../src/examples/`;
   const exampleFiles: string[] = readdirSync(examples_directory);
 
   // get the file name and contents of each example file in the examples folder
@@ -32,8 +32,8 @@ if (require.main === module) {
   created += 'export default examples;';
 
   // create the file
-  writeFile('./src/ts/examples.ts', created, function (err) {
+  writeFile('./src/ts/web/examples.ts', created, function (err) {
     if (err) throw err;
-    console.log('The file ./src/ts/examples.ts was created.');
+    console.log('The file ./src/ts/web/examples.ts was created.');
   });
 }

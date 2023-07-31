@@ -4,13 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "lang": "node src/compiled/main.js",
-    "clang": "tsc && node src/compiled/main.js",
-    "test": "tsc && node src/compiled/test.js",
-    "build-examples": "tsc && node src/compiled/web/build-examples.js",
+    "lang": "node compiled/main.js",
+    "clang": "tsc && node compiled/main.js",
+    "test": "tsc && node compiled/test.js",
+    "build-examples": "tsc && node compiled/web/build-examples.js",
     "web": "yarn run build && live-server dist",
     "watch": "webpack --mode=development --watch",
-    "build": "tsc && node src/compiled/web/build-examples.js && webpack --mode=production"
+    "build": "tsc && node compiled/web/build-examples.js && webpack --mode=production"
   },
   "keywords": [],
   "author": "",
