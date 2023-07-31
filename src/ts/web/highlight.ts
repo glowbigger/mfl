@@ -71,7 +71,9 @@ export default function highlight(source: string): string {
     highlighted += substring;
   }
 
-  // scanning functions
+  //======================================================================
+  // scanning methods
+  //======================================================================
 
   // just adds the current character without highlighting it
   function scanCurrentCharacter(): void {
@@ -181,6 +183,12 @@ export default function highlight(source: string): string {
     addSubstring(`<span class='hl_red'>${substring}</span>`);
   }
 
+  function scanDelimiter(): void {
+    // const hl = `<span class='hl_yellow'>${consume()}</span>`;
+    const hl = `<span class='hl_lightgray'>${consume()}</span>`;
+    addSubstring(hl);
+  }
+
   //======================================================================
   // main loop
   //======================================================================
@@ -191,12 +199,6 @@ export default function highlight(source: string): string {
   while (!isAtEnd(current)) {
     switch (currentChar()) {
       // tokens that are one character long have no highlight
-			case '(': 
-			case ')': 
-			case '{': 
-			case '}': 
-			case '[':
-			case ']':
 			case ',': 
 			case '.': 
 			case '-': 
@@ -205,6 +207,16 @@ export default function highlight(source: string): string {
 			case '*': 
 			case ':': 
         scanCurrentCharacter();
+        break;
+
+      // delimiters
+			case '(': 
+			case ')': 
+			case '{': 
+			case '}': 
+			case '[':
+			case ']':
+        scanDelimiter();
         break;
 
       // text for tokens that are one or two characters long

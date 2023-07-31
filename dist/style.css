@@ -76,9 +76,10 @@ body {
 }
 
 /* theme for syntax highlighting */
-.hl_red     { color: red; }
-.hl_green   { color: green; }
-.hl_blue    { color: blue; }
-.hl_yellow  { color: yellow; }
-.hl_purple  { color: purple; }
-.hl_gray    { color: dimgray; }
+.hl_red       { color: red; }
+.hl_green     { color: green; }
+.hl_blue      { color: blue; }
+.hl_yellow    { color: yellow; }
+.hl_purple    { color: purple; }
+.hl_gray      { color: dimgray; }
+.hl_lightgray { color: gray; }
