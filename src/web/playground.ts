@@ -1,11 +1,11 @@
-// this script will be bundled using webpack for use in the web client
+// this script will be bundled using webpack for use in the playground
 
-import run from '../run';
+import run from '../lang/run';
 import examples from './examples';
 import highlight from './highlight';
 
 //======================================================================
-// variables for html elements
+// labels
 //======================================================================
 
 const exampleSelection =

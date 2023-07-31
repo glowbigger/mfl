@@ -8,8 +8,11 @@ import { readFileSync, readdirSync, writeFile } from 'fs';
 // and the second entry being the code
 const examples: [string, string][] = [];
 
+const EXAMPLES_DIRECTORY = `./src/web/examples/`;
+const OUTPUT_FILENAME = './src/web/examples.ts';
+
 if (require.main === module) {
-  const examples_directory = `${__dirname}/../../src/examples/`;
+  const examples_directory = EXAMPLES_DIRECTORY;
   const exampleFiles: string[] = readdirSync(examples_directory);
 
   // get the file name and contents of each example file in the examples folder
@@ -32,8 +35,8 @@ if (require.main === module) {
   created += 'export default examples;';
 
   // create the file
-  writeFile('./src/ts/web/examples.ts', created, function (err) {
+  writeFile(OUTPUT_FILENAME, created, function (err) {
     if (err) throw err;
-    console.log('The file ./src/ts/web/examples.ts was created.');
+    console.log(`The file ${OUTPUT_FILENAME} was created.`);
   });
 }
