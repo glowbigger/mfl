@@ -82,7 +82,7 @@ export default function highlight(source: string): string {
     let substring = '';
     while ( !isAtEnd(current) && isDigit(current) )
       substring += consume();
-    addSubstring(`<span class='hl_green'>${substring}</span>`);
+    addSubstring(`<span class='hl_number'>${substring}</span>`);
   }
 
   function scanWord(): void {
@@ -93,14 +93,13 @@ export default function highlight(source: string): string {
 
     // if the word is a keyword, highlight it
     if (KEYWORDS.includes(word))
-      word = `<span class='hl_purple'>${word}</span>`;
+      word = `<span class='hl_keyword'>${word}</span>`;
     if (TYPE_KEYWORDS.includes(word))
-      word = `<span class='hl_blue'>${word}</span>`;
+      word = `<span class='hl_type'>${word}</span>`;
     if (TRUE_FALSE_KEYWORDS.includes(word))
-      word = `<span class='hl_green'>${word}</span>`;
+      word = `<span class='hl_truefalse'>${word}</span>`;
     else
       // otherwise, it is an identifier
-      // word = `<span class='hl_blue'>${word}</>`;
       word = word;
 
     addSubstring(word);
@@ -109,7 +108,6 @@ export default function highlight(source: string): string {
   function scanCommentOrDivision(): void {
     // if the / is the last character, it is a division symbol
     if (isAtEnd(current + 1)) {
-      // substring = `<span class='hl_blue'>${currentChar()}</span>`;
       scanCurrentCharacter();
       return;
     }
@@ -121,7 +119,7 @@ export default function highlight(source: string): string {
       while (!isAtEnd(current) && currentChar() !== '\n')
         substring += consume();
 
-      addSubstring(`<span class='hl_gray'>${substring}</span>`);
+      addSubstring(`<span class='hl_comment'>${substring}</span>`);
       return;
     }
 
@@ -153,7 +151,7 @@ export default function highlight(source: string): string {
         substring += consume();
       }
 
-      addSubstring(`<span class='hl_gray'>${substring}</span>`);
+      addSubstring(`<span class='hl_comment'>${substring}</span>`);
       return;
     }
 
@@ -172,18 +170,17 @@ export default function highlight(source: string): string {
 
     // unterminated string
     if (isAtEnd(current)) {
-      addSubstring(`<span class='hl_red'>${substring}</span>`);
+      addSubstring(`<span class='hl_string'>${substring}</span>`);
       return;
     }
 
     // consume the final ' or " and return the highlighted string
     substring += consume();
-    addSubstring(`<span class='hl_red'>${substring}</span>`);
+    addSubstring(`<span class='hl_string'>${substring}</span>`);
   }
 
   function scanDelimiter(): void {
-    // const hl = `<span class='hl_yellow'>${consume()}</span>`;
-    const hl = `<span class='hl_yellow'>${consume()}</span>`;
+    const hl = `<span class='hl_delimiter'>${consume()}</span>`;
     addSubstring(hl);
   }
 

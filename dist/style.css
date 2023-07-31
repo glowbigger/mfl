@@ -2,27 +2,31 @@
 :root {
   /* variables */
   --bg:         #1F1F28;
+  --lbg:        #2a2a37; /* light background */
   --fg:         #DCD7BA;
+  --dfg:        #53536b; /* dark foreground */
   --red:        #C34043;
   --green:      #76946A;
   --blue:       #7E9CD8;
   --yellow:     #C0A36E;
+  --orange:     #f6983a;
   --purple:     #957FB8;
   --gray:       #727169;
   --lightgray:  #727169;
+  --black:      #16161d;
 }
 
 /* text selection override */
-::selection {
-  color: var(--bg);
-  background: var(--fg);
+::selection, -moz-selection {
+  color: var(--fg);
+  background: var(--gray);
 }
 
-/* firefox text selection override */
-::-moz-selection {
-  color: var(--bg);
-  background: var(--fg);
-}
+/* /1* firefox text selection override *1/ */
+/* ::-moz-selection { */
+/*   color: var(--gray); */
+/*   background: var(--gray ); */
+/* } */
 
 body {
   height: 100vh;
@@ -52,21 +56,39 @@ body {
 .control-bar {
   display: flex;
   height: 50px;
-  border-bottom: 3px solid ;
+  border-bottom: 3px solid var(--lbg);
   font-size: 200%;
+  font-style: italic;
+
+  background-color: var(--lbg);
+  color: var(--fg);
 }
 
 .control-bar button, .control-bar select {
   margin: 2px 2px;
   padding-left: 25px;
   padding-right: 25px;
-  border-radius: 6px;
-  border: 2px solid var(--fg);
-  /* border-color: var(--fg); */
+  border-radius: 8px;
+  font-size: 50%;
+  font-weight: 700;
 
-  /* color */
+  border: 3px solid var(--bg);
   background-color: var(--bg);
   color: var(--fg);
+}
+
+.control-bar button:hover, select:hover {
+  border-color: var(--black); 
+}
+
+.control-bar button:hover:active {
+  background-color: var(--black);
+}
+
+.select option {
+  border: 3px solid var(--bg);
+  background-color: var(--fg);
+  color: var(--bg);
 }
 
 .control-bar h4 {
@@ -84,7 +106,6 @@ body {
   font-family: monospace;
   font-size: 160%;
   white-space: pre;
-  border: none;
   resize: none;
 
   /* for the editor and highlighter */
@@ -93,6 +114,11 @@ body {
   position: relative;
 
   padding: 10px;
+}
+
+#outputBox {
+  background-color: var(--black);
+  color: var(--dfg);
 }
 
 #editor {
@@ -111,7 +137,7 @@ body {
   left: 0; 
   padding: 10px;
   user-select: none;
-  border-right: 3px solid ;
+  /* border-right: 4px dashed; */
 }
 
 /* make contenteditable focus border invisible */
@@ -120,12 +146,12 @@ body {
 }
 
 /* color scheme */
-.hl_fg        { color: var(--fg); }
-.hl_bg        { color: var(--bg); }
-.hl_red       { color: var(--red); }
-.hl_blue      { color: var(--blue); }
-.hl_green     { color: var(--green); }
-.hl_yellow    { color: var(--yellow); }
-.hl_purple    { color: var(--purple); }
-.hl_gray      { color: var(--gray); }
-.hl_lightgray { color: var(--lightgray); }
+.hl_fg          { color: var(--fg); }
+.hl_bg          { color: var(--bg); }
+.hl_string      { color: var(--red); font-style: italic }
+.hl_type        { color: var(--blue); }
+.hl_number      { color: var(--green); }
+.hl_truefalse   { color: var(--green); font-style: italic }
+.hl_delimiter   { color: var(--yellow); }
+.hl_keyword     { color: var(--purple); }
+.hl_comment     { color: var(--gray); font-style: italic; }

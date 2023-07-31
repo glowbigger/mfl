@@ -21,6 +21,14 @@ const outputBox =
 const statusIndicator =
   document.getElementById('status') as HTMLHeadingElement;
 
+// hex color codes taken from style.css
+const YELLOW_HEX =
+  getComputedStyle(document.body).getPropertyValue('--yellow');
+const GREEN_HEX =
+  getComputedStyle(document.body).getPropertyValue('--green');
+const RED_HEX =
+  getComputedStyle(document.body).getPropertyValue('--red');
+
 //======================================================================
 // helpers
 //======================================================================
@@ -58,14 +66,18 @@ function runCode(): void {
       message = `Failure (ran in ${executionTime / 1000} s)`;
     else
       message = `Failure (ran in ${executionTime} ms)`;
-    statusIndicator.innerHTML = `<span class = 'hl_red'>${message}</span>`;
+
+    statusIndicator.style.color = RED_HEX;
+    statusIndicator.innerText = message;
   } else {
     let message: string;
     if (executionTime >= 1000)
       message = `Success (ran in ${executionTime / 1000} s)`;
     else
       message = `Success (ran in ${executionTime} ms)`;
-    statusIndicator.innerHTML = `<span class = 'hl_green'>${message}</span>`;
+
+    statusIndicator.style.color = GREEN_HEX;
+    statusIndicator.innerText = message;
   }
 }
 
@@ -79,9 +91,11 @@ for (const exampleName of Object.keys(examples))
 exampleSelection.addEventListener('input', selectExample);
 selectExample(); // set the default example
 
-// run button functionality, display a yellow ... before running the code
+// run button functionality, display a loading message before running the code
 runButton.addEventListener('click', () => {
-  statusIndicator.innerHTML = `<span class = 'hl_yellow'>...</span>`;
+  statusIndicator.style.color = YELLOW_HEX;
+  statusIndicator.innerText = 'Running...';
+  // this forces the page to be redrawn to show the above indicator
   setTimeout(runCode, 1);
 });
 
