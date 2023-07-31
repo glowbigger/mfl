@@ -41,16 +41,13 @@ function applyHighlight(): void {
 function runCode(): void {
   const source: string = editor.innerText;
   const [result, hadErrors]: [string, boolean] = run(source);
+  outputBox.innerHTML = result;
 
-  if (!hadErrors) {
-    outputBox.innerHTML = result;
-    statusIndicator.style.color = 'green';
-    statusIndicator.innerText = 'SUCCESS';
-  } else {
-    outputBox.innerHTML = result;
-    statusIndicator.style.color = 'red';
-    statusIndicator.innerText = 'FAILURE';
-  }
+  // set the status indicator
+  if (hadErrors)
+    statusIndicator.innerHTML = `<span class='hl_red'>Failure</span>`;
+  else
+    statusIndicator.innerHTML = `<span class='hl_green'>Success</span>`;
 }
 
 //======================================================================
