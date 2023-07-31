@@ -1,6 +1,6 @@
 import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, 
          ExprVisitor, VariableExpr, AssignExpr, LogicalExpr, FunctionObjectExpr, CallExpr, ArrayObjectExpr, ArrayAccessExpr, ArrayAssignExpr } from './expr'
-import { TokenError, ImplementationError, SyntaxTreeNodeError } from './error';
+import { ImplementationError, SyntaxTreeNodeError } from './error';
 import { ArrayLangObject, FunctionLangObject, LangObject } from './langObject';
 import { Stmt, ExpressionStmt, PrintStmt, BlankStmt, StmtVisitor,
         DeclarationStmt,
@@ -108,9 +108,8 @@ export default class Interpreter
       // environment might be wrong and return statements can return functions
       this.currentEnvironment.define(id, value);
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        throw new TokenError(error.message, stmt.identifier);
-      }
+      if (error instanceof Error)
+        throw new SyntaxTreeNodeError(error.message, stmt);
       throw new ImplementationError('Unable to define variable.');
     }
   }
@@ -231,9 +230,8 @@ export default class Interpreter
       case 'SLASH':
         leftValue = this.evaluate(expr.leftExpr) as number;
         rightValue = this.evaluate(expr.rightExpr) as number;
-        if (rightValue === 0) {
-          throw new TokenError('Division by 0.', expr.operator);
-        }
+        if (rightValue === 0)
+          throw new SyntaxTreeNodeError('Division by 0.', expr);
         return leftValue / rightValue;
     }
 
@@ -355,9 +353,8 @@ export default class Interpreter
     const array: ArrayLangObject
       = this.evaluate(expr.arrayExpr) as ArrayLangObject;
 
-    if (index < 0 || index > array.capacity - 1) {
+    if (index < 0 || index > array.capacity - 1)
       throw new SyntaxTreeNodeError('Index is out of range.', expr.index);
-    }
 
     const accessed: LangObject = array.elements[index];
     return accessed;
@@ -371,10 +368,9 @@ export default class Interpreter
     const arrayObject: ArrayLangObject
       = this.evaluate(arrayExpr) as ArrayLangObject;
 
-    if (index < 0 || index > arrayObject.capacity - 1) {
+    if (index < 0 || index > arrayObject.capacity - 1)
       throw new SyntaxTreeNodeError('Index is out of range.',
                                     expr.arrayAccessExpr.index);
-    }
 
     // insert the value into the array
     const value: LangObject = this.evaluate(expr.assignmentValue);

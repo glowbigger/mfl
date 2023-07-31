@@ -183,7 +183,7 @@ export default function highlight(source: string): string {
 
   function scanDelimiter(): void {
     // const hl = `<span class='hl_yellow'>${consume()}</span>`;
-    const hl = `<span class='hl_lightgray'>${consume()}</span>`;
+    const hl = `<span class='hl_yellow'>${consume()}</span>`;
     addSubstring(hl);
   }
 

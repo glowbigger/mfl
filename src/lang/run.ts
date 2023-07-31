@@ -26,9 +26,8 @@ export default function run(source: string): [string, boolean] {
     // if an array of errors is caught, then it must be from the scanner
     // otherwise, a js error was thrown and something is wrong with the code
     if (Array.isArray(errors)) {
-      output += 'Scanning errors exist -\n';
       for (const error of errors)
-        output += `\n${error.toString()}\n`;
+        output += `${error.toString()}\n\n`;
     } else throw errors;
 
     return [output, true];
@@ -41,9 +40,8 @@ export default function run(source: string): [string, boolean] {
     program = parser.parse();
   } catch(errors: unknown) {
     if (Array.isArray(errors)) {
-      output += 'Parsing errors exist -\n';
       for (const error of errors)
-        output += `\n${error.toString()}\n`;
+        output += `${error.toString()}\n\n`;
     } else throw errors;
 
     return [output, true];
@@ -60,9 +58,8 @@ export default function run(source: string): [string, boolean] {
     typeValidator.validateProgram();
   } catch(errors: unknown) {
     if (Array.isArray(errors)) {
-      output += 'Type checking errors exist -\n';
       for (const error of errors) {
-        output += `\n${error.toString()}\n`;
+        output += `${error.toString()}\n\n`;
       }
     } else throw errors;
 
@@ -74,8 +71,8 @@ export default function run(source: string): [string, boolean] {
     output += interpreter.interpret();
   } catch(error: unknown) {
     if (error instanceof LangError) {
-      output += 'Runtime error -\n';
-      output += '\n' + error.toString() + '\n';
+      output += 'Runtime error:\n\n';
+      output += error.toString();
     } else throw error;
 
     return [output, true];
