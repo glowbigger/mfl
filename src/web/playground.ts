@@ -49,32 +49,32 @@ function applyHighlight(): void {
 function runCode(): void {
   const source: string = editor.innerText;
 
-  // run the code, measure its execution time
+  // run the code, measure its execution time, render its output
   const start: number = performance.now();
   const [result, hadErrors]: [string, boolean] = run(source);
   const end: number = performance.now();
+  outputBox.innerHTML = result;
 
   // the execution time is in milliseconds by default
-  const executionTime: number = end - start;
-
-  outputBox.innerHTML = result;
+  // const executionTime: number = Number((end - start).toFixed(3));
+  const executionTime: number = Math.round(end - start);
 
   // set the status indicator
   if (hadErrors) {
     let message: string;
     if (executionTime >= 1000)
-      message = `Failure (ran in ${executionTime / 1000} s)`;
+      message = `Failure (ran in ~${executionTime / 1000} s)`;
     else
-      message = `Failure (ran in ${executionTime} ms)`;
+      message = `Failure (ran in ~${executionTime} ms)`;
 
     statusIndicator.style.color = RED_HEX;
     statusIndicator.innerText = message;
   } else {
     let message: string;
     if (executionTime >= 1000)
-      message = `Success (ran in ${executionTime / 1000} s)`;
+      message = `Success (ran in ~${executionTime / 1000} s)`;
     else
-      message = `Success (ran in ${executionTime} ms)`;
+      message = `Success (ran in ~${executionTime} ms)`;
 
     statusIndicator.style.color = GREEN_HEX;
     statusIndicator.innerText = message;
