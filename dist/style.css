@@ -32,10 +32,7 @@ body {
   height: 100vh;
   margin: 0;
   font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-
-  /* color */
-  background-color: var(--bg);
-  color: var(--fg);
+  background-color: var(--black);
 }
 
 .row {
@@ -138,11 +135,14 @@ body {
   padding: 10px;
   user-select: none;
   /* border-right: 4px dashed; */
+
+  background-color: var(--bg);
+  color: var(--fg);
 }
 
 /* make contenteditable focus border invisible */
 [contenteditable]:focus {
-    outline: 0px solid transparent;
+  outline: 0px solid transparent;
 }
 
 /* color scheme */
