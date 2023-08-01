@@ -1,0 +1,10 @@
+// an implementation of Fizz Buzz (https://en.wikipedia.org/wiki/Fizz_buzz)
+
+let i = 0;
+while (i <= 100) do {
+  if (i % 3 == 0 and i % 5 == 0) then print 'Fizz Buzz';
+  else if (i % 3 == 0) then print 'Fizz';
+  else if (i % 5 == 0) then print 'Buzz';
+  else print i;
+  i = i + 1;
+}

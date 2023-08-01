@@ -1,0 +1,18 @@
+// Here are some errors to demonstrate the serviceable error reporting system.
+
+// error at a range of tokens on one line
+let x: str = 5;
+
+// error at a range of tokens on two consecutive lines
+let x: str =
+5;
+
+// error at a range of tokens on more than two lines
+let x: str
+=
+5;
+
+let x:
+str
+=
+5;

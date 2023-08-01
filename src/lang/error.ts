@@ -127,7 +127,7 @@ export class TokenRangeError extends LangError {
 
     // create the indicators
     const startLineIndicator =
-      indicatorString(startCol, startCol + tokenStart.lexeme.length - 1);
+      indicatorString(startCol, startCol + startLineString.length - 1);
     const endLineIndicator =
       indicatorString(1, endCol);
 

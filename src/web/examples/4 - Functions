@@ -1,0 +1,65 @@
+// Functions are created with the 'fn' keyword, and are anonymous (unnamed) by
+// default. The following anonymous function expressions sit in their own
+// statements, and so the ending semicolons are necessary.
+
+// This is a function that returns a string.
+// NOTE the return type must be specified.
+fn() => str { return 'a string'; } ;
+
+// This is a function that takes a number and returns it.
+// NOTE the types of the parameters must be specified.
+fn(x: num) => num { return x; } ;
+
+// Functions are first-class objects, and can be assigned to variables so that
+// they can be called.
+// NOTE void functions are not supported.
+let returnHello = fn() => str {
+  return 'hello';
+};
+print returnHello();
+
+let addNums = fn(x: num, y: num) => num {
+  return x + y;
+};
+print addNums(1, 2);
+
+// Anonymous functions can be called without being assigned to a variable.
+print ( fn() => num { return 0; } )();
+
+// Functions can be type-hinted too using () => notation.
+let conditionalPrint: (num, str) => str =
+fn(x: num, message: str) => str {
+  if x > 0 then return 'x greater than 0';
+  return message;
+};
+print conditionalPrint(1, 'i wont get printed');
+print conditionalPrint(0, 'i will get printed');
+
+// Functions can return other functions, since functions are first-class.
+// NOTE this function returns a function taking no arguments and returning a num
+let returnAFunctionThatReturnsFive =
+fn() => () => num { 
+  return fn() => num { return 5; } ;
+};
+let returnFive = returnAFunctionThatReturnsFive();
+print returnFive();
+
+// Naturally, functions can also take other functions as arguments.
+let returnSumOfOutputs = fn(func1: () => num, func2: () => num) => num {
+  return func1() + func2();
+};
+print returnSumOfOutputs(returnFive, returnFive);
+
+// Recursion works too. Here's the first 25 fibonacci numbers.
+let fib = fn(n: num) => num {
+  if n <= 1 then return n;
+  return fib(n - 1) + fib(n - 2);
+};
+
+// WARNING: setting max to > 30 or so will make the loop take a long time
+let max = 25;
+let i = 1;
+while i <= max do {
+  print i + ': ' + fib(i);
+  i = i + 1;
+}

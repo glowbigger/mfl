@@ -1,6 +1,5 @@
 node_modules
 notes
 todo
-/src/web/examples/
 /src/web/examples.ts
 *.js

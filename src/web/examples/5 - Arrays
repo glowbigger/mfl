@@ -1,0 +1,53 @@
+// Arrays are also first-class objects. They can be created by specifying the
+// elements in brackets or by providing a number along with an expression
+print [ 1, 2, 3 ];
+print [ 'a', 'b', 'c' ];
+print [ 5 of true ];
+
+let fnArr = [ fn () => num { return 0; }, fn () => num { return 1; } ];
+print fnArr[0]();
+print fnArr[1]();
+
+// Array types given by wrapping '[' and ']' around the inner type in the array
+let arr1: [ num ] = [ 1, 2, 3 ];
+let arr2: [ str ] = [ 'a', 'b', 'c' ];
+let arr3: [ bool ] = [ 5 of true ];
+
+let getFirstNum = fn (arr: [ num ]) => num {
+  return arr[0];
+};
+print getFirstNum([3, 2, 1, 0]);
+
+// NOTE empty arrays can only be specified using 0 along with some expression
+/*
+let arr = []; // this won't work because the type of the array is unknown
+*/
+let emptyNumArr = [ 0 of 0 ]; // this is fine, the type is [ num ]
+let emptyStrArr = [ 0 of '' ]; // this is fine too, the type is [ str ]
+print emptyNumArr; print emptyStrArr;
+
+// Array values can be reassigned by specifying the index
+let arr = [ 0, 1 ]; print arr;
+arr[0] = 1; print arr;
+
+let arr = [[ 0, 0 ], [ 0, 0 ]]; print arr;
+arr[0][1] = 4; print arr;
+
+// Arrays can only contain a single type, and they are not dynamic, in other
+// words the capacity cannot be changed
+let arr: [ num ] = [ 0, 1, 2 ];
+/*
+arr[0] = 'a'; // error, type of an element must be a num
+arr[3] = 3; // error, index out of range
+*/
+
+// Arrays can contain other arrays, allowing for multi-dimensional arrays
+let arr: [[ str ]] = [3 of [ 'dog', 'cat' ]];
+let idMatrix: [[ num ]] = [[ 1, 0, 0],
+                           [ 0, 1, 0],
+                           [ 0, 0, 1]];
+
+// NOTE the reason why fixed-length arrays are the only supported data structure
+// is because other common data structures, linked lists, dictionaries, dynamic 
+// arrays, etc. can be built in the language using fixed-length arrays and
+// classes. Unfortunately, classes are not supported at the moment.
