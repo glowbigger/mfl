@@ -125,6 +125,9 @@ export default class Scanner {
 			case '*': 
         this.addToken('STAR'); 
         break; 
+			case '%': 
+        this.addToken('PERCENT');
+        break;
 			case ':': 
         this.addToken('COLON'); 
         break; 

@@ -26,14 +26,15 @@ export type TokenType =
 	'RIGHT_BRACE' |
 	'LEFT_BRACKET' |
 	'RIGHT_BRACKET' |
+	'COLON' |
 	'COMMA' |
 	'DOT' |
 	'MINUS' |
+	'PERCENT' |
 	'PLUS' |
 	'SEMICOLON' |
 	'SLASH' |
 	'STAR' |
-	'COLON' |
 
 	// one or two character tokens
 	'BANG' |

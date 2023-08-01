@@ -318,10 +318,10 @@ export default class Parser {
                             'MINUS', 'PLUS');
   }
 
-  // factor         → unary ( ( "/" | "*" ) unary )* ;
+  // factor         → unary ( ( "/" | "*" | "%" ) unary )* ;
   private parseFactor(): Expr {
     return this.parseBinary(() => this.parseUnary(),
-                            'SLASH', 'STAR');
+                            'SLASH', 'STAR', 'PERCENT');
   }
 
   // unary          → ( "!" | "-" ) unary | call ;

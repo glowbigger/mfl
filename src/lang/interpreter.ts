@@ -231,8 +231,15 @@ export default class Interpreter
         leftValue = this.evaluate(expr.leftExpr) as number;
         rightValue = this.evaluate(expr.rightExpr) as number;
         if (rightValue === 0)
-          throw new SyntaxTreeNodeError('Division by 0.', expr);
+          throw new SyntaxTreeNodeError('Cannot divide by 0.', expr);
         return leftValue / rightValue;
+
+      case 'PERCENT':
+        leftValue = this.evaluate(expr.leftExpr) as number;
+        rightValue = this.evaluate(expr.rightExpr) as number;
+        if (rightValue === 0)
+          throw new SyntaxTreeNodeError('Right side of mod cannot be 0.', expr);
+        return leftValue % rightValue;
     }
 
     throw new ImplementationError('Unknown operator in binary expression.');

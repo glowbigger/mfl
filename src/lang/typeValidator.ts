@@ -256,8 +256,8 @@ export default class TypeValidator
       return 'Bool';
     }
 
-    // number operations: -, *, /
-    if (this.tokenTypeMatch(opType, 'MINUS', 'STAR', 'SLASH')) {
+    // number operations: -, *, /, %
+    if (this.tokenTypeMatch(opType, 'MINUS', 'STAR', 'SLASH', 'PERCENT')) {
       const leftType: LangType = this.validateExpression(expr.leftExpr);
       if (leftType !== 'Num') {
         throw new SyntaxTreeNodeError('Left operand is not a number.',

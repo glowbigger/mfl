@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "lang": "node compiled/main.js",
-    "clang": "tsc && node compiled/main.js",
-    "test": "tsc && node compiled/test.js",
+    "lang": "node compiled/lang/main.js",
+    "clang": "tsc && node compiled/lang/main.js",
+    "test": "tsc && node compiled/lang/test.js",
     "web": "yarn run build && live-server dist",
     "watch": "webpack --mode=development --watch",
     "build": "yarn run build-examples && webpack --mode=production",
