@@ -55,9 +55,10 @@ body {
 
 .control-bar {
   display: flex;
-  height: 50px;
-  border-bottom: 3px solid var(--lbg);
-  font-size: 200%;
+  height: 6vh;
+  border-bottom: 1px solid var(--lbg);
+  border-top: 1px solid var(--lbg);
+  font-size: 4vh;
   font-style: italic;
 
   background-color: var(--lbg);
@@ -65,11 +66,11 @@ body {
 }
 
 .control-bar button, .control-bar select {
-  margin: 2px 2px;
-  padding-left: 25px;
-  padding-right: 25px;
+  margin: 0.4vh 0.4vw;
+  padding-left: 1vw;
+  padding-right: 1vw;
   border-radius: 8px;
-  font-size: 50%;
+  font-size: 2.5vh;
   font-weight: 700;
 
   border: 3px solid var(--bg);
@@ -86,8 +87,7 @@ body {
 }
 
 .control-bar h4 {
-  line-height: 50px;
-  padding: 0px 15px;
+  padding: 0vh 1vw;
   margin: 0;
 }
 
@@ -98,28 +98,35 @@ body {
 .textBox {
   height: 100%;
   font-family: monospace;
-  font-size: 140%;
+  font-size: 2vh;
   white-space: pre;
   resize: none;
 
+  /* TODO move this*/ 
   /* for the editor and highlighter */
   display: flex;
   flex-flow: column;
   position: relative;
 
-  padding: 10px;
+  padding: 1vmin;
+  /* flex-wrap: wrap; */
 }
 
 #outputBox {
   background-color: var(--black);
   color: var(--dfg);
+  width: 35vw;
 }
+
+/* TODO */ 
+/* editor and highlight should be in the same div that has shared properties */
 
 #editor {
   height: 100%;
   position: relative;
   color: transparent; /* Make text invisible */
   caret-color: var(--fg); /* But keep caret visible */
+  width: 60vw;
 }
 
 #highlighter {
@@ -129,12 +136,12 @@ body {
   right: 0;
   bottom: 0;
   left: 0; 
-  padding: 10px;
+  padding: 1vmin;
   user-select: none;
-  /* border-right: 4px dashed; */
 
   background-color: var(--bg);
   color: var(--fg);
+  width: 60vw;
 }
 
 /* make contenteditable focus border invisible */
