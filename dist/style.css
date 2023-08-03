@@ -31,10 +31,6 @@
 body {
   height: 100vh;
   margin: 0;
-  /* font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; */
-  /* font-family: Calibri, 'Trebuchet MS', sans-serif; */
-  /* font-family: 'Helvetica'; */
-  font-family: 'Noto Sans';
   background-color: var(--black);
 }
 
@@ -60,6 +56,7 @@ body {
   border-top: 1px solid var(--lbg);
   font-size: 4vh;
   font-style: italic;
+  font-family: 'Open Sans', sans-serif;
 
   background-color: var(--lbg);
   color: var(--fg);
@@ -76,6 +73,8 @@ body {
   border: 3px solid var(--bg);
   background-color: var(--bg);
   color: var(--fg);
+
+  font-family: 'Open Sans', sans-serif;
 }
 
 .control-bar button:hover, select:hover {
@@ -97,8 +96,8 @@ body {
 
 .textBox {
   height: 100%;
-  font-family: monospace;
-  font-size: 2vh;
+  font-family: 'Source Code Pro', monospace;
+  font-size: 1vw;
   white-space: pre;
   resize: none;
 
@@ -115,7 +114,7 @@ body {
 #outputBox {
   background-color: var(--black);
   color: var(--dfg);
-  width: 35vw;
+  width: 45vw;
 }
 
 /* TODO */ 
@@ -126,7 +125,7 @@ body {
   position: relative;
   color: transparent; /* Make text invisible */
   caret-color: var(--fg); /* But keep caret visible */
-  width: 60vw;
+  width: 50vw;
 }
 
 #highlighter {
