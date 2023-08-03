@@ -1,5 +1,5 @@
 // Welcome to the playground for MFL, 'My First Language', a statically-typed
-// scripting language with a Typescript interpreter.
+// scripting language written in Typescript.
 
 print 'Hello, world!';
 print 'Use the run button above to run any code written here.';
