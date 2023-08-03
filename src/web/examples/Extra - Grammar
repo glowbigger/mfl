@@ -1,3 +1,6 @@
+/*
+Below is the grammar for the language, written in a BNF-like way.
+
 program             → statement* EOF ;
 
 // statements
@@ -43,3 +46,4 @@ functionObject    → "fn" "(" ( ( IDENTIFIER ":" objectType "," )*
 arrayObject       → filledArray | lengthArray ;
 filledArray       → "[" ( expression (( "," expression )* )? )? "]"
 lengthArray       → "[" expression "of" expression "]" ;
+*/

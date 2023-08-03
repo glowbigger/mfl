@@ -1,0 +1,7 @@
+// Under the hood, the language is written in Typescript (compiled to
+// Javascript) and implemented as a tree-walk interpreter.
+
+// The source code can be found here: <link>
+
+// The web client is also written with no dependencies. It uses some HTML/CSS
+// hacks to get the left-side text input to feel like an editor.
