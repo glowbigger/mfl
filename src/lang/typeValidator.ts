@@ -1,5 +1,5 @@
 import { Token, TokenType } from './token';
-import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, ExprVisitor, VariableExpr, AssignExpr, LogicalExpr, FunctionObjectExpr, CallExpr, ArrayObjectExpr, ArrayAccessExpr, ArrayAssignExpr } from './expr'
+import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, ExprVisitor, VariableExpr, AssignExpr, LogicalExpr, FunctionObjectExpr, CallExpr, ArrayObjectExpr, ArrayAccessExpr, ArrayAssignExpr, LengthExpr } from './expr'
 import { TokenError, ImplementationError, LangError, SyntaxTreeNodeError } from './error';
 import { ArrayLangType, FunctionLangType, LangTypeEqual, LangType, ComplexLangType } from './langType';
 import { BlankStmt, BlockStmt, BreakStmt, DeclarationStmt, ExpressionStmt, IfStmt, PrintStmt, ReturnStmt, Stmt, StmtVisitor, WhileStmt } from './stmt';
@@ -534,9 +534,7 @@ export default class TypeValidator
     for (const param of typeExpr.parameterTypes) {
       parameterTypes.push(this.validateExpression(param));
     }
-
     const returnType = this.validateExpression(typeExpr.returnType);
-
     return new FunctionLangType(parameterTypes, returnType);
   }
 
@@ -551,6 +549,17 @@ export default class TypeValidator
       default:
         throw new ImplementationError('Unknown LiteralTypeExpr token.');
     }
+  }
+
+  visitLengthExpr(expr: LengthExpr): LangType {
+    const exprType = this.validateExpression(expr.expression);
+
+    if (LangTypeEqual(exprType, 'Str') ||
+        exprType instanceof(ArrayLangType))
+      return 'Num'; 
+
+    throw new SyntaxTreeNodeError('Expect array or string after \'len\'.',
+                                  expr.expression);
   }
 
   //======================================================================

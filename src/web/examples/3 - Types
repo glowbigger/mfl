@@ -39,6 +39,10 @@ print 1 != 0;
 print 'abc' + 'def';
 print 'one' + 2 + 'three';
 
+// The 'len' keyword can be used to get the length of a string.
+print len '12345';
+print len '';
+
 // The basic boolean operators are supported.
 print true or false;
 print true and false;

@@ -11,7 +11,8 @@ import { Expr,
          CallExpr,
          ArrayObjectExpr,
          ArrayAccessExpr,
-         ArrayAssignExpr } from './expr'
+         ArrayAssignExpr, 
+         LengthExpr} from './expr'
 import { LangError,
          TokenError,
          TokenRangeError } from './error';
@@ -324,12 +325,24 @@ export default class Parser {
                             'SLASH', 'STAR', 'PERCENT');
   }
 
-  // unary          → ( "!" | "-" ) unary | call ;
+  // unary          → ( "!" | "-" ) unary | length ;
   private parseUnary(): Expr {
     if (this.match('BANG', 'MINUS')) {
       const operator: Token = this.consume();
       const right: Expr = this.parseUnary();
       return new UnaryExpr(operator, right);
+    } else {
+      return this.parseLength();
+    }
+  }
+
+
+  // length         → "len" expression | callOrAccess ;
+  private parseLength(): Expr {
+    if (this.match('LENGTH')) {
+      let keyword: Token = this.consume();
+      let expression = this.parseExpression();
+      return new LengthExpr(keyword, expression);
     } else {
       return this.parseCallOrAccess();
     }

@@ -1,5 +1,5 @@
 import { Expr, BinaryExpr, GroupingExpr, LiteralExpr, UnaryExpr, 
-         ExprVisitor, VariableExpr, AssignExpr, LogicalExpr, FunctionObjectExpr, CallExpr, ArrayObjectExpr, ArrayAccessExpr, ArrayAssignExpr } from './expr'
+         ExprVisitor, VariableExpr, AssignExpr, LogicalExpr, FunctionObjectExpr, CallExpr, ArrayObjectExpr, ArrayAccessExpr, ArrayAssignExpr, LengthExpr } from './expr'
 import { ImplementationError, SyntaxTreeNodeError } from './error';
 import { ArrayLangObject, FunctionLangObject, LangObject } from './langObject';
 import { Stmt, ExpressionStmt, PrintStmt, BlankStmt, StmtVisitor,
@@ -384,6 +384,17 @@ export default class Interpreter
     arrayObject.elements[index] = value;
 
     return value;
+  }
+
+  visitLengthExpr(expr: LengthExpr): LangObject {
+    const value = this.evaluate(expr.expression);
+
+    if (typeof(value) === 'string')
+      return value.length;
+    if (value instanceof ArrayLangObject)
+      return value.capacity;
+
+    throw new ImplementationError(`Invalid expression after \'len\'.`);
   }
 
   //======================================================================

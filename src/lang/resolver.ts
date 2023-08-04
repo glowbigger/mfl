@@ -6,7 +6,7 @@
  */
 
 import { SyntaxTreeNodeError } from "./error";
-import { ArrayAccessExpr, ArrayAssignExpr, ArrayObjectExpr, AssignExpr, BinaryExpr, CallExpr, Expr, ExprVisitor, FunctionObjectExpr, GroupingExpr, LiteralExpr, LogicalExpr, UnaryExpr, VariableExpr } from "./expr";
+import { ArrayAccessExpr, ArrayAssignExpr, ArrayObjectExpr, AssignExpr, BinaryExpr, CallExpr, Expr, ExprVisitor, FunctionObjectExpr, GroupingExpr, LengthExpr, LiteralExpr, LogicalExpr, UnaryExpr, VariableExpr } from "./expr";
 import Interpreter from "./interpreter";
 import { BlankStmt, BlockStmt, BreakStmt, DeclarationStmt, ExpressionStmt, IfStmt, PrintStmt, ReturnStmt, Stmt, StmtVisitor, WhileStmt } from "./stmt";
 import { Token } from "./token";
@@ -176,6 +176,10 @@ export default class Resolver implements StmtVisitor<void>, ExprVisitor<void> {
   }
 
   visitGroupingExpr(expr: GroupingExpr): void {
+    this.resolveExpression(expr.expression);
+  }
+
+  visitLengthExpr(expr: LengthExpr): void {
     this.resolveExpression(expr.expression);
   }
 

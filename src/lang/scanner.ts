@@ -18,6 +18,7 @@ const KEYWORDS = new Map<string, TokenType>([
   ['return', 'RETURN'],
   ['then', 'THEN'],
   ['true', 'TRUE'],
+  ['len', 'LENGTH'],
   ['let', 'LET'],
   ['while', 'WHILE'],
 

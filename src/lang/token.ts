@@ -67,6 +67,7 @@ export type TokenType =
 	'RETURN' |
 	'THEN' |
 	'TRUE' |
+  'LENGTH' |
 	'LET' |
 	'WHILE' |
 

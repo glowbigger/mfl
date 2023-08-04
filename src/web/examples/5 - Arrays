@@ -42,10 +42,15 @@ arr[3] = 3; // error, index out of range
 */
 
 // Arrays can contain other arrays, allowing for multi-dimensional arrays
-let arr: [[ str ]] = [3 of [ 'dog', 'cat' ]];
+let pets: [[ str ]] = [3 of [ 'dog', 'cat' ]];
 let idMatrix: [[ num ]] = [[ 1, 0, 0],
                            [ 0, 1, 0],
                            [ 0, 0, 1]];
+print pets; print idMatrix;
+
+// The 'len' keyword can be used to get the length of an array;
+print len pets;
+print len idMatrix;
 
 // NOTE the reason why fixed-length arrays are the only supported data structure
 // is because other common data structures, linked lists, dictionaries, dynamic 

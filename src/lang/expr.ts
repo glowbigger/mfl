@@ -12,6 +12,7 @@ export interface ExprVisitor<R> {
   visitCallExpr(expr: CallExpr): R;
   visitFunctionObjectExpr(expr: FunctionObjectExpr): R;
   visitGroupingExpr(expr: GroupingExpr): R;
+  visitLengthExpr(expr: LengthExpr): R;
   visitLiteralExpr(expr: LiteralExpr): R;
   visitLogicalExpr(expr: LogicalExpr): R;
   visitUnaryExpr(expr: UnaryExpr): R;
@@ -160,6 +161,19 @@ export class LogicalExpr extends Expr {
 
   accept<R>(visitor: ExprVisitor<R>): R {
     return visitor.visitLogicalExpr(this);
+  }
+}
+
+export class LengthExpr extends Expr {
+  readonly expression: Expr;
+
+  constructor(keyword: Token, expression: Expr) {
+    super(keyword, expression.rToken);
+    this.expression = expression;
+  }
+
+  accept<R>(visitor: ExprVisitor<R>): R {
+    return visitor.visitLengthExpr(this);
   }
 }
 
