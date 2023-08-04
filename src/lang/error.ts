@@ -79,7 +79,7 @@ export class TokenRangeError extends LangError {
     const endLineString: string = this.tokenEnd.lineString;
     const endLineIndex: number = tokenEnd.lineIndex;
     const startCol: number = tokenStart.column;
-    const endCol: number = tokenEnd.column;
+    const endCol: number = tokenEnd.column + tokenEnd.lexeme.length - 1;  
 
     // validate the token ranges
     if (endLineIndex < startLineIndex || 
