@@ -1,0 +1,107 @@
+// an implementation of recursive merge sort
+// https://en.wikipedia.org/wiki/Merge_sort
+
+// splits arrays of even length in half, splits arrays of odd length such that
+// the left half has one more element than the right half, returns an array
+// containing both halves
+let split = fn(arr: [num]) => [[num]] {
+  let length = len arr;
+
+  // base cases
+  let empty_arr = [0 of 0];
+  if length == 1 then return [arr, empty_arr];
+  if length == 0 then return [empty_arr, empty_arr];
+
+  // the midpoint, ie the first element of the second half of the array
+  // initialized to a dummy value of 0
+  let mid = 0;
+  if length % 2 == 0 then
+    mid = length / 2;
+  else
+    mid = (length + 1) / 2;
+
+  // initialize the halves to have only 0s as values
+  let leftHalfLen = mid;
+  let rightHalfLen = length - mid;
+  let leftHalf = [leftHalfLen of 0];
+  let rightHalf = [rightHalfLen of 0];
+
+  let i = 0;
+  while i < mid do {
+    leftHalf[i] = arr[i];
+    i = i + 1;
+  }
+
+  while i < length do {
+    rightHalf[i - mid] = arr[i];
+    i = i + 1;
+  }
+
+  return [leftHalf, rightHalf];
+};
+
+// given two arrays, returns one sorted array with all of the elements
+let merge = fn(left: [num], right: [num]) => [num] {
+  let llen = len left;
+  let rlen = len right;
+  let sortedArr = [0 of 0];
+
+  if (llen == 0) then
+    return right;
+  if (rlen == 0) then
+    return left;
+
+  let lptr = 0;
+  let rptr = 0;
+
+  while lptr < llen or rptr < rlen do {
+    if lptr == llen then {
+      let relem = right[rptr];
+      sortedArr = sortedArr + [relem];
+      rptr = rptr + 1;
+    } else if rptr == rlen then {
+      let lelem = left[lptr];
+      sortedArr = sortedArr + [lelem];
+      lptr = lptr + 1;
+    } else {
+      let lelem = left[lptr];
+      let relem = right[rptr];
+      if lelem < relem then {
+        sortedArr = sortedArr + [lelem];
+        lptr = lptr + 1;
+      } else {
+        sortedArr = sortedArr + [relem];
+        rptr = rptr + 1;
+      }
+    }
+  }
+  
+  return sortedArr;
+};
+
+// the actual merge sort implementation using the above helper functions
+let merge_sort = fn(arr: [num]) => [num] {
+  let length = len arr;
+  if length <= 1 then return arr;
+
+  let halves = split(arr);
+  let left = merge_sort(halves[0]);
+  let right = merge_sort(halves[1]);
+
+  return merge(left, right);
+};
+
+// run merge_sort on some test cases
+let test_cases = [[0 of 0],
+                  [0],
+                  [4, 8],
+                  [3, 3, 3],
+                  [1, 2, 3, 4, 5],
+                  [12, 3, 5, 19, 2, 120, -1, -1000],
+                  [5, 4, 3, 2, 1, 0, -1, -2, -3]];
+let i = 0;
+while i < len test_cases do {
+  print 'unsorted: ' + test_cases[i];
+  print 'sorted:   ' + merge_sort(test_cases[i]);
+  i = i + 1;
+}

@@ -286,6 +286,12 @@ export default class TypeValidator
       if (leftType === 'Num' && rightType === 'Str') return 'Str'
       if (leftType === 'Str' && rightType === 'Num') return 'Str'
 
+      // array and a string
+      if (leftType instanceof(ArrayLangType) && rightType === 'Str')
+        return 'Str';
+      if (leftType === 'Str' && rightType instanceof(ArrayLangType))
+        return 'Str';
+
       // two arrays
       if (leftType instanceof(ArrayLangType) &&
           rightType instanceof(ArrayLangType)) {
