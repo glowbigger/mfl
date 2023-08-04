@@ -205,13 +205,23 @@ export default class Interpreter
         return leftValue >= rightValue;
 
       case 'PLUS':
+        // + is only defined for these types
+        type validType = number | string | ArrayLangObject;
+        
         // + can add numbers or concatenate strings
-        leftValue = this.evaluate(expr.leftExpr) as number | string;
-        rightValue = this.evaluate(expr.rightExpr) as number | string;
+        leftValue = this.evaluate(expr.leftExpr) as validType;
+        rightValue = this.evaluate(expr.rightExpr) as validType;
 
         if (typeof(leftValue) == 'number' && typeof(rightValue) == 'number') {
           // number addition
           return leftValue + rightValue;
+        } else if (leftValue instanceof ArrayLangObject &&
+                   rightValue instanceof ArrayLangObject) {
+          // append arrays
+          const newCapacity: number = leftValue.capacity + rightValue.capacity;
+          const newElements: LangObject[] =
+            leftValue.elements.concat(rightValue.elements);
+          return new ArrayLangObject(newCapacity, newElements);
         } else {
           // at least one of the values is a string, so concatenate them
           return leftValue.toString() + rightValue.toString();

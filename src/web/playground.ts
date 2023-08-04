@@ -63,18 +63,18 @@ function runCode(): void {
   if (hadErrors) {
     let message: string;
     if (executionTime >= 1000)
-      message = `Failure (ran in ~${executionTime / 1000} s)`;
+      message = `Failure (done in ~${executionTime / 1000} s)`;
     else
-      message = `Failure (ran in ~${executionTime} ms)`;
+      message = `Failure (done in ~${executionTime} ms)`;
 
     statusIndicator.style.color = RED_HEX;
     statusIndicator.innerText = message;
   } else {
     let message: string;
     if (executionTime >= 1000)
-      message = `Success (ran in ~${executionTime / 1000} s)`;
+      message = `Success (done in ~${executionTime / 1000} s)`;
     else
-      message = `Success (ran in ~${executionTime} ms)`;
+      message = `Success (done in ~${executionTime} ms)`;
 
     statusIndicator.style.color = GREEN_HEX;
     statusIndicator.innerText = message;

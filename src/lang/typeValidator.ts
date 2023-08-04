@@ -271,22 +271,36 @@ export default class TypeValidator
       return 'Num';
     }
 
-    // + is defined for both strings and numbers
+    // + is defined for strings, numbers and arrays
     if (this.tokenTypeMatch(opType, 'PLUS')) {
       const leftType: LangType = this.validateExpression(expr.leftExpr);
-      if (leftType !== 'Num' && leftType !== 'Str') {
-        throw new SyntaxTreeNodeError('Left operand is not a number or string.',
-                                      expr.leftExpr);
-      }
-
       const rightType = this.validateExpression(expr.rightExpr);
-      if (rightType !== 'Num' && rightType !== 'Str') {
-        throw new SyntaxTreeNodeError('Right operand is not a number or string.',
-                                      expr.rightExpr);
+
+      // two numbers
+      if (leftType === 'Num' && rightType === 'Num') return 'Num';
+
+      // two strings
+      if (leftType === 'Str' && rightType === 'Str') return 'Str'
+
+      // number and a string
+      if (leftType === 'Num' && rightType === 'Str') return 'Str'
+      if (leftType === 'Str' && rightType === 'Num') return 'Str'
+
+      // two arrays
+      if (leftType instanceof(ArrayLangType) &&
+          rightType instanceof(ArrayLangType)) {
+        // both arrays must have the same inner type
+        const leftInnerType = leftType.innerType;
+        const rightInnerType = rightType.innerType;
+        if (LangTypeEqual(leftInnerType, rightInnerType))
+          return leftType;
+        else 
+          throw new SyntaxTreeNodeError('Inner types of arrays do not match.',
+                                        expr);
       }
 
-      // NOTE we could just as easily return leftType
-      return rightType;
+      throw new SyntaxTreeNodeError('Invalid types surrounding the + operator',
+                                    expr);
     }
 
     throw new ImplementationError('Unknown operator in binary expression.');
