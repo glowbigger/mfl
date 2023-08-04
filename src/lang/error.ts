@@ -108,7 +108,7 @@ export class TokenRangeError extends LangError {
     if (endLineIndex - startLineIndex === 1) {
       // create the indicators
       const startLineIndicator =
-        indicatorString(startCol, startLineString.length - 1);
+        indicatorString(startCol, startLineString.length);
       const endLineIndicator =
         indicatorString(1, endCol);
 
@@ -127,7 +127,7 @@ export class TokenRangeError extends LangError {
 
     // create the indicators
     const startLineIndicator =
-      indicatorString(startCol, startLineString.length - 1);
+      indicatorString(startCol, startLineString.length);
     const endLineIndicator =
       indicatorString(1, endCol);
 
