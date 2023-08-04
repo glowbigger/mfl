@@ -1,0 +1,33 @@
+// this function demonstrates that function scopes work properly, even in
+// functions that are returned by other functions
+
+// a function with a counter inside that can only be manipulated by the returned
+// adder function that increments the inner counter by one
+let returnAdder = fn () => () => num {
+  let counter = 0;
+
+  return fn () => num { 
+    counter = counter + 1;
+    return counter;
+  };
+};
+
+// this adder has its own counter variable
+let adder1 = returnAdder();
+print adder1(); // 1
+print adder1(); // 2
+print adder1(); // 3
+
+// this adder also has its own counter variable
+let adder2 = returnAdder();
+print adder2(); // 1
+print adder2(); // 2
+
+// modifying adder2's counter won't affect adder1's counter
+print adder1(); // 4
+
+// this adder has its own counter variable that is not bound to a variable ...
+print returnAdder()(); // 1
+
+// ... so the counter is not permanent
+print returnAdder()(); // 1

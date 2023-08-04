@@ -94,7 +94,8 @@ selectExample(); // set the default example
 // run button functionality, display a loading message before running the code
 runButton.addEventListener('click', () => {
   statusIndicator.style.color = YELLOW_HEX;
-  statusIndicator.innerText = 'Running...';
+  statusIndicator.innerText = 'Running';
+  outputBox.innerText = '...';
   // this forces the page to be redrawn to show the above indicator
   setTimeout(runCode, 1);
 });

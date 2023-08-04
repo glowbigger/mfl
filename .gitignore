@@ -1,5 +1,6 @@
 node_modules
 notes
 todo
+/compiled/
 /src/web/examples.ts
-*.js
+/dist/bundle.js
