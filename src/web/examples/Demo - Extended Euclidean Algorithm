@@ -1,0 +1,46 @@
+// returns the result of a // b, where // is floor division
+let floorDiv = fn(a: num, b: num) => num {
+  let q = 0;
+  let sum = b;
+
+  while sum <= a do {
+    sum = sum + b;
+    q = q + 1;
+  }
+
+  return q;
+};
+
+// returns an array containing the gcd of n and m and the coefficients x and y
+// such that gcd = nx + my
+// https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm
+let egcd = fn(n: num, m: num) => [num] {
+  if n == 0 then {
+    return [m, 0, 1];
+  }
+
+  let res = egcd(m % n, n);
+  let gcd = res[0];
+  let x1 = res[1];
+  let y1 = res[2];
+  
+  let x = y1 - (floorDiv(m, n) * x1);
+  let y = x1;
+
+  return [gcd, x, y];
+};
+
+// returns a formatted string of the result of egcd(n, m)
+let egcd_str = fn(n: num, m: num) => str {
+  let res: [num] = egcd(n, m);
+
+  let gcdStr = 'gcd(' + n + ', ' + m + ')';
+  let eqStr = '(' + n + ')' + '(' + res[1] + ') + ' +
+              '(' + m + ')' + '(' + res[2] + ')';
+
+  return gcdStr + ' = ' + res[0] + ' = ' + eqStr;
+};
+
+print egcd_str(7, 5);
+print egcd_str(35, 15);
+print egcd_str(131, 337);

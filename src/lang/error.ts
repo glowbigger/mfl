@@ -108,7 +108,7 @@ export class TokenRangeError extends LangError {
     if (endLineIndex - startLineIndex === 1) {
       // create the indicators
       const startLineIndicator =
-        indicatorString(startCol, startCol + startLineString.length - 1);
+        indicatorString(startCol, startLineString.length - 1);
       const endLineIndicator =
         indicatorString(1, endCol);
 
@@ -127,7 +127,7 @@ export class TokenRangeError extends LangError {
 
     // create the indicators
     const startLineIndicator =
-      indicatorString(startCol, startCol + startLineString.length - 1);
+      indicatorString(startCol, startLineString.length - 1);
     const endLineIndicator =
       indicatorString(1, endCol);
 
@@ -161,7 +161,7 @@ export class ImplementationError extends Error {
   }
 }
 
-// given two indices, create a ^^^ indicator string to be displayed below text
+// given two indices, create a ^^^ indicator string to be displayed below
 // NOTE expects the indices to be 1-based
 function indicatorString(start: number, end: number): string {
   if (end < start)
