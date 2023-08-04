@@ -71,8 +71,9 @@ export default function run(source: string): [string, boolean] {
     output += interpreter.interpret();
   } catch(error: unknown) {
     if (error instanceof LangError) {
-      output += 'Runtime error:\n\n';
-      output += error.toString();
+      output += `Runtime error:\n\n${error.toString()}\n\n`;
+      output += 'Console output before the error was caught:\n\n';
+      output += interpreter.printedLines.join('\n');
     } else throw error;
 
     return [output, true];

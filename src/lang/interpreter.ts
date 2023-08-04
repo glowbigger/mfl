@@ -14,14 +14,14 @@ import { BreakIndicator, ReturnIndicator } from "./indicator";
 
 export default class Interpreter 
   implements ExprVisitor<LangObject>, StmtVisitor<void> {
-  // the lines printed by the given program
-  private printedLines: string[];
-
   // the program is defined as a list of statements
   private program: Stmt[];
 
   private globalEnvironment: Environment<LangObject>;
   private currentEnvironment: Environment<LangObject>;
+
+  // the lines printed by the given program
+  printedLines: string[];
 
   // a function call might set its arguments to be a new environment, 
   // if this variable is not null, then a function call was just made
