@@ -131,6 +131,7 @@ export default function highlight(source: string): string {
       return;
     }
 
+    // multi-line comment
     if (source[current + 1] === '*') {
       // initialize the substring with the /*
       let substring = consume() + consume();

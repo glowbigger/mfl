@@ -59,7 +59,7 @@ body {
   padding-left: 1vw;
   padding-right: 1vw;
   border-radius: 8px;
-  font-size: 2.5vh;
+  font-size: 2vh;
   font-weight: 700;
   border: 3px solid var(--bg);
   background-color: var(--bg);
@@ -73,6 +73,10 @@ body {
 
 .control-bar button:hover:active {
   background-color: var(--black);
+}
+
+.control-bar select {
+  width: 30vh;
 }
 
 .control-bar h4 {

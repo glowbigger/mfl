@@ -4,3 +4,4 @@ todo
 /compiled/
 /src/web/examples.ts
 /dist/bundle.js
+deploy.sh
