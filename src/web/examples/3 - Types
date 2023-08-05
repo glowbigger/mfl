@@ -5,19 +5,7 @@ let b: num = 1.5;
 let c: str = 'string';
 let d: bool = true;
 
-// These statements are commented out, but will result in type-checking errors.
-/*
-let a: num = true;
-let b: str = 5;
-*/
-
-// Types are not mutable, since the language is statically-typed.
-/*
-let n: num = 5;
-n = 'string'; // error here
-*/
-let n: num = 5;
-let n: str = 'string'; // this is fine
+// NOTE Types are not mutable, since the language is statically-typed.
 
 // Type inference is supported, so hints can be omitted.
 let x = 5; // x is a num

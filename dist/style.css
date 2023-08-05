@@ -7,6 +7,7 @@
   --red:        #C34043;
   --green:      #76946A;
   --blue:       #7E9CD8;
+  --cyan:       #5f8495;
   --yellow:     #C0A36E;
   --orange:     #f6983a;
   --purple:     #957FB8;
@@ -137,12 +138,12 @@ body {
 /* color scheme */
 .hl_fg          { color: var(--fg); }
 .hl_bg          { color: var(--bg); }
-.hl_string      { color: var(--red); font-style: italic }
+.hl_string      { color: var(--red); font-style: italic; }
 .hl_type        { color: var(--blue); }
 .hl_number      { color: var(--green); }
-.hl_truefalse   { color: var(--green); font-style: italic }
+.hl_truefalse   { color: var(--cyan); font-style: italic; }
 .hl_delimiter   { color: var(--yellow); }
-.hl_keyword     { color: var(--purple); }
+.hl_keyword     { color: var(--purple); font-style: italic; }
 .hl_comment     { color: var(--gray); font-style: italic; }
 .hl_NOTE        { color: var(--orange); font-style: italic; }
 .hl_WARNING     { color: var(--bg);
