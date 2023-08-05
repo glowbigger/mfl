@@ -56,7 +56,7 @@ let fib = fn(n: num) => num {
   return fib(n - 1) + fib(n - 2);
 };
 
-// WARNING: setting max to > 30 or so will make the loop take a long time
+// WARNING setting max to > 30 or so will make the loop take a long time
 let max = 25;
 let i = 1;
 while i <= max do {

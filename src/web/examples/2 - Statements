@@ -26,7 +26,7 @@ if 1 > 0 then
 else
   print 'no';
 
-// WARNING: be sure to use '{' and '}' for multi-line statements
+// WARNING be sure to use '{' and '}' for multi-line statements
 if true then {
   print 'line 1';
   print 'line 2';

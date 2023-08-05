@@ -119,6 +119,12 @@ export default function highlight(source: string): string {
       while (!isAtEnd(current) && currentChar() !== '\n')
         substring += consume();
 
+      // highlight any NOTEs and WARNINGs
+      substring = substring.replace(/NOTE/g,
+                                    `<span class='hl_NOTE'>$&</span>`);
+      substring = substring.replace(/WARNING/g,
+                                    `<span class='hl_WARNING'>$&</span>`);
+
       addSubstring(`<span class='hl_comment'>${substring}</span>`);
       return;
     }
@@ -150,6 +156,12 @@ export default function highlight(source: string): string {
 
         substring += consume();
       }
+
+      // highlight any NOTEs and WARNINGs
+      substring = substring.replace(/NOTE/g,
+                                    `<span class='hl_NOTE'>$&</span>`);
+      substring = substring.replace(/WARNING/g,
+                                    `<span class='hl_WARNING'>$&</span>`);
 
       addSubstring(`<span class='hl_comment'>${substring}</span>`);
       return;

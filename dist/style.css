@@ -140,3 +140,7 @@ body {
 .hl_delimiter   { color: var(--yellow); }
 .hl_keyword     { color: var(--purple); }
 .hl_comment     { color: var(--gray); font-style: italic; }
+.hl_NOTE        { color: var(--orange); font-style: italic; }
+.hl_WARNING     { color: var(--bg);
+                  background-color: var(--orange);
+                  font-style: italic; }
