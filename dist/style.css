@@ -88,7 +88,7 @@ body {
   height: 100%;
   font-family: 'Source Code Pro', monospace;
   font-size: 1vw;
-  white-space: pre;
+  white-space: pre-wrap;
   resize: none;
   padding: 1vmin;
 }

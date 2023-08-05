@@ -43,7 +43,7 @@ function selectExample(): void {
 
 // see highlight.ts
 function applyHighlight(): void {
-  highlighter.innerHTML = highlight(editor.innerHTML);
+  highlighter.innerHTML = highlight(editor.innerText);
 }
 
 function runCode(): void {
@@ -104,6 +104,14 @@ runButton.addEventListener('click', () => {
 editor.spellcheck = false;
 editor.focus();
 editor.blur();
+
+// make the enter key insert a line break instead of the default behavior
+editor.onkeydown = (event) => {
+  if (event.key === 'Enter') {
+    document.execCommand('insertLineBreak')
+    event.preventDefault()
+  }
+};
 
 // highlight the editor code by default and whenever the editor code changes
 editor.addEventListener('input', applyHighlight);

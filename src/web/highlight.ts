@@ -116,7 +116,9 @@ export default function highlight(source: string): string {
     if (source[current + 1] === '/') {
       let substring = '';
 
-      while (!isAtEnd(current) && currentChar() !== '\n')
+      while (!isAtEnd(current) &&
+             currentChar() !== '\n' &&
+             currentChar() !== '\r')
         substring += consume();
 
       // highlight any NOTEs and WARNINGs
@@ -129,7 +131,6 @@ export default function highlight(source: string): string {
       return;
     }
 
-    // TODO multiline comments
     if (source[current + 1] === '*') {
       // initialize the substring with the /*
       let substring = consume() + consume();
@@ -226,13 +227,12 @@ export default function highlight(source: string): string {
         scanDelimiter();
         break;
 
-      // text for tokens that are one or two characters long
+      // tokens that are one character long or start a two character token
       case '!':
       case '=':
       case '<':
       case '>':
         // treated as one character tokens and are unhighlighted
-        // NOTE slightly inefficient, but trivial
         scanCurrentCharacter();
         break;
 
