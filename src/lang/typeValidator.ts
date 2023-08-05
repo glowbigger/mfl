@@ -197,7 +197,7 @@ export default class TypeValidator
 
   visitReturnStmt(stmt: ReturnStmt): void {
     if (this.expectedTypeStack.length === 0)
-      throw new SyntaxTreeNodeError('Cannot return outside of function.',
+      throw new SyntaxTreeNodeError('Cannot return outside of a function.',
                                     stmt);
 
     const returnType: LangType = this.validateExpression(stmt.value);
@@ -327,7 +327,7 @@ export default class TypeValidator
     if (this.tokenTypeMatch(opType, 'BANG')) {
       const rightType: LangType = this.validateExpression(expr.rightExpr);
       if (rightType != 'Bool') {
-        throw new SyntaxTreeNodeError('Operand is not a number.',
+        throw new SyntaxTreeNodeError('Operand is not a bool.',
                                       expr.rightExpr);
       }
       return 'Bool';
@@ -470,7 +470,8 @@ export default class TypeValidator
     // check whether the arity matches the number of arguments
     const params: LangType[] = maybeCallable.parameters;
     if (params.length != args.length) {
-      const errorMsg = 'Number of arguments does not equal number of parameters';
+      const errorMsg =
+        'Number of arguments does not match expected number of parameters.';
       throw new SyntaxTreeNodeError(errorMsg, expr);
     }
 
@@ -520,7 +521,7 @@ export default class TypeValidator
   visitArrayAccessExpr(expr: ArrayAccessExpr): LangType {
     const indexType: LangType = this.validateExpression(expr.index);
     if (indexType !== 'Num')
-      throw new SyntaxTreeNodeError('Expect index number.', expr);
+      throw new SyntaxTreeNodeError('Expect index number.', expr.index);
 
     const arrayType: LangType = this.validateExpression(expr.arrayExpr);
     if (!(arrayType instanceof ArrayLangType))

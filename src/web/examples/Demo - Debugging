@@ -1,18 +1,38 @@
 // Here are some errors to demonstrate the error reporting system.
 
-// error at a range of tokens on one line
-let x: str = 5;
+// declaration type mismatch
+let fun = fn() => num {
+  return 'not a num';
+};
 
-// error at a range of tokens on two consecutive lines
-let x: str =
-5;
+// assignment type mismatch
+let x: num = 5;
+x = 'string';
 
-// error at a range of tokens on more than two lines
-let x: str
-=
-5;
+// illegal break and return statements
+break;
+return 0;
 
-let x:
-str
-=
-5;
+// type mistmatches in operations
+1 + true;
+1 + (fn() => num {return 5;});
+(1 + 'string') - 'string';
+-true;
+!5;
+true or 5;
+len 30;
+
+// undefined variable
+never_declared;
+
+// invalid number of arguments given to a function
+let fun = fn(x: num, y: num) => num { return 0; };
+fun(0, 0, 0);
+fun(0);
+fun();
+
+// invalid initalization and access of array
+[ 'not a num' of 0 ];
+[ 'string', 0, true ];
+4[0];
+[0, 1, 2]['not a num'];

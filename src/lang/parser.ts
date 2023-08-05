@@ -416,10 +416,9 @@ export default class Parser {
     }
     
     if (this.match('LEFT_PAREN')) {
-      const rParen = this.consume();
+      const lParen = this.consume();
       const primaryExpr = this.parseExpression();
-      const lParen =
-
+      const rParen =
         this.expect('RIGHT_PAREN', 'Expect \')\' after expression.');
       return new GroupingExpr(lParen, primaryExpr, rParen);
     }

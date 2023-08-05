@@ -81,8 +81,7 @@ let merge = fn(left: [num], right: [num]) => [num] {
 
 // the actual merge sort implementation using the above helper functions
 let merge_sort = fn(arr: [num]) => [num] {
-  let length = len arr;
-  if length <= 1 then return arr;
+  if (len arr) <= 1 then return arr;
 
   let halves = split(arr);
   let left = merge_sort(halves[0]);

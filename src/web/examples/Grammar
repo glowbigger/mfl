@@ -1,7 +1,7 @@
 /*
 Below is the grammar for the language, written in a BNF-like way.
 
-program             → statement* EOF ;
+program           → statement* EOF ;
 
 // statements
 
@@ -10,17 +10,17 @@ statement         → ifStmt | blockStmt | whileStmt |
 ifStmt            → "if" expression "then" statement ( "else" statement )? ;
 blockStmt         → "{" statement* "}" ;
 whileStmt         → "while" condition then statement
-declarationStmt   → "let" IDENTIFIER ( ":" objectType )? "=" expression ;
+declarationStmt   → "let" IDENTIFIER ( ":" type )? "=" expression ;
 exprStmt          → expression ;
 printStmt         → "print" expression ;
 returnStmt        → "return" expression ;
 
 // types
 
-objectType        → "number" | "string" | "bool" | functionType | arrayType ;
-functionType      → "(" ( ( objectType "," )* objectType )? ")" "=>"
-                    ( objectType | "void" ) ;
-arrayType         → "[" objectType "]"
+type              → "number" | "string" | "bool" | functionType | arrayType ;
+functionType      → "(" ( ( type "," )* type )? ")" "=>"
+                    type ;
+arrayType         → "[" type "]"
 
 // expressions
 
@@ -41,9 +41,9 @@ arrayAccess       → "[" expression "]" ;
 call              → "(" ( expression ( "," expression)* )? ")" ;
 primary           → NUMBER | STRING | "true" | "false" | functionObject |
                     arrayObject | IDENTIFIER | "(" expression ")" ;
-functionObject    → "fn" "(" ( ( IDENTIFIER ":" objectType "," )* 
-                    ( IDENTIFIER ":" objectType) )? ")" 
-                    "=>" objectType statement
+functionObject    → "fn" "(" ( ( IDENTIFIER ":" type "," )* 
+                    ( IDENTIFIER ":" type ) )? ")" 
+                    "=>" type statement ;
 arrayObject       → filledArray | lengthArray ;
 filledArray       → "[" ( expression (( "," expression )* )? )? "]"
 lengthArray       → "[" expression "of" expression "]" ;
