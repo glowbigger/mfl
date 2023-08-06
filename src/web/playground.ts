@@ -97,6 +97,7 @@ runButton.addEventListener('click', () => {
   statusIndicator.innerText = 'Running';
   outputBox.innerText = '...';
   // this forces the page to be redrawn to show the above indicator
+  // NOTE doesn't work in safari ?
   setTimeout(runCode, 1);
 });
 
@@ -105,10 +106,16 @@ editor.spellcheck = false;
 editor.focus();
 editor.blur();
 
-// make the enter key insert a line break instead of the default behavior
 editor.onkeydown = (event) => {
+  // make the enter key insert a line break instead of the default behavior
   if (event.key === 'Enter') {
     document.execCommand('insertLineBreak')
+    event.preventDefault()
+  }
+
+  // make the tab key insert two spaces instead of the default behavior
+  if (event.key === 'Tab') {
+    document.execCommand('insertHTML', false, '  ');
     event.preventDefault()
   }
 };

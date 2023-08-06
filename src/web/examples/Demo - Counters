@@ -1,8 +1,8 @@
 // this function demonstrates that function scopes work properly, even in
 // functions that are returned by other functions
 
-// a function with a counter inside that can only be manipulated by the returned
-// adder function that increments the inner counter by one
+// this is a function with a counter inside that can only be manipulated by the
+// returned adder function that increments the inner counter by one
 let returnAdder = fn () => () => num {
   let counter = 0;
 

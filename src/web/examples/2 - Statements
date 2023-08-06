@@ -3,8 +3,8 @@
 // Print statements use the built-in 'print' keyword.
 print 'hello';
 
-// Variables can be declared with 'let'. The types will be discussed later.
-let x = 69; let y = 'im a string'; let z = true;
+// Variables can be declared with 'let'.
+let x = 3; let y = 'im a string'; let z = true;
 print x; print y; print z;
 
 // Variables can then be assigned.
@@ -14,11 +14,12 @@ print x; print y; print z;
 // Block statements are wrapped in '{' and '}' and have their own scope.
 let x = 'outer'; let y = 'outer';
 {
-  let x = 'inner, not outer';
+  let x = 'inner';
   print x; print y;
 }
+print x; print y;
 
-// If-else statements use a 'if' statement 'then' statement 'else' syntax.
+// If-else statements use a if - then - else syntax.
 if 1 > 0 then print 'yes';
 
 if 1 > 0 then
@@ -28,8 +29,9 @@ else
 
 // WARNING be sure to use '{' and '}' for multi-line statements
 if true then {
-  print 'line 1';
-  print 'line 2';
+  // NOTE these are expression statements that do nothing
+  'line 1'; 
+  'line 2';
 }
 
 // While loops use a 'while' condition 'do' statement syntax.

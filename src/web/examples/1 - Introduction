@@ -4,3 +4,6 @@
 print 'Hello, world!';
 print 'Use the run button above to run any code written here.';
 print 'Use the dropdown menu above to tour the language.';
+
+// WARNING this site has not been tested on mobile browsers
+// NOTE for the best experience, turn dark mode extensions off
