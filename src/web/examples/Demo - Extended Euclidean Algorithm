@@ -44,3 +44,4 @@ let egcd_str = fn(n: num, m: num) => str {
 print egcd_str(7, 5);
 print egcd_str(35, 15);
 print egcd_str(131, 337);
+print egcd_str(4014, 5533);
