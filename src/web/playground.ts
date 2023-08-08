@@ -96,9 +96,10 @@ runButton.addEventListener('click', () => {
   statusIndicator.style.color = YELLOW_HEX;
   statusIndicator.innerText = 'Running';
   outputBox.innerText = '...';
+
   // this forces the page to be redrawn to show the above indicator
-  // NOTE doesn't work in safari ?
-  setTimeout(runCode, 1);
+  // NOTE must use a value higher than ~50 for this to work on safari
+  setTimeout(runCode, 50);
 });
 
 // disable spellcheck in editor, requires refreshing the editor

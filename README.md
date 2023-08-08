@@ -1,6 +1,6 @@
 # MFL
 
-MFL, 'My First Language', is a statically-typed scripting language built as an exercise to learn about programming languages. The TypeScript interpreter for the language is found here, as well as the files for the web playground for the language.
+MFL, 'My First Language', is a statically-typed scripting language built as an exercise to learn about programming languages. The TypeScript interpreter for the language is found here, as well as the files for the web playground.
 
 Rather than reading about it, [try it now in your browser](https://glowbigger.github.io/mfl.html)!
 

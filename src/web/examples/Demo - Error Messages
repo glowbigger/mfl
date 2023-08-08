@@ -28,7 +28,6 @@ never_declared;
 // invalid number of arguments given to a function
 let fun = fn(x: num, y: num) => num { return 0; };
 fun(0, 0, 0);
-fun(0);
 fun();
 
 // invalid initalization and access of array

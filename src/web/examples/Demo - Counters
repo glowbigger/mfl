@@ -1,4 +1,4 @@
-// This function demonstrates that function scopes work properly, even in
+// This file demonstrates that function scopes work properly, even in
 // functions that are returned by other functions.
 
 // This function contains a counter and returns a function that increments it.
